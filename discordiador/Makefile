@@ -13,12 +13,12 @@ SHARED = $(shell find ../shared/obj/*.o)
 O_DIR = ./obj
 CC = gcc
 CFLAGS = -c -o
-LINK = -lcommons
+LINK = -lcommons -lreadline
 
 .PHONY: makeFolder
 
 build: makeShared makeFolder $(OBJ)
-	$(CC) main.c $(OBJ) $(SHARED)
+	$(CC) main.c $(OBJ) $(SHARED) $(LINK)
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) $@ $< $(LINK)
@@ -34,3 +34,5 @@ makeFolder:
 clean:
 	rm -rf obj
 	rm -rf *.out
+	rm -rf *.log
+	make clean -C ../shared
