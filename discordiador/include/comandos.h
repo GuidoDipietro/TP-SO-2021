@@ -1,5 +1,8 @@
 #include <stdint.h>
 
+#ifndef COMMANDOS_H_
+#define COMANDOS_H_
+
 typedef struct {
     uint8_t x;
     uint8_t y;
@@ -11,3 +14,5 @@ void expulsar_tripulante(char*);
 void iniciar_planificacion(char*);
 void pausar_planificacion(char*);
 void obtener_bitacora(char*);
+
+#endif
