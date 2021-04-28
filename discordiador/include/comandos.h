@@ -1,7 +1,7 @@
-#include <stdint.h>
-
 #ifndef COMMANDOS_H_
 #define COMANDOS_H_
+
+#include <stdint.h>
 
 typedef struct {
     uint8_t x;

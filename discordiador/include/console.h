@@ -1,4 +1,3 @@
-
 #ifndef CONSOLE_H_
 #define CONSOLE_H_
 
