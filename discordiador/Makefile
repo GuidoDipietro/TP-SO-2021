@@ -13,7 +13,7 @@ SHARED = $(shell find ../shared/obj/*.o)
 O_DIR = ./obj
 CC = gcc
 CFLAGS = -c -o
-LINK = -lcommons -lreadline
+LINK = -lcommons -lreadline -lpthread
 
 .PHONY: makeFolder
 
@@ -34,5 +34,4 @@ makeFolder:
 clean:
 	rm -rf obj
 	rm -rf *.out
-	rm -rf *.log
 	make clean -C ../shared
