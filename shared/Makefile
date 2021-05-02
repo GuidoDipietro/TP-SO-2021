@@ -11,7 +11,7 @@ HEADERS = $(shell find ./include/*.h)
 O_DIR = ./obj
 CC = gcc
 CFLAGS = -c -o
-LINK = -lcommons
+LINK = -lcommons -lpthread
 
 .PHONY: makeFolder
 
