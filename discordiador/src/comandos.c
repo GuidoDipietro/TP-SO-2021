@@ -1,10 +1,5 @@
 #include "../include/comandos.h"
 #include "../../shared/include/utils.h"
-#include <commons/string.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 
 //
 // Utilidades

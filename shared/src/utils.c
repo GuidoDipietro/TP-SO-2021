@@ -1,7 +1,4 @@
 #include "../include/utils.h"
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdint.h>
 
 void string_split_free(char*** var) {
     char** arr = *var;
@@ -16,4 +13,12 @@ uint16_t string_split_len(char** arr) {
     while(arr[i] != NULL)
         i++;
     return i;
+}
+
+bool config_has_all_properties(t_config* cfg, char** properties) {
+    for(uint8_t i = 0; properties[i] != NULL; i++)
+        if(!config_has_property(cfg, properties[i]))
+            return false;
+
+    return true;
 }

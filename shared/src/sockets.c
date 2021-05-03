@@ -14,8 +14,10 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
     // Recibe los addrinfo
     getaddrinfo(ip, puerto, &hints, &servinfo);
 
+    bool conecto = false;
+
     // Itera por cada addrinfo devuelto
-    for (struct addrinfo *p = servinfo; p!=NULL; p = p->ai_next) {
+    for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next) {
         socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (socket_servidor == -1) // fallo de crear socket
             continue;
@@ -26,15 +28,17 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
             continue;
         }
         // Ni bien conecta uno nos vamos del for
+        conecto = true;
         break;
     }
 
+    if(!conecto)
+        return 0;
+
 	listen(socket_servidor, SOMAXCONN); // Escuchando (hasta SOMAXCONN conexiones simultaneas)
 
-	// Aviso por pantalla...
-    char msg[80];
-    sprintf(msg, "Escuchando en %s:%s (%s)\n", ip, puerto, name);
-    log_trace(logger, msg);
+	// Aviso al logger
+    log_trace(logger, "Escuchando en %s:%s (%s)\n", ip, puerto, name);
 
     freeaddrinfo(servinfo); //free
 
@@ -48,9 +52,7 @@ int esperar_cliente(t_log* logger, const char* name, int socket_servidor) {
 
 	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
-	char msg[80];
-	sprintf(msg, "Cliente conectado (a %s)\n", name);
-	log_info(logger, msg);
+	log_info(logger, "Cliente conectado (a %s)\n", name);
 
 	return socket_cliente;
 }
@@ -71,17 +73,19 @@ int crear_conexion(t_log* logger, const char* server_name, char* ip, char* puert
 	// Crea un socket con la informacion recibida (del primero, suficiente)
 	int socket_cliente = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 
+	// Fallo en crear el socket
+	if(socket_cliente == -1) {
+        log_error(logger, "Error creando el socket para %s:%s", ip, puerto);
+        return 0;
+	}
+
+	// Error conectando
 	if(connect(socket_cliente, servinfo->ai_addr, servinfo->ai_addrlen) == -1) {
-		// Si entra aca fallo la conexion
-		char msg[80];
-		sprintf(msg, "Error al conectar (a %s)\n", server_name);
-		log_error(logger, msg);
-	}
-	else {
-		char msg[80];
-		sprintf(msg, "Cliente conectado en %s:%s (a %s)\n", ip, puerto, server_name);
-		log_info(logger, msg);
-	}
+        log_error(logger, "Error al conectar (a %s)\n", server_name);
+        freeaddrinfo(servinfo);
+        return 0;
+    } else
+		log_info(logger, "Cliente conectado en %s:%s (a %s)\n", ip, puerto, server_name);
 
 	freeaddrinfo(servinfo); //free
 

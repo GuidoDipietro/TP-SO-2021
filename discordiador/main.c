@@ -1,40 +1,28 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <commons/log.h>
-#include <commons/config.h>
-
-#include "../shared/include/sockets.h"
 #include "./include/console.h"
+#include "./include/init.h"
+#include "./include/logs.h"
 
 #define MODULENAME "DIS"
 
+t_log* main_log;
+t_log* main_log_inv;
+
 int main() {
+    config* cfg = malloc(sizeof(config));
+    main_log = log_create("discordiador.log", "DISCORDIADOR", true, LOG_LEVEL_INFO);
+    main_log_inv = log_create("discordiador.log", "DISCORDIADOR", false, LOG_LEVEL_TRACE);
 
-	// main del discordiador
+    // Mirar el return code de cargar_configuracion
+    int i_mongo_store_fd, mi_ram_hq_fd;
 
-	////////////
-	// prueba cliente //
+    if(!cargar_configuracion(cfg) || !generar_conexiones(&i_mongo_store_fd, &mi_ram_hq_fd, cfg)) {
+        cerrar_programa(main_log, main_log_inv, cfg);
+        return -1;
+    }
 
-	t_config* config = config_create("discordiador.config");
+    menu_start();
 
-	t_log* logger = log_create("log.log", MODULENAME, 1, LOG_LEVEL_DEBUG);
-
-	int conexion = crear_conexion(
-			logger,
-			"IMS",
-			config_get_string_value(config,"IP_IMS"),
-			config_get_string_value(config, "PUERTO_IMS")
-	); // eclipse pinta cosas grises aca porque es una ******
-
-	////////////
-
-	menu_start();
-
-	log_info(logger, "Saliendo de DIS");
-	//frees
-	config_destroy(config);
-	log_destroy(logger);
-	liberar_conexion(&conexion);
+    cerrar_programa(main_log, main_log_inv, cfg);
 
 	return EXIT_SUCCESS;
 }

@@ -1,14 +1,6 @@
 #include "../include/console.h"
 #include "../include/comandos.h"
 #include "../../shared/include/utils.h"
-#include <stdint.h>
-#include <readline/history.h>
-#include <readline/readline.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <commons/string.h>
-#include <string.h>
 
 char** completion(const char*, int, int);
 char* generator(const char*, int);

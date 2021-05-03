@@ -2,6 +2,11 @@
 #define COMANDOS_H_
 
 #include <stdint.h>
+#include <commons/string.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct {
     uint8_t x;
