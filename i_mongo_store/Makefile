@@ -13,7 +13,7 @@ SHARED = $(shell find ../shared/obj/*.o)
 O_DIR = ./obj
 CC = gcc
 CFLAGS = -c -o
-LINK = -lcommons -lreadline -lpthread
+LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses
 
 .PHONY: makeFolder
 
