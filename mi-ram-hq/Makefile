@@ -31,6 +31,9 @@ makeFolder:
 		mkdir obj; \
 	fi
 
+valgrind: build
+	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./a.out
+
 clean:
 	rm -rf obj
 	rm -rf *.out

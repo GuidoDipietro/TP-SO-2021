@@ -5,9 +5,15 @@ void cerrar_programa(t_log* main_log, t_log* main_log_inv, config* cfg) {
     log_destroy(main_log);
     log_destroy(main_log_inv);
 
-    free(cfg->IP_MI_RAM_HQ);
-    free(cfg->IP_I_MONGO_STORE);
-    free(cfg->ALGORITMO);
+    if(cfg->IP_MI_RAM_HQ != NULL)
+        free(cfg->IP_MI_RAM_HQ);
+
+    if(cfg->IP_I_MONGO_STORE != NULL)
+        free(cfg->IP_I_MONGO_STORE);
+
+    if(cfg->ALGORITMO != NULL)
+        free(cfg->ALGORITMO);
+
     free(cfg);
 }
 
@@ -37,6 +43,12 @@ uint8_t generar_conexiones(int* i_mongo_store_fd, int* mi_ram_hq_fd, config* cfg
 
 uint8_t cargar_configuracion(config* config) {
     t_config* cfg = config_create("discordiador.config");
+
+    if(cfg == NULL) {
+        log_error(main_log, "No se encontro discordiador.config");
+        return 0;
+    }
+
     char* properties[] = {
             "IP_MI_RAM_HQ",
             "IP_I_MONGO_STORE",
@@ -53,6 +65,7 @@ uint8_t cargar_configuracion(config* config) {
     // Falta alguna propiedad
     if(!config_has_all_properties(cfg, properties)) {
         log_error(main_log, "Propiedades faltantes en el archivo de configuracion");
+        config_destroy(cfg);
         return 0;
     }
 
