@@ -21,9 +21,9 @@ int main() {
 
 	int conexion = crear_conexion(
 			logger,
-			"IMS",
-			config_get_string_value(config,"IP_IMS"),
-			config_get_string_value(config, "PUERTO_IMS")
+			"MRH",
+			config_get_string_value(config,"IP_MI_RAM_HQ"),
+			config_get_string_value(config, "PUERTO_MI_RAM_HQ")
 	); // eclipse pinta cosas grises aca porque es una ******
 
 	////////////

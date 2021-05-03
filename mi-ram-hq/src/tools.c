@@ -1,10 +1,7 @@
 #include "../include/tools.h"
 
-#define BACKLOG 10
+void aaaaaaaa(void) {
 
-int iniciar_server(void){
+    printf("Hola papa... it's time to start this fucking tp.... don't u think?\n");
 
-	printf("Hello world....");
-
-	return 0;
 }
