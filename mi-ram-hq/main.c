@@ -22,7 +22,7 @@ int main() {
 	t_config* config = config_create("mi-ram-hq.config");
 
 	// **** INICIALIZO EL LOGGER ****
-	t_log* logger = log_create("log.log", MODULENAME, 0, LOG_LEVEL_DEBUG);
+	t_log* logger = log_create("mi-ram-hq.log", MODULENAME, 0, LOG_LEVEL_DEBUG);
 
 	// **** OBTENGO INFO DESDE LA CONFIG ****
 	ip = config_get_string_value(config, "IP");
