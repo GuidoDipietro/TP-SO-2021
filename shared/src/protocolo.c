@@ -25,16 +25,20 @@ void free_t_posicion(void* p) {
 
 bool recv_tripulante(int fd, uint8_t* id_tripulante) {
     void* stream = malloc(sizeof(uint8_t));
-    if (recv(fd, stream, sizeof(uint8_t), 0) != sizeof(uint8_t))
+    if (recv(fd, stream, sizeof(uint8_t), 0) != sizeof(uint8_t)) {
+        free(stream);
         return false;
+    }
     deserializar_uint8_t(stream, id_tripulante);
     free(stream);
     return true;
 }
 bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop) {
     void* stream = serializar_tripulante(id_tripulante, cop);
-    if (send(fd, stream, sizeof(op_code)+sizeof(uint8_t), 0) == -1)
+    if (send(fd, stream, sizeof(op_code)+sizeof(uint8_t), 0) == -1) {
+        free(stream);
         return false;
+    }
     free(stream);
     return true;
 }
@@ -54,22 +58,28 @@ void deserializar_uint8_t(void* stream, uint8_t* n) {
 bool recv_patota(int fd, uint8_t* n_tripulantes, char** filepath, t_list** posiciones) {
     // n_tripulantes
     void* stream = malloc(sizeof(uint8_t));
-    if (recv(fd, stream, sizeof(uint8_t), 0) != sizeof(uint8_t))
+    if (recv(fd, stream, sizeof(uint8_t), 0) != sizeof(uint8_t)) {
+        free(stream);
         return false;
+    }
     deserializar_uint8_t(stream, n_tripulantes);
 
     // filepath
     uint8_t len_filepath;
     char* p_filepath;
         // len_filepath
-    if (recv(fd, stream, sizeof(uint8_t), 0) != sizeof(uint8_t))
+    if (recv(fd, stream, sizeof(uint8_t), 0) != sizeof(uint8_t)) {
+        free(stream);
         return false;
+    }
     deserializar_uint8_t(stream, &len_filepath);
         // filepath en si
     free(stream);
     stream = malloc(len_filepath+1);
-    if (recv(fd, stream, len_filepath+1, 0) != len_filepath+1)
+    if (recv(fd, stream, len_filepath+1, 0) != len_filepath+1) {
+        free(stream);
         return false;
+    }
     deserializar_string(stream, &p_filepath, len_filepath);
     *filepath = p_filepath;
 
@@ -78,8 +88,10 @@ bool recv_patota(int fd, uint8_t* n_tripulantes, char** filepath, t_list** posic
     free(stream);
     size_t sz_stream_posiciones = 2*sizeof(uint8_t)*(*n_tripulantes);
     stream = malloc(sz_stream_posiciones);
-    if (recv(fd, stream, sz_stream_posiciones, 0) != sz_stream_posiciones)
+    if (recv(fd, stream, sz_stream_posiciones, 0) != sz_stream_posiciones) {
+        free(stream);
         return false;
+    }
     p_posiciones = deserializar_t_list_posiciones(stream, *n_tripulantes);
     *posiciones = p_posiciones;
 
@@ -96,8 +108,10 @@ bool send_patota(int fd, uint8_t n_tripulantes, char* filepath, t_list* posicion
         sizeof(uint8_t)+strlen(filepath)+1+     // strlen(filepath) + filepath
         sz_stream_posiciones                    // stream_posiciones
     ;
-    if (send(fd, stream, size, 0) == -1)
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
         return false;
+    }
     free(stream);
     return true;
 }
@@ -161,26 +175,6 @@ void deserializar_string(void* stream, char** str, uint8_t len) {
     memcpy(out, stream, len+1);
     *str = out;
 }
-// void deserializar_iniciar_patota(void* stream, uint8_t* n_tripulantes, char** filepath, t_list** posiciones) {
-//     memcpy(n_tripulantes, stream, sizeof(uint8_t));
-
-//     uint8_t len_filepath;
-//     memcpy(&len_filepath, stream+sizeof(uint8_t), sizeof(uint8_t));
-//     char* p_filepath = malloc(len_filepath+1);
-//     memcpy(p_filepath, stream+sizeof(uint8_t)+sizeof(uint8_t), len_filepath+1);
-//     *filepath = p_filepath;
-
-//     size_t sz_stream_posiciones = 2*sizeof(uint8_t)*(*n_tripulantes);
-//     void* stream_posiciones = malloc(sz_stream_posiciones);
-//     memcpy(
-//         stream_posiciones,
-//         stream+sizeof(uint8_t)+sizeof(uint8_t)+len_filepath+1,
-//         sz_stream_posiciones
-//     );
-//     t_list* p_posiciones = deserializar_t_list_posiciones(stream_posiciones, *n_tripulantes);
-//     *posiciones = p_posiciones;
-//     free(stream_posiciones);
-// }
 
 // INICIAR_SELF_EN_PATOTA //
 
@@ -202,38 +196,3 @@ void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, u
 // faltan
 
 /// 
-
-// Ejemplo de implementacion del RECV en MRH:
-// bool recv_mi_ram_hq(int fd) {
-//     op_code cop = recibir_cop(fd);
-//     switch (cop) {
-//         case EXPULSAR_TRIPULANTE:
-//         {
-//             uint8_t id_tripulante;
-//             void* stream = NULL;// cambiar por recibir el payload
-//             deserializar_tripulante(stream, &id_tripulante);
-//             // hacer cosas con eso
-//         }
-//             break;
-//         case INICIAR_PATOTA:
-//         {
-//             uint8_t n_tripulantes;
-//             char* filepath;
-//             t_list* posiciones;
-//             void* stream = NULL;// cambiar por recibir el payload
-//             deserializar_iniciar_patota(stream, &n_tripulantes, &filepath, &posiciones);
-//             // hacer cosas con eso
-//         }
-//             break;
-//         // etc.
-//         case -1:
-//             puts("sedesconecto este loko");
-//             close(fd);
-//             // cosas
-//             break;
-//         default:
-//             puts("no no, problemas\n");
-//             // cosas
-//             break;
-//     }
-// }
