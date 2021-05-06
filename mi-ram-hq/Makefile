@@ -12,16 +12,18 @@ SHARED = $(shell find ../shared/obj/*.o)
 
 O_DIR = ./obj
 CC = gcc
-CFLAGS = -c -o
+
+CFLAGS = -c
+
 LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses
 
 .PHONY: makeFolder
 
 build: makeShared makeFolder $(OBJ)
-	$(CC) main.c $(OBJ) $(SHARED) $(LINK) -g
+	$(CC) main.c $(OBJ) $(SHARED) $(LINK)
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
-	$(CC) $(CFLAGS) $@ $< $(LINK) -g
+	$(CC) $(CFLAGS) -o $@ $< $(LINK)
 
 makeShared:
 	make -C ../shared
@@ -31,7 +33,10 @@ makeFolder:
 		mkdir obj; \
 	fi
 
-valgrind: build
+debug: CFLAGS+=-g
+debug: build
+
+valgrind: debug build
 	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./a.out
 
 clean:
