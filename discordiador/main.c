@@ -27,7 +27,7 @@ int main() {
 
     if(!cargar_configuracion(cfg) || !generar_conexiones(&i_mongo_store_fd, &mi_ram_hq_fd, cfg)) {
         cerrar_programa(main_log, main_log_inv, cfg);
-        return -1;
+        return EXIT_FAILURE;
     }
 
     menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);

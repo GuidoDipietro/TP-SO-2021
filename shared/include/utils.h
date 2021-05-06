@@ -6,9 +6,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
+#include <commons/string.h>
+#include "protocolo.h"
 
 void string_split_free(char***);
 uint16_t string_split_len(char**);
 bool config_has_all_properties(t_config*, char**);
+t_list* extraer_posiciones(char**);
+void config_free_array_value(char***);
 
 #endif
