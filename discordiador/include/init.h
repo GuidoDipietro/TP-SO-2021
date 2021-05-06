@@ -19,9 +19,9 @@ typedef struct {
     uint16_t QUANTUM;
     uint16_t DURACION_SABOTAJE;
     uint16_t RETARDO_CICLO_CPU;
-} config;
+} t_config_disc;
 
-uint8_t cargar_configuracion(config*);
-uint8_t generar_conexiones(int*, int*, config*);
-void cerrar_programa(t_log*, t_log*, config*);
+uint8_t cargar_configuracion(t_config_disc*);
+uint8_t generar_conexiones(int*, int*, t_config_disc*);
+void cerrar_programa(t_log*, t_log*, t_config_disc*);
 #endif

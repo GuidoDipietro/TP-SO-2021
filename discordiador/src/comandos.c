@@ -1,7 +1,4 @@
 #include "../include/comandos.h"
-#include "../../shared/include/utils.h"
-#include "../../shared/include/protocolo.h"
-#include "../include/logs.h"
 
 //
 // Utilidades
@@ -59,85 +56,62 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         return;
     }
 
-    char** args_arr = string_split(args, " ");
-
-    // Contamos cuantos argumentos hay
+    // args_arr[0] -> Cantidad de tripulantes a inicializar
+    // args_arr[1] -> Path al archivo de tareas
+    // args_arr[2] -> String con las posiciones (se debe parsear)
+    char** args_arr = string_n_split(args, 3, " ");
     uint8_t i = string_split_len(args_arr);
-
-    uint8_t cantidad_tripulantes;
-    bool error = false;
 
     if(i < 2) {
         // No hay suficientes argumentos
-        error = true;
         mensaje_error_con_args("INICIAR_PATOTA", "<int> <string> {<int>|<int>}*");
-    }
-
-    if(!error) {
-        cantidad_tripulantes = atoi(args_arr[0]);
-
-        if(cantidad_tripulantes == 0) {
-            // cantidad no puede ser 0 / esta mal inicializado
-            error = true;
-            printf("\nFormato invalido o cantidad debe ser mayor que 0.\n");
-        } else if(i > cantidad_tripulantes + 2) {
-            // hay mas posiciones que tripulantes inicializados
-            error = true;
-            printf("\nHay mas posiciones que tripulantes inicializados.\n");
-        }
-    }
-
-    if(error) {
         string_split_free(&args_arr);
         return;
     }
 
-    // Ahora pasamos a asignar las posiciones de cada uno de los tripulantes inicializados
+    t_list* lista_posiciones;
+    uint8_t cantidad_tripulantes = atoi(args_arr[0]);
 
-    t_posicion* posiciones[cantidad_tripulantes];
+    if(args_arr[2] != NULL) {
+        bool error = false;
+        char** init_pos = string_split(args_arr[2], " ");
+        uint8_t cant_args = string_split_len(init_pos);
 
-    // Inicializamos en 0
-    for(int j = 0; j < cantidad_tripulantes; j++) {
-        posiciones[j] = malloc(sizeof(t_posicion));
-        posiciones[j]->x = 0;
-        posiciones[j]->y = 0;
-    }
-
-    for(int j = 2; j < i; j++) {
-        char** pos_arr = string_split(args_arr[j], "|");
-
-        if(string_split_len(pos_arr) != 2) {
-            printf("\nFormato incorrecto\n");
+        if(cant_args == 0) {
+            // cantidad no puede ser 0 / esta mal inicializado
             error = true;
-        } else if(!(solo_numeros(pos_arr[0]) && solo_numeros(pos_arr[1]))) {
-            printf("\nLa posicion del tripulante debe estar compuesta de numeros.\n");
+            printf("\nFormato invalido o cantidad debe ser mayor que 0.\n");
+        } else if(cant_args > cantidad_tripulantes) {
+            // hay mas posiciones que tripulantes inicializados
             error = true;
+            printf("\nHay mas posiciones que tripulantes inicializados.\n");
         }
 
         if(error) {
             string_split_free(&args_arr);
-            string_split_free(&pos_arr);
+            string_split_free(&init_pos);
             return;
         }
 
-        posiciones[j - 2]->x = atoi(pos_arr[0]);
-        posiciones[j - 2]->y = atoi(pos_arr[1]);
-        string_split_free(&pos_arr);
+        lista_posiciones = extraer_posiciones(init_pos);
+        string_split_free(&init_pos);
+    } else
+        lista_posiciones = list_create();
+
+    // Agregamos los que faltan para que esten todos en 0
+    while(list_size(lista_posiciones) != cantidad_tripulantes) {
+        t_posicion* n = malloc(sizeof(t_posicion));
+        n->x = 0;
+        n->y = 0;
+        list_add(lista_posiciones, n);
     }
-
-    // Ponemos todos los tripulantes en una t_list para enviar al serializador
-
-    t_list* lista_posiciones = list_create();
-    for(int j= 0; j < cantidad_tripulantes; j++)
-        list_add(lista_posiciones, posiciones[j]);
 
     bool ret_code = send_patota(*i_mongo_store_fd, cantidad_tripulantes, args_arr[1], lista_posiciones);
     if(!ret_code)
         log_error(main_log, "El envio de la patota al I_MONGO_STORE fallo");
 
-    // Limpiamos la memoria utilizada
-    list_destroy_and_destroy_elements(lista_posiciones, free_t_posicion);
     string_split_free(&args_arr);
+    list_destroy_and_destroy_elements(lista_posiciones, free_t_posicion);
 }
 
 void listar_tripulantes(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {

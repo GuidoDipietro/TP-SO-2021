@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../shared/include/utils.h"
+#include "../../shared/include/protocolo.h"
+#include "../include/logs.h"
+
 void iniciar_patota(char*, int*, int*);
 void listar_tripulantes(char*, int*, int*);
 void expulsar_tripulante(char*, int*, int*);

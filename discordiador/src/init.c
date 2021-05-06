@@ -1,7 +1,7 @@
 #include "../include/init.h"
 #include "../include/logs.h"
 
-void cerrar_programa(t_log* main_log, t_log* main_log_inv, config* cfg) {
+void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
     log_destroy(main_log);
     log_destroy(main_log_inv);
 
@@ -17,7 +17,7 @@ void cerrar_programa(t_log* main_log, t_log* main_log_inv, config* cfg) {
     free(cfg);
 }
 
-uint8_t generar_conexiones(int* i_mongo_store_fd, int* mi_ram_hq_fd, config* cfg) {
+uint8_t generar_conexiones(int* i_mongo_store_fd, int* mi_ram_hq_fd, t_config_disc* cfg) {
     char* port_i_mongo_store = string_itoa(cfg->PUERTO_I_MONGO_STORE);
     char* port_mi_ram_hq = string_itoa(cfg->PUERTO_MI_RAM_HQ);
 
@@ -41,7 +41,7 @@ uint8_t generar_conexiones(int* i_mongo_store_fd, int* mi_ram_hq_fd, config* cfg
     return *i_mongo_store_fd != 0 && *mi_ram_hq_fd != 0;
 }
 
-uint8_t cargar_configuracion(config* config) {
+uint8_t cargar_configuracion(t_config_disc* config) {
     t_config* cfg = config_create("discordiador.config");
 
     if(cfg == NULL) {
