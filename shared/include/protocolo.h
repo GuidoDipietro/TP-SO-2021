@@ -13,7 +13,7 @@
 //////
 
 typedef enum {
-    EXPULSAR_TRIPULANTE,
+    EXPULSAR_TRIPULANTE=1,
     INICIAR_PATOTA,
     INICIAR_SELF_EN_PATOTA,
     SOLICITAR_TAREA,
@@ -47,6 +47,8 @@ typedef struct {
 
 // no se si los fd son uint32_t o que son, los dejo como 'int' por ahora
 static op_code recibir_cop(int fd);
+void print_t_posicion(void* p);
+void free_t_posicion(void* p);
 
 // GUIDO ESTUVO AQUI
 
@@ -62,16 +64,19 @@ static op_code recibir_cop(int fd);
 // EXPULSAR_TRIPULANTE //
 // ATENCION_SABOTAJE //
 // RESOLUCION_SABOTAJE //
-void* serializar_expulsar_tripulante(uint8_t id_tripulante);
-void* serializar_atencion_sabotaje(uint8_t id_tripulante);
-void* serializar_resolucion_sabotaje(uint8_t id_tripulante);
-void deserializar_tripulante(void* stream, uint8_t* id_tripulante);
+bool recv_tripulante(int fd, uint8_t* id_tripulante);
+bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop);
+void* serializar_tripulante(uint8_t id_tripulante, op_code cop);
+void deserializar_uint8_t(void* stream, uint8_t* id_tripulante);
 
 // INICIAR_PATOTA //
+bool send_patota(int fd, uint8_t n_tripulantes, char* filepath, t_list* posiciones);
+bool recv_patota(int fd, uint8_t* n_tripulantes, char** filepath, t_list** posiciones);
 static void* serializar_t_list_posiciones(t_list*);
-static t_list* deserializar_t_list_posiciones(void*);
 void* serializar_iniciar_patota(uint8_t n_tripulantes, char* filepath, t_list* posiciones);
-void deserializar_iniciar_patota(void* stream, uint8_t* n_tripulantes, char** filepath, t_list** posiciones);
+// void deserializar_iniciar_patota(void* stream, uint8_t* n_tripulantes, char** filepath, t_list** posiciones);
+void deserializar_string(void* stream, char** str, uint8_t len);
+t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements);
 
 ////// faltan
 
