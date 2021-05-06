@@ -34,16 +34,6 @@ static void mensaje_error_sin_args(char* cmd) {
     printf("\nEl comando %s no acepta argumentos\n", cmd);
 }
 
-static bool solo_numeros(char* str) {
-    uint8_t i = 0;
-    while(str[i] != '\0') {
-        if(str[i] < 48 || str[i] > 57)
-            return false;
-        i++;
-    }
-    return true;
-}
-
 //
 // Comandos
 //

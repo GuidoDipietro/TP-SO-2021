@@ -5,7 +5,7 @@
 
 #include "../shared/include/sockets.h"
 #include "include/graphic.h"
-#include "include/init.h"
+#include "include/init_mrhq.h"
 
 #define MODULENAME "MRH"
 #define SERVERNAME "MRH_SERVER"
@@ -39,7 +39,7 @@ int main() {
                 logger,
                 MODULENAME,
                 "127.0.0.1",
-                cfg->puerto
+                cfg->PUERTO
         );
 
         log_info(logger, "Servidor MRH inicializado");

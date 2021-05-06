@@ -1,4 +1,4 @@
-#include "../include/init.h"
+#include "../include/init_disc.h"
 #include "../include/logs.h"
 
 void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {

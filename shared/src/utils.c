@@ -10,14 +10,6 @@ static bool solo_numeros(char* str) {
     return true;
 }
 
-void string_split_free(char*** var) {
-    char** arr = *var;
-
-    for(uint8_t i = 0; arr[i] != NULL; i++)
-        free(arr[i]);
-    free(*var);
-}
-
 uint16_t string_split_len(char** arr) {
     uint8_t i = 0;
     while(arr[i] != NULL)
@@ -31,18 +23,6 @@ bool config_has_all_properties(t_config* cfg, char** properties) {
             return false;
 
     return true;
-}
-
-void config_free_array_value(char*** arr) {
-    char** a = *arr;
-    int i = 0;
-
-    while(a[i] != NULL) {
-        free(a[i]);
-        i++;
-    }
-
-    free(a);
 }
 
 // El array tiene que estar terminado en NULL

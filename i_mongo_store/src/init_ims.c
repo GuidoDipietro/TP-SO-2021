@@ -1,4 +1,4 @@
-#include "../include/init.h"
+#include "../include/init_ims.h"
 
 uint8_t cargar_configuracion(t_config_ims* config, t_log* log) {
     t_config* cfg = config_create("i_mongo_store.config");

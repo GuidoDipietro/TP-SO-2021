@@ -3,7 +3,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 
-#include "include/init.h"
+#include "include/init_ims.h"
 
 #include "../shared/include/utils.h"
 #include "../shared/include/sockets.h"

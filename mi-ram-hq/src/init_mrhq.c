@@ -1,4 +1,4 @@
-#include "../include/init.h"
+#include "../include/init_mrhq.h"
 
 uint8_t cargar_configuracion(t_config_mrhq* config, t_log* log) {
     t_config* cfg = config_create("mi-ram-hq.config");

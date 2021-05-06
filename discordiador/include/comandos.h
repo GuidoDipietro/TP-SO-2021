@@ -11,6 +11,7 @@
 
 #include "../../shared/include/utils.h"
 #include "../../shared/include/protocolo.h"
+#include "../../shared/include/frees.h"
 #include "../include/logs.h"
 
 void iniciar_patota(char*, int*, int*);

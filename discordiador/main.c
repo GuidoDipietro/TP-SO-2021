@@ -1,5 +1,5 @@
 #include "./include/console.h"
-#include "./include/init.h"
+#include "./include/init_disc.h"
 #include "./include/logs.h"
 #include "../shared/include/protocolo.h"
 
@@ -25,10 +25,10 @@ int main() {
     // Mirar el return code de cargar_configuracion
     int i_mongo_store_fd, mi_ram_hq_fd;
 
-    /*if(!cargar_configuracion(cfg) || !generar_conexiones(&i_mongo_store_fd, &mi_ram_hq_fd, cfg)) {
+    if(!cargar_configuracion(cfg) || !generar_conexiones(&i_mongo_store_fd, &mi_ram_hq_fd, cfg)) {
         cerrar_programa(main_log, main_log_inv, cfg);
         return EXIT_FAILURE;
-    }*/
+    }
 
     menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
 
