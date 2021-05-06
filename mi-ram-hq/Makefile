@@ -18,10 +18,10 @@ LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses
 .PHONY: makeFolder
 
 build: makeShared makeFolder $(OBJ)
-	$(CC) main.c $(OBJ) $(SHARED) $(LINK)
+	$(CC) main.c $(OBJ) $(SHARED) $(LINK) -g
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
-	$(CC) $(CFLAGS) $@ $< $(LINK)
+	$(CC) $(CFLAGS) $@ $< $(LINK) -g
 
 makeShared:
 	make -C ../shared
