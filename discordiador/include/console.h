@@ -11,11 +11,11 @@
 #include <string.h>
 
 typedef struct {
-    void (*func)(char*);
+    void (*func)(char*, int*, int*);
     char* cmdName;
 } commandMap;
 
 // Inicia el menu
-void menu_start();
+void menu_start(int*, int*);
 
 #endif

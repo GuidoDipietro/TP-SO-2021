@@ -4,11 +4,7 @@
 
 char** completion(const char*, int, int);
 char* generator(const char*, int);
-static void parse_command(char*);
-
-static void no_implementado(char* args) {
-    printf("\nComando no implementado\n");
-}
+static void parse_command(char*, int*, int*);
 
 // Este array es para la libreria readline
 char* commands[] = {
@@ -31,7 +27,7 @@ commandMap cmdMap[] = {
         NULL
 };
 
-void menu_start() {
+void menu_start(int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     rl_bind_key('\t', rl_complete);
     rl_attempted_completion_function = completion;
 
@@ -48,7 +44,7 @@ void menu_start() {
 
         // Si no hay que salir, parseamos el comando
         if(!isExit)
-            parse_command(input);
+            parse_command(input, i_mongo_store_fd, mi_ram_hq_fd);
 
         free(input);
     } while(!isExit);
@@ -56,14 +52,14 @@ void menu_start() {
     rl_clear_history();
 }
 
-void parse_command(char* string) {
+void parse_command(char* string, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     char** split_cmd = string_n_split(string, 2, " ");
     // Si no hay argumentos split_cmd[1] es NULL
 
     // Compara el comando con cada uno de los comandos creados en cmds[]
     for(uint8_t i = 0; cmdMap[i].cmdName != NULL; i++) {
         if(strcmp(split_cmd[0], cmdMap[i].cmdName) == 0) {
-            (cmdMap[i].func)(split_cmd[1]);
+            (cmdMap[i].func)(split_cmd[1], i_mongo_store_fd, mi_ram_hq_fd);
             string_split_free(&split_cmd);
             return;
         }

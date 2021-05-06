@@ -9,11 +9,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-void iniciar_patota(char*);
-void listar_tripulantes(char*);
-void expulsar_tripulante(char*);
-void iniciar_planificacion(char*);
-void pausar_planificacion(char*);
-void obtener_bitacora(char*);
+void iniciar_patota(char*, int*, int*);
+void listar_tripulantes(char*, int*, int*);
+void expulsar_tripulante(char*, int*, int*);
+void iniciar_planificacion(char*, int*, int*);
+void pausar_planificacion(char*, int*, int*);
+void obtener_bitacora(char*, int*, int*);
 
 #endif

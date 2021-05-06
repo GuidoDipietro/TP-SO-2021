@@ -1,6 +1,7 @@
 #include "../include/comandos.h"
 #include "../../shared/include/utils.h"
 #include "../../shared/include/protocolo.h"
+#include "../include/logs.h"
 
 //
 // Utilidades
@@ -52,7 +53,7 @@ static bool solo_numeros(char* str) {
 
 // INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4
 // Estos chequeos podrian ponerse en otra funcion. Por ahora quedan aca.
-void iniciar_patota(char *args) {
+void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args == NULL) {
         mensaje_error_con_args("INICIAR_PATOTA", "<int> <string> {<int>|<int>}*");
         return;
@@ -63,7 +64,7 @@ void iniciar_patota(char *args) {
     // Contamos cuantos argumentos hay
     uint8_t i = string_split_len(args_arr);
 
-    uint8_t cantidad;
+    uint8_t cantidad_tripulantes;
     bool error = false;
 
     if(i < 2) {
@@ -73,13 +74,13 @@ void iniciar_patota(char *args) {
     }
 
     if(!error) {
-        cantidad = atoi(args_arr[0]);
+        cantidad_tripulantes = atoi(args_arr[0]);
 
-        if(cantidad == 0) {
+        if(cantidad_tripulantes == 0) {
             // cantidad no puede ser 0 / esta mal inicializado
             error = true;
             printf("\nFormato invalido o cantidad debe ser mayor que 0.\n");
-        } else if(i > cantidad + 2) {
+        } else if(i > cantidad_tripulantes + 2) {
             // hay mas posiciones que tripulantes inicializados
             error = true;
             printf("\nHay mas posiciones que tripulantes inicializados.\n");
@@ -93,10 +94,10 @@ void iniciar_patota(char *args) {
 
     // Ahora pasamos a asignar las posiciones de cada uno de los tripulantes inicializados
 
-    t_posicion* posiciones[cantidad];
+    t_posicion* posiciones[cantidad_tripulantes];
 
     // Inicializamos en 0
-    for(int j = 0; j < cantidad; j++) {
+    for(int j = 0; j < cantidad_tripulantes; j++) {
         posiciones[j] = malloc(sizeof(t_posicion));
         posiciones[j]->x = 0;
         posiciones[j]->y = 0;
@@ -126,18 +127,20 @@ void iniciar_patota(char *args) {
 
     // Ponemos todos los tripulantes en una t_list para enviar al serializador
 
-    t_list* lista = list_create();
-    for(int j= 0; j < cantidad; j++)
-        list_add(lista, posiciones[j]);
+    t_list* lista_posiciones = list_create();
+    for(int j= 0; j < cantidad_tripulantes; j++)
+        list_add(lista_posiciones, posiciones[j]);
 
-    // Imprimimos, borrar esto luego
-    list_iterate(lista, print_t_posicion);
+    bool ret_code = send_patota(*i_mongo_store_fd, cantidad_tripulantes, args_arr[1], lista_posiciones);
+    if(!ret_code)
+        log_error(main_log, "El envio de la patota al I_MONGO_STORE fallo");
 
-    list_destroy_and_destroy_elements(lista, free_t_posicion);
+    // Limpiamos la memoria utilizada
+    list_destroy_and_destroy_elements(lista_posiciones, free_t_posicion);
     string_split_free(&args_arr);
 }
 
-void listar_tripulantes(char* args) {
+void listar_tripulantes(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args != NULL) {
         mensaje_error_sin_args("LISTAR_TRIPULANTES");
         return;
@@ -146,7 +149,7 @@ void listar_tripulantes(char* args) {
     printf("\nComando LISTAR_TRIPULANTES\n");
 }
 
-void expulsar_tripulante(char* args) {
+void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     char* args_arr = argumento_unico(args);
 
     if(args_arr == NULL) {
@@ -158,7 +161,7 @@ void expulsar_tripulante(char* args) {
     free(args_arr);
 }
 
-void iniciar_planificacion(char* args) {
+void iniciar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args != NULL) {
         mensaje_error_sin_args("INICIAR_PLANIFICACION");
         return;
@@ -167,7 +170,7 @@ void iniciar_planificacion(char* args) {
     printf("\nComando INICIAR_PLANIFICACION\n");
 }
 
-void pausar_planificacion(char* args) {
+void pausar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args != NULL) {
         mensaje_error_sin_args("PAUSAR_PLANIFICACION");
         return;
@@ -176,7 +179,7 @@ void pausar_planificacion(char* args) {
     printf("\nComando PAUSAR_PLANIFICACION\n");
 }
 
-void obtener_bitacora(char* args) {
+void obtener_bitacora(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     char* args_arr = argumento_unico(args);
 
     if(args_arr == NULL) {
