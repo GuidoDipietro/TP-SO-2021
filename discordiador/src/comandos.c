@@ -1,5 +1,6 @@
 #include "../include/comandos.h"
 #include "../../shared/include/utils.h"
+#include "../../shared/include/protocolo.h"
 
 //
 // Utilidades
@@ -92,11 +93,13 @@ void iniciar_patota(char *args) {
 
     // Ahora pasamos a asignar las posiciones de cada uno de los tripulantes inicializados
 
-    posicionTripulante posiciones[cantidad];
+    t_posicion* posiciones[cantidad];
+
     // Inicializamos en 0
     for(int j = 0; j < cantidad; j++) {
-        posiciones[j].x = 0;
-        posiciones[j].y = 0;
+        posiciones[j] = malloc(sizeof(t_posicion));
+        posiciones[j]->x = 0;
+        posiciones[j]->y = 0;
     }
 
     for(int j = 2; j < i; j++) {
@@ -116,22 +119,21 @@ void iniciar_patota(char *args) {
             return;
         }
 
-        posiciones[j - 2].x = atoi(pos_arr[0]);
-        posiciones[j - 2].y = atoi(pos_arr[1]);
+        posiciones[j - 2]->x = atoi(pos_arr[0]);
+        posiciones[j - 2]->y = atoi(pos_arr[1]);
         string_split_free(&pos_arr);
     }
 
-    // Imprimimos cosas. Borrar esto
+    // Ponemos todos los tripulantes en una t_list para enviar al serializador
 
-    printf("\nComando INICIAR_PATOTA\n");
-    printf("%d - %s", cantidad, args_arr[1]);
+    t_list* lista = list_create();
+    for(int j= 0; j < cantidad; j++)
+        list_add(lista, posiciones[j]);
 
-    for(int j = 0; j < cantidad; j++)
-        printf("\n %d | %d", posiciones[j].x, posiciones[j].y);
-    printf("\n");
+    // Imprimimos, borrar esto luego
+    list_iterate(lista, print_t_posicion);
 
-    // Fin impresion
-
+    list_destroy_and_destroy_elements(lista, free_t_posicion);
     string_split_free(&args_arr);
 }
 
