@@ -29,7 +29,7 @@ int main() {
     }
 
     // Aca encapsule codigo que habia antes. Por favor poner esto en funciones para que ande bien, gracias
-    if(false){
+    // if(false){
         NIVEL* among_os_nivel;
         int tamanio_nivel[2];
 
@@ -39,7 +39,7 @@ int main() {
                 logger,
                 MODULENAME,
                 "127.0.0.1",
-                cfg->PUERTO
+                string_itoa(cfg->PUERTO)
         );
 
         log_info(logger, "Servidor MRH inicializado");
@@ -86,7 +86,7 @@ int main() {
         liberar_conexion(&server_mrh);
 
         nivel_gui_terminar();
-    }
+    // }
 
     cerrar_programa(cfg, logger);
 
