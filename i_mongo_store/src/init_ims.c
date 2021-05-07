@@ -38,6 +38,52 @@ uint8_t cargar_configuracion(t_config_ims* config, t_log* log) {
     return 1;
 }
 
+bool crear_servidor(int* fd, char* name, t_config_ims* cfg, t_log* logger) {
+    *fd = iniciar_servidor(
+            logger,
+            name,
+            "127.0.0.1",
+            string_itoa(cfg->PUERTO)
+    );
+    log_info(logger, "Server listo en IMS");
+    return (*fd != -1);
+}
+
+void server_escuchar(t_log* logger, char* server_name, int server_fd) {
+    int cliente_fd = esperar_cliente(logger, server_name, server_fd);
+
+    // Mientras la conexion este abierta
+    op_code cop;
+    while (cliente_fd != -1) {
+        if (recv(cliente_fd, &cop, sizeof(op_code), 0) == 0)
+            break;
+
+        switch (cop) {
+            case OBTENER_BITACORA:
+                break;
+            case MOVIMIENTO:
+            case INICIO_TAREA:
+            case FIN_TAREA:
+            case ATENCION_SABOTAJE:
+            case RESOLUCION_SABOTAJE:
+            case GENERAR:
+            case CONSUMIR:
+            case DESCARTAR_BASURA:
+            case INICIO_FSCK:
+                break;
+            case -1:
+                log_info(logger, "cliente desconectado...");
+                break;
+            default:
+                log_error(logger, "Algo anduvo mal en el server de IMS (que le mandaron?)");
+                return;
+        }
+    }
+
+    // Cliente se va
+    log_warning(logger, "Cliente desconectado de %s. Esperando otro cliente...", server_name);
+}
+
 void cerrar_programa(t_log* log, t_config_ims* cfg) {
     log_destroy(log);
 
