@@ -54,3 +54,9 @@ t_list* extraer_posiciones(char** str_posiciones) {
 
     return lista;
 }
+
+bool string_is_number(char* str) {
+    for (int i=0; str[i]!='\0'; i++)
+        if (!isdigit(str[i])) return false;
+    return true;
+}
