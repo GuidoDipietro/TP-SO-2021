@@ -20,7 +20,7 @@ LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses
 .PHONY: makeFolder
 
 build: makeShared makeFolder $(OBJ)
-	$(CC) main.c $(OBJ) $(SHARED) $(LINK)
+	$(CC) main.c -o discordiador.out $(OBJ) $(SHARED) $(LINK)
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $< $(LINK)
