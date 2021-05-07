@@ -59,6 +59,28 @@ void server_escuchar(t_log* logger, char* server_name, int server_fd) {
             break;
 
         switch (cop) {
+            // ESTO ES DEL MRH, ESTA ACA POR PRUEBAS TEMPORALMENTE
+            case EXPULSAR_TRIPULANTE:;
+                uint8_t tripulante;
+                if (recv_tripulante(cliente_fd, &tripulante))
+                    log_info(logger, "expulsaron al tripulante %d", tripulante);
+                else
+                    log_error(logger, "Error recibiendo tripulante");
+                break;
+            case INICIAR_PATOTA:;
+                uint8_t n_tripulantes;
+                char* filepath;
+                t_list* posiciones;
+                if (recv_patota(cliente_fd, &n_tripulantes, &filepath, &posiciones)) {
+                    log_info(logger, "iniciaron a la patota %d, tareas en %s", n_tripulantes, filepath);
+                    list_iterate(posiciones, print_t_posicion);
+                }
+                else
+                    log_error(logger, "Error recibiendo patota");
+                list_destroy_and_destroy_elements(posiciones, free_t_posicion);
+                free(filepath);
+                break;
+            // FIN COSAS DEL MRH
             case OBTENER_BITACORA:
                 break;
             case MOVIMIENTO:

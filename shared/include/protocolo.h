@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
+#include "utils.h"
 
 //////
 
@@ -69,7 +70,9 @@ bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop);
 void* serializar_tripulante(uint8_t id_tripulante, op_code cop);
 void deserializar_uint8_t(void* stream, uint8_t* id_tripulante);
 
-// INICIAR_PATOTA //
+// INICIAR_PATOTA // -> hay que rehacerlas
+/*static*/void* serializar_contenido_archivo_tareas(FILE* file);
+
 bool send_patota(int fd, uint8_t n_tripulantes, char* filepath, t_list* posiciones);
 bool recv_patota(int fd, uint8_t* n_tripulantes, char** filepath, t_list** posiciones);
 static void* serializar_t_list_posiciones(t_list*);
