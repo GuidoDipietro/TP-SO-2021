@@ -58,7 +58,7 @@ void cerrar_programa(t_config_mrhq* cfg, t_log* log) {
     free(cfg);
 }
 
-void server_escuchar(t_log* logger, char* server_name, int server_socket){
+void server_escuchar(t_log* logger, char* server_name, int server_socket, NIVEL* nivel){
 	int cliente_socket = esperar_cliente(logger, server_name, server_socket);
 
 	op_code cop;
@@ -73,8 +73,9 @@ void server_escuchar(t_log* logger, char* server_name, int server_socket){
 				char* filepath;
 				t_list* posiciones;
 				if (recv_patota(cliente_socket, &n_tripulantes, &filepath, &posiciones)) {
-					log_info(logger, "iniciaron a la patota %d, tareas en %s", n_tripulantes, filepath);
-					list_iterate(posiciones, print_t_posicion);
+					// log_info(logger, "iniciaron a la patota %d, tareas en %s", n_tripulantes, filepath);
+					crear_tripulantes(nivel, n_tripulantes, posiciones);
+					nivel_gui_dibujar(nivel);
 				} else
 					log_error(logger, "Error recibiendo patota");
 				list_destroy_and_destroy_elements(posiciones, free_t_posicion);
@@ -84,14 +85,13 @@ void server_escuchar(t_log* logger, char* server_name, int server_socket){
 				log_error(logger, "Cliente desconectado...");
 				break;
 			default:
-				log_error(logger, "KHE");
+				log_error(logger, "Algo anduvo mal en el server de MRH");
 				return;
 		}
 	}
 
 	log_warning(logger, "El cliente se desconecto de %s server", server_name);
- }
-
+}
 
 
 

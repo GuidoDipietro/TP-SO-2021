@@ -8,7 +8,12 @@
 #include <nivel-gui/tad_nivel.h>
 #include <curses.h>
 
-NIVEL* iniciar_gui(t_log*, char*);
+typedef struct {
+    uint8_t x;
+    uint8_t y;
+} posicion;
 
+NIVEL* iniciar_gui(t_log*, char*);
+void crear_tripulantes(NIVEL*, uint8_t, t_list*);
 
 #endif

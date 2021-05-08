@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include "../include/graphic.h"
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 #include <string.h>
@@ -21,6 +22,6 @@ typedef struct {
 
 uint8_t cargar_configuracion(t_config_mrhq*, t_log*);
 void cerrar_programa(t_config_mrhq*, t_log*);
-void server_escuchar(t_log*, char*, int);
+void server_escuchar(t_log*, char*, int, NIVEL*);
 
 #endif
