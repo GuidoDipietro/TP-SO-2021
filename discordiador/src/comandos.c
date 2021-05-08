@@ -96,6 +96,12 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         list_add(lista_posiciones, n);
     }
 
+    ////////////// PRUEBA MRH ////////////////
+
+    bool enviar_mrh = send_patota(*mi_ram_hq_fd, cantidad_tripulantes, args_arr[1], lista_posiciones);
+
+    //////////////////////////////////////////
+
     bool ret_code = send_patota(*i_mongo_store_fd, cantidad_tripulantes, args_arr[1], lista_posiciones);
     if(!ret_code)
         log_error(main_log, "El envio de la patota al I_MONGO_STORE fallo");

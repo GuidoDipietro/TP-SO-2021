@@ -8,7 +8,7 @@
 #include <nivel-gui/tad_nivel.h>
 #include <curses.h>
 
-NIVEL* iniciar_ventana(t_log*, char*);
-int posicion_random(int);
+NIVEL* iniciar_gui(t_log*, char*);
+
 
 #endif

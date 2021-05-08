@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <commons/log.h>
 #include <commons/config.h>
-
+#include "../shared/include/utils.h"
 #include "../shared/include/sockets.h"
 #include "include/graphic.h"
 #include "include/init_mrhq.h"
+#include "../shared/include/protocolo.h"
 
 #define MODULENAME "MRH"
 #define SERVERNAME "MRH_SERVER"
@@ -28,66 +29,14 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // Aca encapsule codigo que habia antes. Por favor poner esto en funciones para que ande bien, gracias
-    // if(false){
-        NIVEL* among_os_nivel;
-        int tamanio_nivel[2];
+    // ****** CREACION DEL SERVIDOR ******
+    int mrh_server = iniciar_servidor(logger, SERVERNAME, "127.0.0.1", string_itoa(cfg->PUERTO));
 
+    while(1) {
+    	server_escuchar(logger, SERVERNAME, mrh_server);
+    }
 
-        // **** INICIO SERVIDOR, RESERVO PUERTO Y ESPERO CONEXIONES ****
-        int server_mrh = iniciar_servidor(
-                logger,
-                MODULENAME,
-                "127.0.0.1",
-                string_itoa(cfg->PUERTO)
-        );
-
-        log_info(logger, "Servidor MRH inicializado");
-
-        // **** PARTE GRAFICA ****
-        among_os_nivel = iniciar_ventana(logger, NIVELNAME);
-        nivel_gui_get_area_nivel(&tamanio_nivel[0], &tamanio_nivel[1]);
-
-
-        // **** CONEXIONES ENTRANTES ****
-        // **** PRUEBA DE DIBUJO EN VENTANA ****
-        int conexion_entrante = esperar_cliente(logger, SERVERNAME, server_mrh);
-
-        // PRUEBA PARA UNA CONEXION
-        if(conexion_entrante != -1){
-            personaje_crear(
-                    among_os_nivel,
-                    // ESTA INFO DEBERIA RECIBIRSE DESDE EL DISCORDIADOR (ID Y POSICION ACTUAL DE LOS TRIPULANTES)
-                    'A',
-                    posicion_random(tamanio_nivel[0]),
-                    posicion_random(tamanio_nivel[1])
-            );
-
-        }
-
-        nivel_gui_dibujar(among_os_nivel);
-
-        // PRUEBA DE 'EXPULSAR CONEXION' (ESTO DEBERIA ACTIVARSE CON LA EXPULSION DE UN TRIPULANTE
-        // ESTO SOLO LO DEJO DE PRUEBA
-        int key;
-        noecho();
-        key = getch();
-        if(key == 'W' || key == 'w') {
-            item_borrar(among_os_nivel, 'A');
-        }
-
-        printw("Presiona cualquier tecla para salir...");
-
-        nivel_gui_dibujar(among_os_nivel);
-
-        getch();
-
-        // **** LIBERO CONEXION ****
-        liberar_conexion(&server_mrh);
-
-        nivel_gui_terminar();
-    // }
-
+    liberar_conexion(mrh_server);
     cerrar_programa(cfg, logger);
 
 	return EXIT_SUCCESS;
