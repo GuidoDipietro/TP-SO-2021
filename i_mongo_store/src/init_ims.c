@@ -71,7 +71,6 @@ void server_escuchar(t_log* logger, char* server_name, int server_fd) {
                 uint8_t n_tripulantes;
                 char* filepath;
                 t_list* posiciones;
-                t_posicion* tripulantes_posicion;
                 if (recv_patota(cliente_fd, &n_tripulantes, &filepath, &posiciones)) {
                     log_info(logger, "iniciaron a la patota %d, tareas en %s", n_tripulantes, filepath);
                     list_iterate(posiciones, print_t_posicion);
