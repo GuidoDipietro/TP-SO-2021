@@ -17,10 +17,12 @@ CFLAGS = -c
 
 LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses
 
+OUT_NAME = mi-ram-hq.out
+
 .PHONY: makeFolder
 
 build: makeShared makeFolder $(OBJ)
-	$(CC) main.c -o mi-ram-hq.out $(OBJ) $(SHARED) $(LINK)
+	$(CC) main.c -o $(OUT_NAME) $(OBJ) $(SHARED) $(LINK)
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $< $(LINK)
@@ -37,7 +39,7 @@ debug: CFLAGS+=-g
 debug: build
 
 valgrind: debug build
-	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./a.out
+	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)
 
 clean:
 	rm -rf obj
