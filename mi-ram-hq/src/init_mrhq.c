@@ -58,7 +58,7 @@ void cerrar_programa(t_config_mrhq* cfg, t_log* log) {
     free(cfg);
 }
 
-void server_escuchar(t_log* logger, char* server_name, int server_socket, NIVEL* nivel){
+int server_escuchar(t_log* logger, char* server_name, int server_socket, NIVEL* nivel){
 	int cliente_socket = esperar_cliente(logger, server_name, server_socket);
 
 	op_code cop;
@@ -70,27 +70,32 @@ void server_escuchar(t_log* logger, char* server_name, int server_socket, NIVEL*
 		switch (cop) {
 			case INICIAR_PATOTA:;
 				uint8_t n_tripulantes;
-				char* filepath;
+				char* tareas;
 				t_list* posiciones;
-				if (recv_patota(cliente_socket, &n_tripulantes, &filepath, &posiciones)) {
-					// log_info(logger, "iniciaron a la patota %d, tareas en %s", n_tripulantes, filepath);
+				if (recv_patota(cliente_socket, &n_tripulantes, &tareas, &posiciones)) {
+					// log_info(logger, "iniciaron a una patota de %d tripulantes", n_tripulantes);
+                    // log_info(logger, "tareas:\n%s\n", tareas);
 					crear_tripulantes(nivel, n_tripulantes, posiciones);
 					nivel_gui_dibujar(nivel);
-				} else
-					log_error(logger, "Error recibiendo patota");
-				list_destroy_and_destroy_elements(posiciones, free_t_posicion);
-				free(filepath);
+				}
+                else
+					log_error(logger, "Error recibiendo patota en MRH");
+				list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+				free(tareas);
 				break;
 			case -1:
-				log_error(logger, "Cliente desconectado...");
-				break;
+				log_error(logger, "Cliente desconectado de MRH...");
+                // return 1;
+                return 0; //por pruebas!
 			default:
 				log_error(logger, "Algo anduvo mal en el server de MRH");
-				return;
+				return 0;
 		}
 	}
 
 	log_warning(logger, "El cliente se desconecto de %s server", server_name);
+    // return 1;
+    return 0; // por pruebas!
 }
 
 

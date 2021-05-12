@@ -30,14 +30,14 @@ int main() {
     }
 
     // ****** CREACION DEL SERVIDOR ******
-    int mrh_server = iniciar_servidor(logger, SERVERNAME, "127.0.0.1", string_itoa(cfg->PUERTO));
+    char* puerto = string_itoa(cfg->PUERTO);
+    int mrh_server = iniciar_servidor(logger, SERVERNAME, "127.0.0.1", puerto);
+    free(puerto);
 
     // ****** INICIALIZACION DE LA GUI ******
     NIVEL* among_nivel = iniciar_gui(logger, NIVELNAME);
 
-    while(1) {
-    	server_escuchar(logger, SERVERNAME, mrh_server, among_nivel);
-    }
+    while(server_escuchar(logger, SERVERNAME, mrh_server, among_nivel));
 
     nivel_destruir(among_nivel);
     liberar_conexion(&mrh_server);

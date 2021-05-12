@@ -15,10 +15,8 @@ void crear_tripulantes(NIVEL* nivel, uint8_t c_tripulantes, t_list* posiciones) 
 
 	for(int i = 0; i < c_tripulantes; i++) {
 		char c = 49 + i;
-		t_posicion* pos = malloc(sizeof(t_posicion));
-		pos = (t_posicion *)list_get(posiciones, i);
+		t_posicion* pos = list_get(posiciones, i);
 		personaje_crear(nivel, c, pos->x, pos->y);
-		free(pos);
 	}
 
 //	personaje_crear(nivel, 'P', 10, 10);

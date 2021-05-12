@@ -22,6 +22,6 @@ typedef struct {
 
 uint8_t cargar_configuracion(t_config_mrhq*, t_log*);
 void cerrar_programa(t_config_mrhq*, t_log*);
-void server_escuchar(t_log*, char*, int, NIVEL*);
+int server_escuchar(t_log*, char*, int, NIVEL*);
 
 #endif
