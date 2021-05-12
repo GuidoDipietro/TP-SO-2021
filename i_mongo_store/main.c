@@ -32,9 +32,7 @@ int main() {
     }
 
     // Envio y recepcion de mensajes perenne
-    while (1) {
-        server_escuchar(logger, SERVERNAME, server_fd);
-    }
+    while (server_escuchar(logger, SERVERNAME, server_fd));
 
     cerrar_programa(logger, cfg);
 

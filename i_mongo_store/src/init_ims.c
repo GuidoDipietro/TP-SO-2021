@@ -39,17 +39,19 @@ uint8_t cargar_configuracion(t_config_ims* config, t_log* log) {
 }
 
 bool crear_servidor(int* fd, char* name, t_config_ims* cfg, t_log* logger) {
+    char* puerto = string_itoa(cfg->PUERTO);
     *fd = iniciar_servidor(
             logger,
             name,
             "127.0.0.1",
-            string_itoa(cfg->PUERTO)
+            puerto
     );
+    free(puerto);
     log_info(logger, "Server listo en IMS");
     return (*fd != -1);
 }
 
-void server_escuchar(t_log* logger, char* server_name, int server_fd) {
+int server_escuchar(t_log* logger, char* server_name, int server_fd) {
     int cliente_fd = esperar_cliente(logger, server_name, server_fd);
 
     // Mientras la conexion este abierta
@@ -69,16 +71,17 @@ void server_escuchar(t_log* logger, char* server_name, int server_fd) {
                 break;
             case INICIAR_PATOTA:;
                 uint8_t n_tripulantes;
-                char* filepath;
+                char* tareas;
                 t_list* posiciones;
-                if (recv_patota(cliente_fd, &n_tripulantes, &filepath, &posiciones)) {
-                    log_info(logger, "iniciaron a la patota %d, tareas en %s", n_tripulantes, filepath);
+                if (recv_patota(cliente_fd, &n_tripulantes, &tareas, &posiciones)) {
+                    log_info(logger, "iniciaron a una patota de %d tripulantes", n_tripulantes);
+                    log_info(logger, "tareas:\n%s\n", tareas);
                     list_iterate(posiciones, print_t_posicion);
                 }
                 else
                     log_error(logger, "Error recibiendo patota");
-                list_destroy_and_destroy_elements(posiciones, free_t_posicion);
-                free(filepath);
+                list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                free(tareas);
                 break;
             // FIN COSAS DEL MRH
             case OBTENER_BITACORA:
@@ -95,15 +98,18 @@ void server_escuchar(t_log* logger, char* server_name, int server_fd) {
                 break;
             case -1:
                 log_info(logger, "cliente desconectado...");
-                break;
+                // return 1;
+                return 0; // por pruebas!
             default:
                 log_error(logger, "Algo anduvo mal en el server de IMS (que le mandaron?)");
-                return;
+                return 0;
         }
     }
 
     // Cliente se va
     log_warning(logger, "Cliente desconectado de %s. Esperando otro cliente...", server_name);
+    // return 1;
+    return 0; // por pruebas!
 }
 
 void cerrar_programa(t_log* log, t_config_ims* cfg) {
