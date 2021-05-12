@@ -18,8 +18,10 @@ typedef enum {
     INICIAR_PATOTA,
     INICIAR_SELF_EN_PATOTA,
     SOLICITAR_TAREA,
+    TAREA,
     MOVIMIENTO,
     OBTENER_BITACORA,
+    BITACORA,
     SABOTAJE,
     FIN_FSCK,
     INICIO_FSCK,
@@ -41,12 +43,11 @@ typedef struct {
 
 typedef struct {
     char* nombre;
-    t_list* params;
+    uint16_t param;
     t_posicion* pos;
     uint16_t duracion;
 } t_tarea;
 
-// no se si los fd son uint32_t o que son, los dejo como 'int' por ahora
 static op_code recibir_cop(int fd);
 void print_t_posicion(void* p);
 void free_t_posicion(void* p);
@@ -62,72 +63,123 @@ void free_t_posicion(void* p);
 ////// con algun otro mensaje. Etc. Diviertanse.           //////
 // / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / //
 
+////// FORMATO GENERAL //////
+/// Serializar
+// void* serializar_cosa(...variables);
+//          -> si es de longitud variable comienza con size_t* size para conocer el tamanio post-serializar
+//              ej.: void* serializar_cadena(size_t* size, char* cadena);
+//
+/// Deserializar
+// void deserializar_cosa(void* stream, ...punteros a variables);
+//          -> args de longitud variable llevan a la derecha su tamanio
+//              salvo que se pueda determinar el tamanio de otra forma
+//              ej.: deserializar_cadena(void* stream, char** cadena, size_t size_cadena);
+//
+/// Send
+// bool send_cosa(int fd, ...variables); -> exito? true : false;
+//
+/// Recv
+// bool recv_cosa(int fd, ...punteros a variables); -> exito? true : false;
+//////
+
+//////////// MENSAJES /////////////
+
 // EXPULSAR_TRIPULANTE //
 // ATENCION_SABOTAJE //
 // RESOLUCION_SABOTAJE //
 bool recv_tripulante(int fd, uint8_t* id_tripulante);
 bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop);
-void* serializar_tripulante(uint8_t id_tripulante, op_code cop);
-void deserializar_uint8_t(void* stream, uint8_t* id_tripulante);
 
-// INICIAR_PATOTA // -> hay que rehacerlas
-/*static*/void* serializar_contenido_archivo_tareas(FILE* file);
+static void* serializar_tripulante(uint8_t id_tripulante, op_code cop);
+void deserializar_uint8_t(void* stream, uint8_t* n);
 
-bool send_patota(int fd, uint8_t n_tripulantes, char* filepath, t_list* posiciones);
-bool recv_patota(int fd, uint8_t* n_tripulantes, char** filepath, t_list** posiciones);
-static void* serializar_t_list_posiciones(t_list*);
-void* serializar_iniciar_patota(uint8_t n_tripulantes, char* filepath, t_list* posiciones);
-// void deserializar_iniciar_patota(void* stream, uint8_t* n_tripulantes, char** filepath, t_list** posiciones);
-void deserializar_string(void* stream, char** str, uint8_t len);
-t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements);
+// INICIAR_PATOTA //
+// void dump_archivo(FILE* f);
+bool recv_patota(int fd, uint8_t* n_tripulantes, char** tareas, t_list** posiciones);
+bool send_patota(int, uint8_t, void*, size_t, t_list*);
+
+static void* serializar_iniciar_patota(size_t*, uint8_t, void*, size_t, t_list*);
+static void deserializar_iniciar_patota(void*, uint8_t*, char**, t_list**);
+void* serializar_contenido_archivo(size_t* size, FILE* f);
+static void deserializar_contenido_archivo(void* stream, char** out, size_t size);
+static void* serializar_t_list_posiciones(size_t* size, t_list* lista);
+static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements);
 
 ////// faltan
 
 // INICIAR_SELF_EN_PATOTA //
-void* serializar_iniciar_self_en_patota(uint8_t id_tripulante, uint8_t id_patota);
-void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, uint8_t* id_patota);
+bool send_iniciar_self_en_patota(int fd, uint8_t id_tripulante, uint8_t id_patota);
+bool recv_iniciar_self_en_patota(int fd, uint8_t* id_tripulante, uint8_t* id_patota);
+
+static void* serializar_iniciar_self_en_patota(uint8_t id_tripulante, uint8_t id_patota);
+static void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, uint8_t* id_patota);
 
 // SOLICITAR_TAREA //
-void* serializar_solicitar_tarea(t_tarea* tarea);
-void deserializar_solicitar_tarea(void* stream, t_tarea** tarea);
+bool send_solicitar_tarea(int fd);          //Tripulante: hey! quiero una tarea!
+bool send_tarea(int fd, t_tarea* tarea);    //MRH: toma tu tarea
+bool recv_tarea(int fd, t_tarea** tarea);   //Tripulante: yuhu me llego tu tarea
+
+static void* serializar_tarea(size_t* size, t_tarea* tarea);
+static void deserializar_tarea(void* stream, t_tarea** tarea);
 
 // MOVIMIENTO //
-void* serializar_movimiento(uint8_t id_tripulante, t_posicion* origen, t_posicion* destino);
-void deserializar_movimiento(void* stream, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino);
+bool send_movimiento(int fd, t_posicion* origen, t_posicion* destino);
+bool recv_movimiento(int fd, t_posicion** origen, t_posicion** destino);
+
+static void* serializar_movimiento
+(uint8_t id_tripulante, t_posicion* origen, t_posicion* destino);
+static void deserializar_movimiento
+(void* stream, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino);
 
 // como enviamos/recibimos la bitacora? una gran cadena con los datos para printear o algo?
 // ver
 // OBTENER_BITACORA //
-void* serializar_obtener_bitacora(uint8_t id_tripulante, void* bitacora);
-void deserializar_obtener_bitacora(void* stream, uint8_t* tripulante, void** bitacora);
+bool send_obtener_bitacora(int fd, uint8_t id_tripulante);  //kiero la vitacoras deltripulante 69
+bool send_bitacora(int fd, char* bitacora);                 //toma
+bool recv_bitacora(int fd, char** bitacora);                //me llegouna vitacoras
+
+static void* serializar_obtener_bitacora(uint8_t id_tripulante);
+//void deserializar_uint8_t(uint8_t*); // para deserializar_obtener_bitacora
+static void* serializar_bitacora(size_t* size, char* bitacora);
+static void deserializar_bitacora(void* stream, uint8_t* tripulante, char** bitacora);
 
 // SABOTAJE //
-void* serializar_sabotaje(t_posicion* posicion);
-void deserializar_sabotaje(void* stream, t_posicion** posicion);
+bool send_sabotaje(int fd, t_posicion* posicion);
+bool recv_sabotaje(int fd, t_posicion** posicion);
+
+static void* serializar_sabotaje(t_posicion* posicion);
+static void deserializar_sabotaje(void* stream, t_posicion** posicion);
 
 // no necesita serializar
 // FIN_FSCK //
-void* serializar_fin_fsck(); // solo op_code
+bool send_fin_fsck(int fd); // solo op code
+bool recv_fin_fsck(int fd); // solo op code
 
 // no necesita serializar
 // INICIAR_FSCK //
-void* serializar_iniciar_fsck(); // solo op_code
+bool send_iniciar_fsck(int fd); // solo op code
+bool recv_iniciar_fsck(int fd); // solo op code
 
 // INICIO_TAREA //
 // FIN_TAREA //
-void* serializar_inicio_tarea(uint8_t id_tripulante, t_tarea* tarea);
-void* serializar_fin_tarea(uint8_t id_tripulante, t_tarea* tarea);
-void deserializar_tarea(void* stream, uint8_t* id_tripulante, t_tarea** tarea);
+bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
+bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
+bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea);
+
+static void* serializar_tarea_accion(size_t* size, uint8_t id_tripulante, char* nombre_tarea, op_code cop);
+static void deserializar_tripulante_nombretarea(void* stream, uint8_t* id_tripulante, char** nombre_tarea);
 
 // GENERAR //
 // CONSUMIR //
-void* serializar_generar(char* item, uint16_t cant);
-void* serializar_consumir(char* item, uint16_t cant);
-void deserializar_item_cantidad(void* stream, char** item, uint16_t* cant);
+bool send_generar_consumir(int fd, char* item, uint16_t cant, op_code cop);
+bool recv_item_cantidad(int fd, char** item, uint16_t* cant);
+static void* serializar_generar(size_t* size, char* item, uint16_t cant);
+static void* serializar_consumir(size_t* size, char* item, uint16_t cant);
+static void deserializar_item_cantidad(void* stream, char** item, uint16_t* cant);
 
 // no necesita serializar
 // DESCARTAR_BASURA //
-void* serializar_descartar_basura(); // solo op_code
+bool send_descartar_basura(int fd); // solo op code
 
 // tengo suenio
 
