@@ -16,7 +16,7 @@ uint8_t cargar_configuracion(t_config_mrhq* config, t_log* log) {
             "PATH_SWAP",
             "ALGORITMO_REEMPLAZO",
             "PUERTO",
-			"IP",
+            "IP",
             NULL
     };
 
@@ -59,41 +59,41 @@ void cerrar_programa(t_config_mrhq* cfg, t_log* log) {
 }
 
 int server_escuchar(t_log* logger, char* server_name, int server_socket, NIVEL* nivel){
-	int cliente_socket = esperar_cliente(logger, server_name, server_socket);
+    int cliente_socket = esperar_cliente(logger, server_name, server_socket);
 
-	op_code cop;
-	while(cliente_socket != -1) {
+    op_code cop;
+    while(cliente_socket != -1) {
 
-		if (recv(cliente_socket, &cop, sizeof(op_code), 0) == 0)
-		    break;
+        if (recv(cliente_socket, &cop, sizeof(op_code), 0) == 0)
+            break;
 
-		switch (cop) {
-			case INICIAR_PATOTA:;
-				uint8_t n_tripulantes;
-				char* tareas;
-				t_list* posiciones;
-				if (recv_patota(cliente_socket, &n_tripulantes, &tareas, &posiciones)) {
-					// log_info(logger, "iniciaron a una patota de %d tripulantes", n_tripulantes);
+        switch (cop) {
+            case INICIAR_PATOTA:;
+                uint8_t n_tripulantes;
+                char* tareas;
+                t_list* posiciones;
+                if (recv_patota(cliente_socket, &n_tripulantes, &tareas, &posiciones)) {
+                    // log_info(logger, "iniciaron a una patota de %d tripulantes", n_tripulantes);
                     // log_info(logger, "tareas:\n%s\n", tareas);
-					crear_tripulantes(nivel, n_tripulantes, posiciones);
-					nivel_gui_dibujar(nivel);
-				}
+                    crear_tripulantes(nivel, n_tripulantes, posiciones);
+                    nivel_gui_dibujar(nivel);
+                }
                 else
-					log_error(logger, "Error recibiendo patota en MRH");
-				list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
-				free(tareas);
-				break;
-			case -1:
-				log_error(logger, "Cliente desconectado de MRH...");
+                    log_error(logger, "Error recibiendo patota en MRH");
+                list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                free(tareas);
+                break;
+            case -1:
+                log_error(logger, "Cliente desconectado de MRH...");
                 // return 1;
                 return 0; //por pruebas!
-			default:
-				log_error(logger, "Algo anduvo mal en el server de MRH");
-				return 0;
-		}
-	}
+            default:
+                log_error(logger, "Algo anduvo mal en el server de MRH");
+                return 0;
+        }
+    }
 
-	log_warning(logger, "El cliente se desconecto de %s server", server_name);
+    log_warning(logger, "El cliente se desconecto de %s server", server_name);
     // return 1;
     return 0; // por pruebas!
 }

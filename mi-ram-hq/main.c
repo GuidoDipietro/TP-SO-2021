@@ -43,5 +43,5 @@ int main() {
     liberar_conexion(&mrh_server);
     cerrar_programa(cfg, logger);
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
