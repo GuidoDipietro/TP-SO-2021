@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
+#include <commons/log.h>
 #include "utils.h"
 
 //////
@@ -84,9 +85,9 @@ void free_t_posicion(void* p);
 
 //////////// MENSAJES /////////////
 
-// EXPULSAR_TRIPULANTE //
-// ATENCION_SABOTAJE //
-// RESOLUCION_SABOTAJE //
+// EXPULSAR_TRIPULANTE
+// ATENCION_SABOTAJE
+// RESOLUCION_SABOTAJE
 bool recv_tripulante(int fd, uint8_t* id_tripulante);
 bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop);
 
@@ -100,14 +101,14 @@ bool send_patota(int, uint8_t, void*, size_t, t_list*);
 
 static void* serializar_iniciar_patota(size_t*, uint8_t, void*, size_t, t_list*);
 static void deserializar_iniciar_patota(void*, uint8_t*, char**, t_list**);
-void* serializar_contenido_archivo(size_t* size, FILE* f);
+void* serializar_contenido_archivo(size_t*, char*, t_log*);
 static void deserializar_contenido_archivo(void* stream, char** out, size_t size);
 static void* serializar_t_list_posiciones(size_t* size, t_list* lista);
 static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements);
 
 ////// faltan
 
-// INICIAR_SELF_EN_PATOTA //
+// INICIAR_SELF_EN_PATOTA
 bool send_iniciar_self_en_patota(int fd, uint8_t id_tripulante, uint8_t id_patota);
 bool recv_iniciar_self_en_patota(int fd, uint8_t* id_tripulante, uint8_t* id_patota);
 

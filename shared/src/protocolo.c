@@ -189,7 +189,14 @@ static void deserializar_iniciar_patota
     free(stream_posiciones);
 }
 
-void* serializar_contenido_archivo(size_t* size, FILE* file) {
+void* serializar_contenido_archivo(size_t* size, char* path, t_log* logger) {
+    FILE* file = fopen(path, "r");
+
+    if(file == NULL) {
+        log_error(logger, "No se pudo abrir el archivo de tareas en %s", path);
+        return NULL;
+    }
+
     void* stream;
     bool first_malloc_done = false;
 
@@ -220,6 +227,7 @@ void* serializar_contenido_archivo(size_t* size, FILE* file) {
     if (line) free(line);
 
     *size = total_len+1;
+    fclose(file);
     return stream;
 }
 static void deserializar_contenido_archivo(void* stream, char** out, size_t size) {

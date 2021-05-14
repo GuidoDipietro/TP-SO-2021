@@ -96,42 +96,38 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         list_add(lista_posiciones, n);
     }
 
-    ////////////// ENVIO DE MENSAJE A MRH (y IMS prueba) ////////////////
-    FILE* f_tareas = fopen(args_arr[1],"r");
-    if (f_tareas==NULL) {
-        log_error(main_log, "No se pudo abrir el archivo de tareas en %s", args_arr[1]);
-    }
+    // Envio del mensaje
 
-    else {
-        // Necesitamos pasarle el contenido del archivo en bytes
-        // Porque si no aparentemente no puede leerlo desde otro directorio
-        // no se no preguntes
-        size_t sz_s_tareas;
-        void* s_tareas = serializar_contenido_archivo(&sz_s_tareas, f_tareas);
-        fclose(f_tareas);
+    // Necesitamos pasarle el contenido del archivo en bytes
+    // Porque si no aparentemente no puede leerlo desde otro directorio
+    // no se no preguntes
+    size_t sz_s_tareas;
+    void* s_tareas = serializar_contenido_archivo(&sz_s_tareas, args_arr[1], main_log);
 
+    if(s_tareas != NULL) {
         bool envio_mrh = send_patota(
-            *mi_ram_hq_fd,
-            cantidad_tripulantes,
-            s_tareas, sz_s_tareas,
-            lista_posiciones
+                *mi_ram_hq_fd,
+                cantidad_tripulantes,
+                s_tareas, sz_s_tareas,
+                lista_posiciones
         );
         if (!envio_mrh)
             log_error(main_log, "El envio de INICIAR_PATOTA al MI-RAM-HQ fallo");
 
         // este no tiene que estar en el TP
         bool envio_ims = send_patota(
-            *i_mongo_store_fd,
-            cantidad_tripulantes,
-            s_tareas, sz_s_tareas,
-            lista_posiciones
+                *i_mongo_store_fd,
+                cantidad_tripulantes,
+                s_tareas, sz_s_tareas,
+                lista_posiciones
         );
         if(!envio_ims)
             log_error(main_log, "El envio de la patota al I_MONGO_STORE fallo");
 
         free(s_tareas);
     }
-    ////////////////////////////////////////////////
+
+    // Free finales
 
     string_split_free(&args_arr);
     list_destroy_and_destroy_elements(lista_posiciones, free_t_posicion);
