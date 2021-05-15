@@ -268,35 +268,31 @@ static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements) 
 
 // INICIAR_SELF_EN_PATOTA //
 
-///////////////////////////WARNING: MARTU//////////////////////////////
-
 bool send_iniciar_self_en_patota(int fd, uint8_t id_tripulante, uint8_t id_patota){
-	size_t size = sizeof(op_code)+2*sizeof(uint8_t);
-	void* stream = serializar_iniciar_self_en_patota(id_tripulante,id_patota);
+    size_t size = sizeof(op_code)+2*sizeof(uint8_t);
+    void* stream = serializar_iniciar_self_en_patota(id_tripulante,id_patota);
 
-	if(send(fd,stream,size,0) == -1){
-		free(stream);
-		return false;
-	}
-	free(stream);
-	return true;
+    if(send(fd,stream,size,0) == -1){
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
 }
 
 bool recv_iniciar_self_en_patota(int fd, uint8_t* id_tripulante, uint8_t* id_patota){
-	size_t size = 2*sizeof(uint8_t);
-	void* stream = malloc(size);
+    size_t size = 2*sizeof(uint8_t);
+    void* stream = malloc(size);
 
-	if(recv(fd,stream,size,0) != size){
-		free(stream);
-		return false;
-	}
+    if(recv(fd,stream,size,0) != size){
+        free(stream);
+        return false;
+    }
 
-	deserializar_iniciar_self_en_patota(stream,id_tripulante,id_patota);
-	free(stream);
-	return true;
+    deserializar_iniciar_self_en_patota(stream,id_tripulante,id_patota);
+    free(stream);
+    return true;
 }
-
-///////////////////////////WARNING: MARTU//////////////////////////////
 
 void* serializar_iniciar_self_en_patota(uint8_t id_tripulante, uint8_t id_patota) {
     op_code cop = INICIAR_SELF_EN_PATOTA;
@@ -313,83 +309,72 @@ void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, u
     memcpy(id_patota, stream+sizeof(uint8_t), sizeof(uint8_t));
 }
 
-
 // SABOTAJE //
 
-///////////////////////////WARNING: MARTU//////////////////////////////
-
 bool send_sabotaje(int fd, t_posicion* posicion){
-	size_t size = sizeof(t_posicion);
-	void* stream = serializar_sabotaje(posicion);
+    size_t size = sizeof(op_code) + sizeof(t_posicion);
+    void* stream = serializar_sabotaje(posicion);
 
-	if(send(fd,stream,size,0) == -1){
-		free(stream);
-		return false;
-	}
+    if(send(fd,stream,size,0) == -1){
+        free(stream);
+        return false;
+    }
 
-	free(stream);
-	return true;
+    free(stream);
+    return true;
 }
-/*
+
 bool recv_sabotaje(int fd, t_posicion** posicion){
-	size_t size = sizeof(t_posicion);
-	void* stream = malloc(size);
+    size_t size = sizeof(t_posicion);
+    void* stream = malloc(size);
 
-	if(recv(fd,stream,size,0) != size){
-		free(stream);
-		return false;
-	}
+    if(recv(fd,stream,size,0) != size){
+        free(stream);
+        return false;
+    }
 
-	deserializar_sabotaje(stream,posicion);
-	free(stream);
-	return true;
+    deserializar_sabotaje(stream,posicion);
+    free(stream);
+    return true;
 }
-*/
+
 static void* serializar_sabotaje(t_posicion* posicion){
-	op_code cop = SABOTAJE;
-	size_t size = sizeof((op_code)+sizeof(posicion));
-	void* stream = malloc(size);
+    op_code cop = SABOTAJE;
+    size_t size = sizeof(op_code) + sizeof(posicion);
+    void* stream = malloc(size);
 
-	memcpy(stream, &cop, sizeof(op_code));
-	memcpy(stream+sizeof(op_code), posicion, sizeof(t_posicion));
+    memcpy(stream, &cop, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &posicion->x, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+sizeof(uint8_t), &posicion->y, sizeof(uint8_t));
 
-	return stream;
+    return stream;
 }
-/*
+
 static void deserializar_sabotaje(void* stream, t_posicion** posicion){
+    t_posicion* r_pos = malloc(sizeof(t_posicion));
 
+    memcpy(&r_pos->x, stream, sizeof(uint8_t));
+    memcpy(&r_pos->y, stream+sizeof(uint8_t), sizeof(uint8_t));
+
+    *posicion = r_pos;
 }
-*/
-///////////////////////////WARNING: MARTU//////////////////////////////
+
 
 // no necesita serializar
 
-bool send_codigo_op(int fd,op_code cop){
-	size_t size = sizeof(op_code);
-	return send(fd,&cop,size,0) != -1;
-}
-
-bool recv_codigo_op(int fd, op_code cop){
-	size_t size = sizeof(op_code);
-	return recv(fd,&cop,size,0) == size;
+bool send_codigo_op(int fd, op_code cop){
+    size_t size = sizeof(op_code);
+    return send(fd,&cop,size,0) != -1;
 }
 
 // INICIAR_FSCK //
 bool send_iniciar_fsck(int fd){
-	return send_codigo_op(fd, INICIO_FSCK);
-}
-
-bool recv_iniciar_fsck(int fd){
-	return recv_codigo_op(fd,INICIO_FSCK);
+    return send_codigo_op(fd, INICIO_FSCK);
 }
 
 // FIN_FSCK //
 bool send_fin_fsck(int fd){
-	return send_codigo_op(fd,FIN_FSCK);
-}
-
-bool recv_fin_fsck(int fd){
-	return recv_codigo_op(fd,FIN_FSCK);
+    return send_codigo_op(fd, FIN_FSCK);
 }
 
 // faltan
