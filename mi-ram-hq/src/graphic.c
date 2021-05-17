@@ -19,6 +19,16 @@ int crear_tripulantes(uint8_t c_tripulantes, t_list* posiciones) {
 //  personaje_crear(nivel, 'P', 10, 10);
 }
 
+int mover_tripulante(uint8_t id_tripulante,t_posicion* posicion){
+	int err;
+	// para funcion chequear_errores()
+	err = item_mover(among_nivel,id_tripulante, posicion->x, posicion->y);
+
+	nivel_gui_dibujar(among_nivel);
+
+	return err;
+}
+
 int expulsar_tripulante(uint8_t id_tripulante){
 	int err;
 
@@ -35,3 +45,7 @@ void chequear_errores(int err){
 		printf("WARN: %s\n", nivel_gui_string_error(err));
 	}
 }
+
+
+
+

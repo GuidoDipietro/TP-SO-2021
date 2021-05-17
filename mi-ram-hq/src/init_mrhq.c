@@ -89,6 +89,16 @@ int server_escuchar(t_log* logger, char* server_name, int server_socket){
                 free(tareas);
                 break;
 
+            case MOVIMIENTO:;
+            	//uint8_t id_tripulante;
+            	/*
+            	if (recv_movimiento(cliente_socket,)){
+            	    int err = mover_tripulante(id_tripulante);
+            	    chequear_errores(err);
+            	    // TODO: borrar tripulante de memoria
+            	 }
+				*/
+            break;
             case EXPULSAR_TRIPULANTE:;
             	uint8_t id_tripulante;
             	 if (recv_tripulante(cliente_socket, &id_tripulante)){

@@ -13,6 +13,7 @@ void iniciar_gui(t_log*, char*);
 int crear_tripulantes(uint8_t, t_list*);
 int expulsar_tripulante(uint8_t);
 void chequear_errores(int);
+int mover_tripulante(uint8_t,t_posicion*);
 
 NIVEL* among_nivel;
 
