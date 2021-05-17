@@ -1,23 +1,37 @@
 #include "../include/graphic.h"
 
-NIVEL* iniciar_gui(t_log* logger, char* name) {
-
-    NIVEL* nivel;
+void iniciar_gui(t_log* logger, char* name) {
     nivel_gui_inicializar();
     // log_info(logger, "Se inicializo correctamente la ventana de MRH");
-    nivel = nivel_crear(name);
-    nivel_gui_dibujar(nivel);
-
-    return nivel;
+    among_nivel = nivel_crear(name);
+    nivel_gui_dibujar(among_nivel);
 }
 
-void crear_tripulantes(NIVEL* nivel, uint8_t c_tripulantes, t_list* posiciones) {
-
+int crear_tripulantes(uint8_t c_tripulantes, t_list* posiciones) {
+	int err;
     for(int i = 0; i < c_tripulantes; i++) {
         char c = 49 + i;
         t_posicion* pos = list_get(posiciones, i);
-        personaje_crear(nivel, c, pos->x, pos->y);
+        err = personaje_crear(among_nivel, c, pos->x, pos->y);
     }
 
+    return err;
 //  personaje_crear(nivel, 'P', 10, 10);
+}
+
+int expulsar_tripulante(uint8_t id_tripulante){
+	int err;
+
+	// para funcion chequear_errores()
+	err = item_borrar(among_nivel,id_tripulante);
+
+	nivel_gui_dibujar(among_nivel);
+
+	return err;
+}
+
+void chequear_errores(int err){
+	if(err){
+		printf("WARN: %s\n", nivel_gui_string_error(err));
+	}
 }

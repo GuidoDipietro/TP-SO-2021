@@ -7,6 +7,7 @@
 #include "include/graphic.h"
 #include "include/init_mrhq.h"
 #include "../shared/include/protocolo.h"
+#include <curses.h>
 
 #define MODULENAME "MRH"
 #define SERVERNAME "MRH_SERVER"
@@ -35,9 +36,9 @@ int main() {
     free(puerto);
 
     // ****** INICIALIZACION DE LA GUI ******
-    NIVEL* among_nivel = iniciar_gui(logger, NIVELNAME);
+    iniciar_gui(logger, NIVELNAME);
 
-    while(server_escuchar(logger, SERVERNAME, mrh_server, among_nivel));
+    while(server_escuchar(logger, SERVERNAME, mrh_server));
 
     nivel_destruir(among_nivel);
     liberar_conexion(&mrh_server);

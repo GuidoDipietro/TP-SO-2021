@@ -9,7 +9,12 @@
 #include "../../shared/include/protocolo.h"
 #include <curses.h>
 
-NIVEL* iniciar_gui(t_log*, char*);
-void crear_tripulantes(NIVEL*, uint8_t, t_list*);
+void iniciar_gui(t_log*, char*);
+int crear_tripulantes(uint8_t, t_list*);
+int expulsar_tripulante(uint8_t);
+void chequear_errores(int);
+
+NIVEL* among_nivel;
+
 
 #endif
