@@ -16,6 +16,11 @@ void print_t_posicion(void* p) {
 void free_t_posicion(void* p) {
     free(p);
 }
+void free_t_tarea(t_tarea* tarea) {
+    free(tarea->nombre);
+    free(tarea->pos);
+    free(tarea);
+}
 
 ///
 
@@ -375,6 +380,130 @@ bool send_iniciar_fsck(int fd){
 // FIN_FSCK //
 bool send_fin_fsck(int fd){
     return send_codigo_op(fd, FIN_FSCK);
+}
+
+// TAREAS //
+bool send_solicitar_tarea(int fd) {
+    return send_codigo_op(fd, SOLICITAR_TAREA);
+}
+
+bool send_tarea(int fd, t_tarea* tarea) {
+    size_t size;
+    void* stream = serializar_tarea(&size, tarea);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool recv_tarea(int fd, t_tarea** tarea) {
+    size_t size;
+    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
+        return false;
+    }
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+
+    t_tarea* r_tarea;
+    deserializar_tarea(stream, &r_tarea);
+    *tarea = r_tarea;
+
+    free(stream);
+}
+
+static void* serializar_tarea(size_t* size, t_tarea* tarea) {
+    op_code cop = TAREA;
+    size_t sz_nombre = strlen(tarea->nombre)+1;
+    *size =
+        sizeof(op_code)+        // cop
+        sizeof(size_t)+         // tamanio payload
+        sizeof(size_t)+         // tamanio nombre
+        sz_nombre+              // nombre
+        sizeof(uint16_t)+       // param
+        sizeof(t_posicion)+     // posicion
+        sizeof(uint16_t)+       // duracion
+        sizeof(tipo_tarea)      // tipo
+    ;
+    size_t sz_payload = *size - sizeof(op_code) - sizeof(size_t);
+    void* stream = malloc(*size);
+
+    memcpy(stream, &cop, sizeof(op_code)); // cop
+    memcpy(stream+sizeof(op_code), &sz_payload, sizeof(size_t)); // tamanio payload
+    memcpy(stream+sizeof(op_code)+sizeof(size_t), &sz_nombre, sizeof(size_t)); // tamanio nombre
+    memcpy(
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(size_t),
+        tarea->nombre,
+        sz_nombre
+    ); // nombre
+    memcpy(
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(size_t)+sz_nombre,
+        &tarea->param,
+        sizeof(uint16_t)
+    ); // param
+    memcpy(
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(size_t)+sz_nombre+sizeof(uint16_t),
+        &tarea->pos->x,
+        sizeof(uint8_t)
+    ); // posicion x
+    memcpy(
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(size_t)+sz_nombre+sizeof(uint16_t)+sizeof(uint8_t),
+        &tarea->pos->y,
+        sizeof(uint8_t)
+    ); // posicion u
+    memcpy(
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(size_t)+sz_nombre+sizeof(uint16_t)+2*sizeof(uint8_t),
+        &tarea->duracion,
+        sizeof(uint16_t)
+    ); // duracion
+    memcpy(
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(size_t)+
+        sz_nombre+sizeof(uint16_t)+2*sizeof(uint8_t)+sizeof(uint16_t),
+        &tarea->tipo,
+        sizeof(tipo_tarea)
+    ); // tipo
+
+    return stream;
+}
+static void deserializar_tarea(void* stream, t_tarea** tarea) {
+    t_tarea* r_tarea = malloc(sizeof(t_tarea));
+    r_tarea->pos = malloc(sizeof(t_posicion));
+
+    // tamanio nombre
+    size_t sz_nombre;
+    memcpy(&sz_nombre, stream, sizeof(size_t));
+    // nombre
+    r_tarea->nombre = malloc(sz_nombre);
+    memcpy(r_tarea->nombre, stream+sizeof(size_t), sz_nombre);
+    // param
+    memcpy(&r_tarea->param, stream+sizeof(size_t)+sz_nombre, sizeof(uint16_t));
+    // posicion
+    memcpy(
+        &r_tarea->pos->x,
+        stream+sizeof(size_t)+sz_nombre+sizeof(uint16_t),
+        sizeof(uint8_t)
+    );
+    memcpy(
+        &r_tarea->pos->y,
+        stream+sizeof(size_t)+sz_nombre+sizeof(uint16_t)+sizeof(uint8_t),
+        sizeof(uint8_t)
+    );
+    // duracion
+    memcpy(
+        &r_tarea->duracion,
+        stream+sizeof(size_t)+sz_nombre+sizeof(uint16_t)+sizeof(uint8_t)+sizeof(uint8_t),
+        sizeof(uint16_t)
+    );
+    // tipo
+    memcpy(
+        &r_tarea->tipo,
+        stream+sizeof(size_t)+sz_nombre+sizeof(uint16_t)+sizeof(uint8_t)+sizeof(uint8_t)+sizeof(uint16_t),
+        sizeof(tipo_tarea)
+    );
+    *tarea = r_tarea;
 }
 
 // faltan

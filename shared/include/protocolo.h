@@ -15,7 +15,7 @@
 //////
 
 typedef enum {
-    EXPULSAR_TRIPULANTE=1,
+    EXPULSAR_TRIPULANTE = 1,
     INICIAR_PATOTA,
     INICIAR_SELF_EN_PATOTA,
     SOLICITAR_TAREA,
@@ -35,6 +35,13 @@ typedef enum {
     DESCARTAR_BASURA,
 } op_code;
 
+typedef enum {
+    GENERAR_T = 14,
+    CONSUMIR_T,
+    DESCARTAR_BASURA_T,
+    OTRO_T
+} tipo_tarea;
+
 //////
 
 typedef struct {
@@ -47,11 +54,13 @@ typedef struct {
     uint16_t param;
     t_posicion* pos;
     uint16_t duracion;
+    tipo_tarea tipo;
 } t_tarea;
 
 static op_code recibir_cop(int fd);
 void print_t_posicion(void* p);
 void free_t_posicion(void* p);
+void free_t_tarea(t_tarea* t);
 
 // GUIDO ESTUVO AQUI
 
