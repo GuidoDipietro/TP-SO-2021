@@ -193,7 +193,7 @@ static void deserializar_iniciar_patota
 }
 
 void* serializar_contenido_archivo(size_t* size, char* path, t_log* logger) {
-    FILE* file = fopen(path, "r");
+    FILE* file = fopen(path, "r+");
 
     if(file == NULL) {
         log_error(logger, "No se pudo abrir el archivo de tareas en %s", path);
