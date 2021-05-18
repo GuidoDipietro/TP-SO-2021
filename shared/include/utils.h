@@ -16,5 +16,6 @@ uint16_t string_split_len(char**);
 bool config_has_all_properties(t_config*, char**);
 t_list* extraer_posiciones(char**);
 bool string_is_number(char*);
+t_list* raw_tareas_to_list(char*);
 
 #endif

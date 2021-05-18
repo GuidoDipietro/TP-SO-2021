@@ -6,46 +6,7 @@ void print_t_posicion(void* p) {
     t_posicion* t_p = (t_posicion*) p;
     printf("%d|%d\n", t_p->x, t_p->y);
 }
-void free_t_posicion(void* p) {
-    free(p);
-}
-t_list* raw_tareas_to_list(char* texto) {
-    t_list* lista_tareas = list_create();
 
-    char** tareas = string_split(texto, "\n");
-    char** p_tareas = tareas;
-    while (*p_tareas != NULL) {
-        string_trim(p_tareas);
-
-        // Campos
-        t_posicion* pos = malloc(sizeof(t_posicion));
-        uint16_t duracion;
-        char* nombre;
-        uint16_t param;
-
-        char* header = malloc(100);
-        sscanf(*p_tareas, "%[^;];%hhd;%hhd;%hd", header, &pos->x, &pos->y, &duracion);
-        string_trim(&header);
-
-        char** header_split = string_split(header, " ");
-        nombre = header_split[0];
-        param = header_split[1]? atoi(header_split[1]) : 0;
-
-        t_tarea* tarea = tarea_create(nombre, param, pos, duracion, nombre);
-        list_add(lista_tareas, (void*) tarea);
-
-        free(*p_tareas);
-        free(nombre);
-        free(header);
-        free(header_split[1]);
-        free(header_split);
-        free(pos);
-        p_tareas++;
-    }
-
-    free(tareas);
-    return lista_tareas;
-}
 t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t dur, char* tipo) {
     t_tarea* tarea = malloc(sizeof(t_tarea));
     tarea->pos = malloc(sizeof(t_posicion));

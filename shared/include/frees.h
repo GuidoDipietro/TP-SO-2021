@@ -6,5 +6,6 @@
 
 void string_split_free(char***);
 void config_free_array_value(char***);
+void free_t_posicion(void*);
 
 #endif

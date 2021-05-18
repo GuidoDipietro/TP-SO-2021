@@ -11,6 +11,7 @@
 #include <commons/collections/list.h>
 #include <commons/log.h>
 #include "utils.h"
+#include "frees.h"
 
 ///
 
@@ -62,11 +63,9 @@ typedef struct {
 // hay que cambiar los makefiles porque en shared/
 // si usas funciones de otros archivos de shared/ no compila
 void print_t_posicion(void* p);
-void free_t_posicion(void* p);
 t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t dur, char* tipo);
 void free_t_tarea(t_tarea* tarea);
 void print_t_tarea(t_tarea* t);
-t_list* raw_tareas_to_list(char* texto);
 
 //////
 

@@ -19,3 +19,7 @@ void config_free_array_value(char*** arr) {
 
     free(a);
 }
+
+void free_t_posicion(void* p) {
+    free(p);
+}
