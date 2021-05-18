@@ -150,9 +150,13 @@ void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         return;
     }
 
-    // TODO: mandar id_tripulante a mi-ram-hq para borrarlo del mapa
+    uint8_t ret_code = send_tripulante(*mi_ram_hq_fd, (uint8_t) atoi(args_arr), EXPULSAR_TRIPULANTE);
 
-    printf("\nComando EXPULSAR_TRIPULANTES\n");
+    if(ret_code)
+        log_info(main_log, "El tripulante %s fue expulsado", args_arr);
+    else
+        log_error(main_log, "No se pudo eliminar al tripulante %s", args_arr);
+
     free(args_arr);
 }
 
