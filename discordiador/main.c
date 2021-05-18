@@ -2,11 +2,17 @@
 #include "./include/init_disc.h"
 #include "./include/logs.h"
 #include "../shared/include/protocolo.h"
+#include "include/tripulante.h"
+#include <commons/collections/queue.h>
+#include "include/config.h"
+#include "include/tripulante.h"
 
 #define MODULENAME "DIS"
 
 t_log* main_log;
 t_log* main_log_inv;
+t_queue* COLA_TRIPULANTES;
+t_config_disc* DISCORDIADOR_CFG;
 
 static t_config_disc* initialize_cfg() {
     t_config_disc* cfg = malloc(sizeof(t_config_disc));
@@ -17,7 +23,8 @@ static t_config_disc* initialize_cfg() {
 }
 
 int main() {
-    t_config_disc* cfg = initialize_cfg();
+    DISCORDIADOR_CFG = initialize_cfg();
+    COLA_TRIPULANTES = queue_create();
 
     main_log = log_create("discordiador.log", "DISCORDIADOR", true, LOG_LEVEL_INFO);
     main_log_inv = log_create("discordiador.log", "DISCORDIADOR", false, LOG_LEVEL_TRACE);
@@ -25,14 +32,14 @@ int main() {
     // Mirar el return code de cargar_configuracion
     int i_mongo_store_fd, mi_ram_hq_fd;
 
-    if(!cargar_configuracion(cfg) || !generar_conexiones(&i_mongo_store_fd, &mi_ram_hq_fd, cfg)) {
-        cerrar_programa(main_log, main_log_inv, cfg);
+    if(!cargar_configuracion(DISCORDIADOR_CFG) || !generar_conexiones(&i_mongo_store_fd, &mi_ram_hq_fd, DISCORDIADOR_CFG)) {
+        cerrar_programa(main_log, main_log_inv, DISCORDIADOR_CFG);
         return EXIT_FAILURE;
     }
 
     menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
 
-    cerrar_programa(main_log, main_log_inv, cfg);
+    cerrar_programa(main_log, main_log_inv, DISCORDIADOR_CFG);
 
 	return EXIT_SUCCESS;
 }
