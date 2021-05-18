@@ -113,6 +113,9 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         );
         if (!envio_mrh)
             log_error(main_log, "El envio de INICIAR_PATOTA al MI-RAM-HQ fallo");
+        else
+            for(uint8_t j = 0; j < cantidad_tripulantes; j++)
+                iniciar_tripulante(list_get(lista_posiciones, j));
 
         // este no tiene que estar en el TP
         bool envio_ims = send_patota(

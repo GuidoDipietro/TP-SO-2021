@@ -1,6 +1,7 @@
 #include "../include/init_disc.h"
 #include "../include/logs.h"
 
+
 void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
     log_destroy(main_log);
     log_destroy(main_log_inv);
@@ -13,6 +14,8 @@ void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
 
     if(cfg->ALGORITMO != NULL)
         free(cfg->ALGORITMO);
+
+    queue_destroy_and_destroy_elements(COLA_TRIPULANTES, free_t_tripulante);
 
     free(cfg);
 }
