@@ -12,7 +12,7 @@
 #include <commons/log.h>
 #include "utils.h"
 
-//////
+///
 
 typedef enum {
     EXPULSAR_TRIPULANTE = 1,
@@ -36,13 +36,14 @@ typedef enum {
 } op_code;
 
 typedef enum {
-    GENERAR_T = 14,
-    CONSUMIR_T,
+    GENERAR_COMIDA_T=14,
+    CONSUMIR_COMIDA_T,
+    GENERAR_OXIGENO_T,
+    CONSUMIR_OXIGENO_T,
+    GENERAR_BASURA_T,
     DESCARTAR_BASURA_T,
-    OTRO_T
+    OTRO_T,
 } tipo_tarea;
-
-//////
 
 typedef struct {
     uint8_t x;
@@ -57,10 +58,19 @@ typedef struct {
     tipo_tarea tipo;
 } t_tarea;
 
-static op_code recibir_cop(int fd);
+// no se bien donde meter esto (me gustaria en utils y frees)
+// hay que cambiar los makefiles porque en shared/
+// si usas funciones de otros archivos de shared/ no compila
 void print_t_posicion(void* p);
 void free_t_posicion(void* p);
-void free_t_tarea(t_tarea* t);
+t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t dur, char* tipo);
+void free_t_tarea(t_tarea* tarea);
+void print_t_tarea(t_tarea* t);
+t_list* raw_tareas_to_list(char* texto);
+
+//////
+
+static op_code recibir_cop(int fd);
 
 // GUIDO ESTUVO AQUI
 
