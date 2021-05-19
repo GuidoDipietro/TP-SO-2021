@@ -2,10 +2,9 @@
 #include "./include/init_disc.h"
 #include "./include/logs.h"
 #include "../shared/include/protocolo.h"
-#include "include/tripulante.h"
+#include "include/monitor_tripulante.h"
 #include <commons/collections/queue.h>
 #include "include/config.h"
-#include "include/tripulante.h"
 
 #define MODULENAME "DIS"
 

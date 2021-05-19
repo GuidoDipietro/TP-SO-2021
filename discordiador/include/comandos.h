@@ -13,7 +13,7 @@
 #include "../../shared/include/protocolo.h"
 #include "../../shared/include/frees.h"
 #include "../include/logs.h"
-#include "tripulante.h"
+#include "ops_tripulante.h"
 
 void iniciar_patota(char*, int*, int*);
 void listar_tripulantes(char*, int*, int*);

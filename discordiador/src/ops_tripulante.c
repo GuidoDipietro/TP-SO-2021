@@ -1,4 +1,4 @@
-#include "../include/tripulante.h"
+#include "../include/ops_tripulante.h"
 
 void free_t_tripulante(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
@@ -36,14 +36,13 @@ uint8_t iniciar_tripulante(t_posicion* pos) {
         free(port_i_mongo_store);
         free(port_mi_ram_hq);
         free_t_tripulante(t);
-        return 0;
+        return 1;
     }
 
     free(port_i_mongo_store);
     free(port_mi_ram_hq);
 
-    printf("\nTripulante creado\n");
-
-    queue_push(COLA_TRIPULANTES, (void*) t);
-    return 1;
+    log_info(main_log, "Tripulante creado");
+    push_cola_tripulante(t);
+    return 0;
 }
