@@ -70,10 +70,10 @@ t_list* raw_tareas_to_list(char* texto) {
         string_trim(p_tareas);
 
         // Campos
-        t_posicion* pos = malloc(sizeof(t_posicion));
-        uint16_t duracion;
+        t_posicion* pos = malloc(sizeof(t_posicion)); pos->x=0; pos->y=0;
+        uint16_t duracion=0;
         char* nombre;
-        uint16_t param;
+        uint16_t param=0;
 
         char* header = malloc(100);
         sscanf(*p_tareas, "%[^;];%hhd;%hhd;%hd", header, &pos->x, &pos->y, &duracion);

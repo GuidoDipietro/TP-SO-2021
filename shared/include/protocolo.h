@@ -37,13 +37,13 @@ typedef enum {
 } op_code;
 
 typedef enum {
-    GENERAR_COMIDA_T=14,
-    CONSUMIR_COMIDA_T,
-    GENERAR_OXIGENO_T,
-    CONSUMIR_OXIGENO_T,
-    GENERAR_BASURA_T,
-    DESCARTAR_BASURA_T,
-    OTRO_T,
+    GENERAR_COMIDA_T    =14,
+    CONSUMIR_COMIDA_T   =15,
+    GENERAR_OXIGENO_T   =16,
+    CONSUMIR_OXIGENO_T  =17,
+    GENERAR_BASURA_T    =18,
+    DESCARTAR_BASURA_T  =19,
+    OTRO_T              =20,
 } tipo_tarea;
 
 typedef struct {
