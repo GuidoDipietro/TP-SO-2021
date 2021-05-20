@@ -7,7 +7,7 @@ extern CU_TestInfo tests_protocolo[];
 extern CU_TestInfo tests_ejemplo[]; // ver test_ejemplo.c
 
 CU_SuiteInfo suites[] = {
-    { "suite_protocolo", NULL, NULL, NULL, NULL, tests_protocolo },
+    { "suite_protocolo", crear_conexiones, limpiar_conexiones, NULL, NULL, tests_protocolo },
     { "suite_ejempol", NULL, NULL, NULL, NULL, tests_ejemplo },
     CU_SUITE_INFO_NULL
 };
