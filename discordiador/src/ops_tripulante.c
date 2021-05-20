@@ -71,7 +71,10 @@ void free_t_tripulante(void* t_p) {
     free(t);
 }
 
-uint8_t iniciar_tripulante(t_posicion* pos, uint16_t pid) {
+uint8_t iniciar_tripulante(void* args) {
+    t_posicion* pos = ((t_iniciar_tripulante_args*) args)->pos;
+    uint16_t pid = ((t_iniciar_tripulante_args*) args)->pid;
+
     t_tripulante* t = init_tripulante(pos, pid);
 
     if(t == NULL) // Si t es NULL, error fatal en la creacion del tripulante
@@ -98,7 +101,7 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     }
 
     t_tarea* tarea = malloc(sizeof(t_tarea));
-    tarea->nombre = "Cositas pronto";
+    tarea->nombre = string_duplicate("Cositas pronto");
     tarea->tipo = OTRO_T;
     t_posicion* pos = malloc(sizeof(t_tarea));
     pos->x = 5;

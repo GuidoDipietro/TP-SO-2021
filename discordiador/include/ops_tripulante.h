@@ -10,8 +10,13 @@
 #include "../../shared/include/sockets.h"
 #include "monitor_tripulante.h"
 
+typedef struct {
+    t_posicion* pos;
+    uint16_t pid;
+} t_iniciar_tripulante_args;
+
 void free_t_tripulante(void*);
-uint8_t iniciar_tripulante(t_posicion*, uint16_t);
+uint8_t iniciar_tripulante(void*);
 uint8_t solicitar_tarea(t_tripulante*);
 
 uint16_t generar_pid();
