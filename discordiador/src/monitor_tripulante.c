@@ -14,9 +14,10 @@ void push_cola_tripulante(t_tripulante* t) {
     pthread_mutex_lock(&MUTEX_COLA);
     queue_push(COLA_TRIPULANTES, (void*) t);
     pthread_mutex_unlock(&MUTEX_COLA);
+    t->status = READY;
 }
 
-void pop_cola_tripulante() {
+t_tripulante* pop_cola_tripulante() {
     pthread_mutex_lock(&MUTEX_COLA);
     void* t = queue_pop(COLA_TRIPULANTES);
     pthread_mutex_unlock(&MUTEX_COLA);

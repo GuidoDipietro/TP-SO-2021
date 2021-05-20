@@ -2,14 +2,29 @@
 
 void free_t_tripulante(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
+
     if(t->pos != NULL)
         free_t_posicion(t->pos);
 
     free(t);
 }
 
-uint8_t iniciar_tripulante(t_posicion* pos) {
+uint16_t generar_pid() {
+    static uint16_t ultimo = 1;
+    ultimo++;
+    return ultimo - 1;
+}
+
+uint16_t generar_tid() {
+    static uint16_t ultimo = 1;
+    ultimo++;
+    return ultimo - 1;
+}
+
+uint8_t iniciar_tripulante(t_posicion* pos, uint16_t pid) {
     t_tripulante* t = malloc(sizeof(t_tripulante));
+    t->pid = pid;
+    t->tid = generar_tid();
     t->status = NEW;
     t->pos = malloc(sizeof(t_posicion));
     t->tarea = NULL;
@@ -17,6 +32,8 @@ uint8_t iniciar_tripulante(t_posicion* pos) {
 
     char* port_i_mongo_store = string_itoa(DISCORDIADOR_CFG->PUERTO_I_MONGO_STORE);
     char* port_mi_ram_hq = string_itoa(DISCORDIADOR_CFG->PUERTO_MI_RAM_HQ);
+
+    // TODO: enviar bien el TID y PID al MI-RAM-HQ
 
     t->fd_i_mongo_store = crear_conexion(
             main_log,

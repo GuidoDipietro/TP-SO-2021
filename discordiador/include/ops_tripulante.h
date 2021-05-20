@@ -11,6 +11,9 @@
 #include "monitor_tripulante.h"
 
 void free_t_tripulante(void*);
-uint8_t iniciar_tripulante(t_posicion*);
+uint8_t iniciar_tripulante(t_posicion*, uint16_t);
+
+uint16_t generar_pid();
+uint16_t generar_pid();
 
 #endif

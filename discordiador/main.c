@@ -21,6 +21,13 @@ static t_config_disc* initialize_cfg() {
     return cfg;
 }
 
+static void print_t_tripulante(void* t_p) {
+    t_tripulante* t = (void*) t_p;
+    printf("\n%d", t->pid);
+    printf("\n%d", t->tid);
+    printf("\n%d\n", t->status);
+}
+
 int main() {
     DISCORDIADOR_CFG = initialize_cfg();
     COLA_TRIPULANTES = queue_create();
@@ -37,6 +44,8 @@ int main() {
     }
 
     menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
+
+    list_iterate(COLA_TRIPULANTES->elements, print_t_tripulante);
 
     cerrar_programa(main_log, main_log_inv, DISCORDIADOR_CFG);
 

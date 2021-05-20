@@ -27,5 +27,6 @@ typedef struct {
 extern t_queue* COLA_TRIPULANTES;
 
 void push_cola_tripulante(t_tripulante*);
+t_tripulante* pop_cola_tripulante();
 
 #endif
