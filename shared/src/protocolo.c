@@ -41,7 +41,7 @@ void print_t_tarea(t_tarea* t) {
 }
 void free_t_tarea(t_tarea* tarea) {
     free(tarea->nombre);
-    free(tarea->pos);
+    free_t_posicion(tarea->pos);
     free(tarea);
 }
 

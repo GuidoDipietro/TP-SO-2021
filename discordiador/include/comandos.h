@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #include "../../shared/include/utils.h"
 #include "../../shared/include/protocolo.h"

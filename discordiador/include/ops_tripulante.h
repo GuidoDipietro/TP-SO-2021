@@ -12,6 +12,7 @@
 
 void free_t_tripulante(void*);
 uint8_t iniciar_tripulante(t_posicion*, uint16_t);
+uint8_t solicitar_tarea(t_tripulante*);
 
 uint16_t generar_pid();
 uint16_t generar_pid();
