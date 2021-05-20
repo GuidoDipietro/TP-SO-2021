@@ -111,22 +111,24 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
                 s_tareas, sz_s_tareas,
                 lista_posiciones
         );
+
         if (!envio_mrh)
             log_error(main_log, "El envio de INICIAR_PATOTA al MI-RAM-HQ fallo");
-        else
+        else {
+            // Iniciamos cada tripulante
+            uint16_t pid = generar_pid();
+            pthread_t threads[cantidad_tripulantes];
+            for(uint8_t j = 0; j < cantidad_tripulantes; j++) {
+                t_iniciar_tripulante_args* args = malloc(sizeof(t_iniciar_tripulante_args));
+                args->pid = pid;
+                args->pos = malloc(sizeof(t_posicion));
+                memcpy(args->pos, list_get(lista_posiciones, j), sizeof(t_posicion));
+                pthread_create(&threads[j], NULL, (void*) iniciar_tripulante, (void*) args);
+            }
+
             for(uint8_t j = 0; j < cantidad_tripulantes; j++)
-                iniciar_tripulante(list_get(lista_posiciones, j));
-
-        // este no tiene que estar en el TP
-        bool envio_ims = send_patota(
-                *i_mongo_store_fd,
-                cantidad_tripulantes,
-                s_tareas, sz_s_tareas,
-                lista_posiciones
-        );
-        if(!envio_ims)
-            log_error(main_log, "El envio de la patota al I_MONGO_STORE fallo");
-
+                pthread_join(threads[j], NULL);
+        }
         free(s_tareas);
     }
 
