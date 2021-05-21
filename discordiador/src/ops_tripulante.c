@@ -21,9 +21,8 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     t->pid = pid;
     t->tid = generar_tid();
     t->status = NEW;
-    t->pos = malloc(sizeof(t_posicion));
+    t->pos = pos;
     t->tarea = NULL;
-    memcpy(t->pos, pos, sizeof(t_posicion));
 
     char* port_i_mongo_store = string_itoa(DISCORDIADOR_CFG->PUERTO_I_MONGO_STORE);
     char* port_mi_ram_hq = string_itoa(DISCORDIADOR_CFG->PUERTO_MI_RAM_HQ);
@@ -55,7 +54,6 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     return t;
 }
 
-
 //
 // Public functions
 //
@@ -76,10 +74,13 @@ uint8_t iniciar_tripulante(void* args) {
 
     if(err) {
         log_error(main_log, "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d", t->tid, t->pid);
+        free_t_tripulante(t);
+        free((t_iniciar_tripulante_args*) args);
         return 1;
     }
 
     push_cola_tripulante(t);
+    free((t_iniciar_tripulante_args*) args); // args->pos queda referenciado por el tripulante
     return 0;
 }
 

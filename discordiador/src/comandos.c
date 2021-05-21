@@ -124,6 +124,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
                 args->pos = malloc(sizeof(t_posicion));
                 memcpy(args->pos, list_get(lista_posiciones, j), sizeof(t_posicion));
                 pthread_create(&threads[j], NULL, (void*) iniciar_tripulante, (void*) args);
+                // args se libera adentro de la funcion iniciar_tripulante
             }
 
             for(uint8_t j = 0; j < cantidad_tripulantes; j++)
