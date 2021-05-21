@@ -22,7 +22,9 @@ static void imprimir_tripulante(void* t_p) {
 
 void op_listar_tripulantes() {
     printf("\n------------------------------");
-    printf("\nEstado de la nave al %s", temporal_get_string_time("%d/%m/%y %H:%M:%S"));
+    char* timestamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
+    printf("\nEstado de la nave al %s", timestamp);
+    free(timestamp);
     iterar_cola(imprimir_tripulante);
     printf("\n------------------------------");
 }
