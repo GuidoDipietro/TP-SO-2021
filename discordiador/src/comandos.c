@@ -124,6 +124,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
                 args->pos = malloc(sizeof(t_posicion));
                 memcpy(args->pos, list_get(lista_posiciones, j), sizeof(t_posicion));
                 pthread_create(&threads[j], NULL, (void*) iniciar_tripulante, (void*) args);
+                // args se libera adentro de la funcion iniciar_tripulante
             }
 
             for(uint8_t j = 0; j < cantidad_tripulantes; j++)
@@ -143,8 +144,7 @@ void listar_tripulantes(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         mensaje_error_sin_args("LISTAR_TRIPULANTES");
         return;
     }
-
-    printf("\nComando LISTAR_TRIPULANTES\n");
+    op_listar_tripulantes();
 }
 
 void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
@@ -155,12 +155,16 @@ void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         return;
     }
 
-    uint8_t ret_code = send_tripulante(*mi_ram_hq_fd, (uint8_t) atoi(args_arr), EXPULSAR_TRIPULANTE);
+    uint8_t ret_code1 = op_expulsar_tripulante(atoi(args_arr));
 
-    if(ret_code)
-        log_info(main_log, "El tripulante %s fue expulsado", args_arr);
-    else
-        log_error(main_log, "No se pudo eliminar al tripulante %s", args_arr);
+    if(!ret_code1) {
+        uint8_t ret_code2 = send_tripulante(*mi_ram_hq_fd, (uint8_t) atoi(args_arr), EXPULSAR_TRIPULANTE);
+
+        if(ret_code2)
+            log_info(main_log, "El tripulante %s fue expulsado", args_arr);
+        else
+            log_error(main_log, "No se pudo eliminar al tripulante %s", args_arr);
+    }
 
     free(args_arr);
 }
