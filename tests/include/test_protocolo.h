@@ -5,10 +5,11 @@
 #include <semaphore.h>
 #include <sys/mman.h>
 #include <sysexits.h>
+#include <stdlib.h>
 #include "../../shared/include/protocolo.h"
 #include "../../shared/include/sockets.h"
 
-int crear_conexiones();
-int limpiar_conexiones();
+void crear_conexiones();
+void cerrar_conexiones();
 
 #endif
