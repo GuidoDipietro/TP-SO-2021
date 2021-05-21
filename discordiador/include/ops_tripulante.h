@@ -18,6 +18,7 @@ typedef struct {
 void free_t_tripulante(void*);
 uint8_t iniciar_tripulante(void*);
 uint8_t solicitar_tarea(t_tripulante*);
+uint8_t op_expulsar_tripulante(uint16_t);
 
 uint16_t generar_pid();
 uint16_t generar_pid();

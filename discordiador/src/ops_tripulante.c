@@ -55,21 +55,10 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     return t;
 }
 
+
 //
 // Public functions
 //
-
-void free_t_tripulante(void* t_p) {
-    t_tripulante* t = (t_tripulante*) t_p;
-
-    if(t->pos != NULL)
-        free_t_posicion(t->pos);
-
-    if(t->tarea != NULL)
-        free_t_tarea(t->tarea);
-
-    free(t);
-}
 
 uint8_t iniciar_tripulante(void* args) {
     t_posicion* pos = ((t_iniciar_tripulante_args*) args)->pos;
@@ -82,7 +71,7 @@ uint8_t iniciar_tripulante(void* args) {
 
     // TODO: enviar bien el TID y PID al MI-RAM-HQ
 
-    log_info(main_log, "Tripulante %d creado en la patota %d", t->pid, t->pid);
+    log_info(main_log, "Tripulante %d creado en la patota %d", t->tid, t->pid);
     uint8_t err = solicitar_tarea(t);
 
     if(err) {
@@ -112,5 +101,16 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     t->tarea = tarea;
     t->status = READY;
 
+    return 0;
+}
+
+uint8_t op_expulsar_tripulante(uint16_t tid) {
+    void* p = buscar_cola_tripulante(tid);
+    if(p == NULL) { // No se encontro el elemento en la cola. No es necesario pero para que haya logs :)
+        log_warning(main_log, "El tripulante %d no existe", tid);
+        return 1;
+    }
+
+    remover_cola_tripulante(tid);
     return 0;
 }

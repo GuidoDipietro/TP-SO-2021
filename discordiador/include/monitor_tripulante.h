@@ -23,10 +23,11 @@ typedef struct {
     int fd_mi_ram_hq;
 } t_tripulante;
 
-// si se usa FIFO va a ser una t_queue*, si se usa RR va a ser una t_list*
 extern t_queue* COLA_TRIPULANTES;
 
 void push_cola_tripulante(t_tripulante*);
 t_tripulante* pop_cola_tripulante();
+t_tripulante* buscar_cola_tripulante(uint16_t);
+void remover_cola_tripulante(uint16_t); 
 
 #endif
