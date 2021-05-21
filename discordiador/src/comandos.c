@@ -144,8 +144,7 @@ void listar_tripulantes(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         mensaje_error_sin_args("LISTAR_TRIPULANTES");
         return;
     }
-
-    printf("\nComando LISTAR_TRIPULANTES\n");
+    op_listar_tripulantes();
 }
 
 void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {

@@ -1,0 +1,2 @@
+- [ ] Mi-RAM-HQ pueda guardar las tareas de cada patota y dar tareas cuando se le pidan (discordiador - ops_tripulante.c:88)
+- [ ] Mi-RAM-HQ sea capaz de guardar TID y PID correctamente (discordiador - ops_tripulante.c:70)

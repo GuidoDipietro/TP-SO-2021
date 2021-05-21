@@ -29,5 +29,6 @@ void push_cola_tripulante(t_tripulante*);
 t_tripulante* pop_cola_tripulante();
 t_tripulante* buscar_cola_tripulante(uint16_t);
 void remover_cola_tripulante(uint16_t); 
+void iterar_cola(void (*f)(void*));
 
 #endif

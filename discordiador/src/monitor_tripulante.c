@@ -62,3 +62,9 @@ void remover_cola_tripulante(uint16_t tid) {
     list_remove_and_destroy_by_condition(COLA_TRIPULANTES->elements, filter_by_tid, free_t_tripulante);
     pthread_mutex_unlock(&MUTEX_COLA);
 }
+
+void iterar_cola(void (*function)(void*)) {
+    pthread_mutex_lock(&MUTEX_COLA);
+    list_iterate(COLA_TRIPULANTES->elements, function);
+    pthread_mutex_unlock(&MUTEX_COLA);
+}
