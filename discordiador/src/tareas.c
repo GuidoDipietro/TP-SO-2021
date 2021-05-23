@@ -1,8 +1,5 @@
 #include "../include/tareas.h"
 
-static bool PAUSED = false;
-t_list* LISTA_HILOS;
-
 static bool posiciones_iguales(t_posicion* p1, t_posicion* p2) {
     return p1->x == p2->x && p1->y == p2->y;
 }
@@ -29,7 +26,7 @@ static bool filter_by_tid(void* t_p) {
 // Este es el loop principal del planificador
 void planificador() {
     sem_init(&active_threads, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
-    LISTA_HILOS = list_create();
+
     while(largo_cola() != 0) {
         sem_wait(&active_threads);
         t_running_thread* thread = malloc(sizeof(t_running_thread));
@@ -41,7 +38,7 @@ void planificador() {
             thread->t
         );
         pthread_detach(thread->thread);
-        list_add(LISTA_HILOS, (void*) thread);
+        monitor_add_lista_hilos((void*) thread);
     }
     //list_destroy(LISTA_HILOS); // Los elementos de la lista los elimina el hilo mismo
     sem_destroy(&active_threads);
@@ -67,7 +64,7 @@ void correr_tarea_FIFO(t_tripulante* t) {
                 // Lo sacamos de la lista de hilos activos
                 t->status = EXIT;
                 tid_cmp = t->tid;
-                void* p = list_remove_by_condition(LISTA_HILOS, filter_by_tid);
+                void* p = monitor_remove_by_condition_lista_hilos(filter_by_tid);
                 free_t_tarea(t->tarea);
                 free((t_running_thread*) p); // Limpiamos el nodo de la lista de hilos
                 reasignar_tripulante(t);

@@ -33,4 +33,11 @@ void remover_cola_tripulante(uint16_t);
 void iterar_cola(void (*f)(void*));
 uint16_t largo_cola();
 
+// Lista hilos
+
+extern t_list* LISTA_HILOS;
+
+void monitor_add_lista_hilos(void*); 
+void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
+
 #endif
