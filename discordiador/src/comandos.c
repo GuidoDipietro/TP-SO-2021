@@ -175,7 +175,7 @@ void iniciar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd)
         return;
     }
 
-    printf("\nComando INICIAR_PLANIFICACION\n");
+    planificador();
 }
 
 void pausar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {

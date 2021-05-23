@@ -57,6 +57,13 @@ t_tripulante* buscar_cola_tripulante(uint16_t tid) {
     return p;
 }
 
+uint16_t largo_cola() {
+    pthread_mutex_lock(&MUTEX_COLA);
+    uint16_t ret = queue_size(COLA_TRIPULANTES);
+    pthread_mutex_unlock(&MUTEX_COLA);
+    return ret;
+}
+
 void remover_cola_tripulante(uint16_t tid) {
     pthread_mutex_lock(&MUTEX_COLA);
     list_remove_and_destroy_by_condition(COLA_TRIPULANTES->elements, filter_by_tid, free_t_tripulante);
