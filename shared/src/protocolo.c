@@ -546,6 +546,65 @@ static void deserializar_tarea(void* stream, t_tarea** tarea) {
     *tarea = r_tarea;
 }
 
+// MOVIMIENTO //
+
+bool send_movimiento(int fd, uint8_t id_tripulante, t_posicion* origen, t_posicion* destino) {
+    size_t size = sizeof(op_code) + sizeof(uint8_t) + 2*sizeof(t_posicion);
+    void* stream = serializar_movimiento(id_tripulante, origen, destino);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool recv_movimiento(int fd, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino) {
+    size_t size = sizeof(uint8_t) + 2*sizeof(t_posicion);
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+
+    t_posicion* r_origen, *r_destino;
+    deserializar_movimiento(stream, id_tripulante, &r_origen, &r_destino);
+    *origen = r_origen;
+    *destino = r_destino;
+
+    free(stream);
+    return true;
+}
+
+static void* serializar_movimiento
+(uint8_t id_tripulante, t_posicion* origen, t_posicion* destino) {
+    size_t size = sizeof(op_code) + sizeof(uint8_t) + sizeof(t_posicion) + sizeof(t_posicion);
+    void* stream = malloc(size);
+
+    op_code cop = MOVIMIENTO;
+    memcpy(stream, &cop, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &id_tripulante, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+sizeof(uint8_t), &origen->x, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+2*sizeof(uint8_t), &origen->y, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+3*sizeof(uint8_t), &destino->x, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+4*sizeof(uint8_t), &destino->y, sizeof(uint8_t));
+
+    return stream;
+}
+static void deserializar_movimiento
+(void* stream, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino) {
+    t_posicion* r_origen = malloc(sizeof(t_posicion));
+    t_posicion* r_destino = malloc(sizeof(t_posicion));
+
+    memcpy(id_tripulante, stream, sizeof(uint8_t));
+    memcpy(&r_origen->x, stream+sizeof(uint8_t), sizeof(uint8_t));
+    memcpy(&r_origen->y, stream+2*sizeof(uint8_t), sizeof(uint8_t));
+    memcpy(&r_destino->x, stream+3*sizeof(uint8_t), sizeof(uint8_t));
+    memcpy(&r_destino->y, stream+4*sizeof(uint8_t), sizeof(uint8_t));
+
+    *origen = r_origen;
+    *destino = r_destino;
+}
+
 // faltan
 
 /// 

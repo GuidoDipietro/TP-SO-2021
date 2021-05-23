@@ -142,8 +142,8 @@ static void* serializar_tarea(size_t* size, t_tarea* tarea);
 static void deserializar_tarea(void* stream, t_tarea** tarea);
 
 // MOVIMIENTO //
-bool send_movimiento(int fd, t_posicion* origen, t_posicion* destino);
-bool recv_movimiento(int fd, t_posicion** origen, t_posicion** destino);
+bool send_movimiento(int fd, uint8_t id_t, t_posicion* origen, t_posicion* destino);
+bool recv_movimiento(int fd, uint8_t* id_t, t_posicion** origen, t_posicion** destino);
 
 static void* serializar_movimiento
 (uint8_t id_tripulante, t_posicion* origen, t_posicion* destino);

@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 8888 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 5555 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -534,7 +534,79 @@ void test_tarea() {
     }
 }
 
+void test_movimiento() {
+    uint8_t id_tripulante = 32;
+    t_posicion* origen = malloc(sizeof(t_posicion));
+    origen->x = 7; origen->y ; 66;
+    t_posicion* destino = malloc(sizeof(t_posicion));
+    destino->x = 22; destino->y = 29; // alto salto se mando
 
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_movimiento(cliente_fd, id_tripulante, origen, destino)) {
+            log_error(logger, "Error enviando movimiento");
+        }
+        sem_post(sem_padre);
+        
+        free_t_posicion(origen);
+        free_t_posicion(destino);
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        op_code cop;
+        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop %d", cop);
+        }
+
+        uint8_t r_id_tripulante;
+        t_posicion* r_origen, *r_destino;
+        if (!recv_movimiento(conexion_fd, &r_id_tripulante, &r_origen, &r_destino)) {
+            log_error(logger, "Error recibiendo movimiento");
+        }
+
+        CU_ASSERT_EQUAL(id_tripulante, r_id_tripulante);
+        CU_ASSERT_TRUE(t_posicion_equals(origen, r_origen) && t_posicion_equals(destino, r_destino));
+        
+        free_t_posicion(origen);
+        free_t_posicion(destino);
+        free_t_posicion(r_origen);
+        free_t_posicion(r_destino);
+    }
+}
 
 // y muuuchos, muuuchos mas!
 
@@ -549,5 +621,6 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv sabotaje", test_sabotaje },
     { "Test send/recv op_code", test_send_cop },
     { "Test send/recv tarea", test_tarea },
+    { "Test send/recv movimiento", test_movimiento },
     CU_TEST_INFO_NULL,
 };
