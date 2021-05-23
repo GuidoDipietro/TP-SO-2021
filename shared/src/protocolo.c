@@ -85,7 +85,7 @@ bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop) {
     return true;
 }
 
-static void* serializar_tripulante(uint8_t id_tripulante, op_code cop) {
+void* serializar_tripulante(uint8_t id_tripulante, op_code cop) {
     size_t size = sizeof(op_code)+sizeof(uint8_t);
     void* stream = malloc(size);
     memcpy(stream, &cop, sizeof(op_code));
@@ -110,45 +110,32 @@ void deserializar_uint8_t(void* stream, uint8_t* n) {
 //     puts("");
 // }
 
-bool recv_patota(int fd, uint8_t* n_tripulantes, t_list** tareas, t_list** posiciones) {
-    // tamanio total del stream
-    size_t size;
-    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
-        return false;
-    }
-    // recibe TODO el stream
-    void* stream = malloc(size);
-    if (recv(fd, stream, size, 0) != size) {
-        free(stream);
-        return false;
-    }
+static void* serializar_t_list_posiciones(size_t* size, t_list* lista) {
+    *size = 2*sizeof(uint8_t)*list_size(lista); // 2 uint8_t por cada elemento
+    void* stream = malloc(*size);
 
-    // desarmando el chorizo de bits
-    char* r_tareas;         // el malloc lo realiza deserializar_iniciar_patota()
-    t_list* r_posiciones;   // same
-    deserializar_iniciar_patota(stream, n_tripulantes, &r_tareas, &r_posiciones);
-    
-    t_list* r_list_tareas = raw_tareas_to_list(r_tareas);
-    *tareas = r_list_tareas;
-    *posiciones = r_posiciones;
-
-    free(stream);
-    free(r_tareas);
-    return true;
+    // serializo los elementos
+    t_list_iterator* list_it = list_iterator_create(lista);
+    for (uint8_t i=0; list_iterator_has_next(list_it); i+=2) {
+        t_posicion* pos = list_iterator_next(list_it);
+        memcpy(stream+(i+0)*sizeof(uint8_t), &pos->x, sizeof(uint8_t));
+        memcpy(stream+(i+1)*sizeof(uint8_t), &pos->y, sizeof(uint8_t));
+    }
+    list_iterator_destroy(list_it);
+    return stream;
 }
+static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements) {
+    t_list* lista = list_create();
 
-bool send_patota
-(int fd, uint8_t n_tripulantes, void* s_tareas, size_t sz_s_tareas, t_list* posiciones) {
-    size_t size;
-    void* stream = serializar_iniciar_patota(&size, n_tripulantes, s_tareas, sz_s_tareas, posiciones);
-    if (send(fd, stream, size, 0) == -1) {
-        free(stream);
-        return false;
+    // De-serializo y los meto en la lista
+    for (uint8_t i=0; n_elements>0; i+=2, n_elements--) {
+        t_posicion* pos = malloc(sizeof(t_posicion));
+        memcpy(&pos->x, stream+(i+0)*sizeof(uint8_t), sizeof(uint8_t));
+        memcpy(&pos->y, stream+(i+1)*sizeof(uint8_t), sizeof(uint8_t));
+        list_add(lista, pos);
     }
-    free(stream);
-    return true;
+    return lista;
 }
-
 // flor de firma tiene esta func
 static void* serializar_iniciar_patota
 (size_t* size, uint8_t n_tripulantes, void* s_tareas, size_t sz_s_tareas, t_list* posiciones) {
@@ -235,6 +222,11 @@ static void deserializar_iniciar_patota
 
     free(stream_posiciones);
 }
+static void deserializar_contenido_archivo(void* stream, char** out, size_t size) {
+    char* buffer = malloc(size);
+    memcpy(buffer, stream, size);
+    *out = buffer;
+}
 
 void* serializar_contenido_archivo(size_t* size, char* path, t_log* logger) {
     FILE* file = fopen(path, "r+");
@@ -277,40 +269,60 @@ void* serializar_contenido_archivo(size_t* size, char* path, t_log* logger) {
     fclose(file);
     return stream;
 }
-static void deserializar_contenido_archivo(void* stream, char** out, size_t size) {
-    char* buffer = malloc(size);
-    memcpy(buffer, stream, size);
-    *out = buffer;
-}
-
-static void* serializar_t_list_posiciones(size_t* size, t_list* lista) {
-    *size = 2*sizeof(uint8_t)*list_size(lista); // 2 uint8_t por cada elemento
-    void* stream = malloc(*size);
-
-    // serializo los elementos
-    t_list_iterator* list_it = list_iterator_create(lista);
-    for (uint8_t i=0; list_iterator_has_next(list_it); i+=2) {
-        t_posicion* pos = list_iterator_next(list_it);
-        memcpy(stream+(i+0)*sizeof(uint8_t), &pos->x, sizeof(uint8_t));
-        memcpy(stream+(i+1)*sizeof(uint8_t), &pos->y, sizeof(uint8_t));
+bool recv_patota(int fd, uint8_t* n_tripulantes, t_list** tareas, t_list** posiciones) {
+    // tamanio total del stream
+    size_t size;
+    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
+        return false;
     }
-    list_iterator_destroy(list_it);
-    return stream;
-}
-static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements) {
-    t_list* lista = list_create();
-
-    // De-serializo y los meto en la lista
-    for (uint8_t i=0; n_elements>0; i+=2, n_elements--) {
-        t_posicion* pos = malloc(sizeof(t_posicion));
-        memcpy(&pos->x, stream+(i+0)*sizeof(uint8_t), sizeof(uint8_t));
-        memcpy(&pos->y, stream+(i+1)*sizeof(uint8_t), sizeof(uint8_t));
-        list_add(lista, pos);
+    // recibe TODO el stream
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
     }
-    return lista;
+
+    // desarmando el chorizo de bits
+    char* r_tareas;         // el malloc lo realiza deserializar_iniciar_patota()
+    t_list* r_posiciones;   // same
+    deserializar_iniciar_patota(stream, n_tripulantes, &r_tareas, &r_posiciones);
+    
+    t_list* r_list_tareas = raw_tareas_to_list(r_tareas);
+    *tareas = r_list_tareas;
+    *posiciones = r_posiciones;
+
+    free(stream);
+    free(r_tareas);
+    return true;
+}
+bool send_patota
+(int fd, uint8_t n_tripulantes, void* s_tareas, size_t sz_s_tareas, t_list* posiciones) {
+    size_t size;
+    void* stream = serializar_iniciar_patota(&size, n_tripulantes, s_tareas, sz_s_tareas, posiciones);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
 }
 
 // INICIAR_SELF_EN_PATOTA //
+
+static void* serializar_iniciar_self_en_patota(uint8_t id_tripulante, uint8_t id_patota) {
+    op_code cop = INICIAR_SELF_EN_PATOTA;
+    void* stream = malloc(sizeof(op_code)+2*sizeof(uint8_t));
+
+    memcpy(stream, &cop, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &id_tripulante, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+sizeof(uint8_t), &id_patota, sizeof(uint8_t));
+
+    return stream;
+}
+static void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, uint8_t* id_patota) {
+    memcpy(id_tripulante, stream, sizeof(uint8_t));
+    memcpy(id_patota, stream+sizeof(uint8_t), sizeof(uint8_t));
+}
 
 bool send_iniciar_self_en_patota(int fd, uint8_t id_tripulante, uint8_t id_patota){
     size_t size = sizeof(op_code)+2*sizeof(uint8_t);
@@ -323,7 +335,6 @@ bool send_iniciar_self_en_patota(int fd, uint8_t id_tripulante, uint8_t id_patot
     free(stream);
     return true;
 }
-
 bool recv_iniciar_self_en_patota(int fd, uint8_t* id_tripulante, uint8_t* id_patota){
     size_t size = 2*sizeof(uint8_t);
     void* stream = malloc(size);
@@ -338,22 +349,27 @@ bool recv_iniciar_self_en_patota(int fd, uint8_t* id_tripulante, uint8_t* id_pat
     return true;
 }
 
-void* serializar_iniciar_self_en_patota(uint8_t id_tripulante, uint8_t id_patota) {
-    op_code cop = INICIAR_SELF_EN_PATOTA;
-    void* stream = malloc(sizeof(op_code)+2*sizeof(uint8_t));
+// SABOTAJE //
+
+static void* serializar_sabotaje(t_posicion* posicion){
+    op_code cop = SABOTAJE;
+    size_t size = sizeof(op_code) + sizeof(posicion);
+    void* stream = malloc(size);
 
     memcpy(stream, &cop, sizeof(op_code));
-    memcpy(stream+sizeof(op_code), &id_tripulante, sizeof(uint8_t));
-    memcpy(stream+sizeof(op_code)+sizeof(uint8_t), &id_patota, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code), &posicion->x, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+sizeof(uint8_t), &posicion->y, sizeof(uint8_t));
 
     return stream;
 }
-void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, uint8_t* id_patota) {
-    memcpy(id_tripulante, stream, sizeof(uint8_t));
-    memcpy(id_patota, stream+sizeof(uint8_t), sizeof(uint8_t));
-}
+static void deserializar_sabotaje(void* stream, t_posicion** posicion){
+    t_posicion* r_pos = malloc(sizeof(t_posicion));
 
-// SABOTAJE //
+    memcpy(&r_pos->x, stream, sizeof(uint8_t));
+    memcpy(&r_pos->y, stream+sizeof(uint8_t), sizeof(uint8_t));
+
+    *posicion = r_pos;
+}
 
 bool send_sabotaje(int fd, t_posicion* posicion){
     size_t size = sizeof(op_code) + sizeof(t_posicion);
@@ -367,7 +383,6 @@ bool send_sabotaje(int fd, t_posicion* posicion){
     free(stream);
     return true;
 }
-
 bool recv_sabotaje(int fd, t_posicion** posicion){
     size_t size = sizeof(t_posicion);
     void* stream = malloc(size);
@@ -380,27 +395,6 @@ bool recv_sabotaje(int fd, t_posicion** posicion){
     deserializar_sabotaje(stream,posicion);
     free(stream);
     return true;
-}
-
-static void* serializar_sabotaje(t_posicion* posicion){
-    op_code cop = SABOTAJE;
-    size_t size = sizeof(op_code) + sizeof(posicion);
-    void* stream = malloc(size);
-
-    memcpy(stream, &cop, sizeof(op_code));
-    memcpy(stream+sizeof(op_code), &posicion->x, sizeof(uint8_t));
-    memcpy(stream+sizeof(op_code)+sizeof(uint8_t), &posicion->y, sizeof(uint8_t));
-
-    return stream;
-}
-
-static void deserializar_sabotaje(void* stream, t_posicion** posicion){
-    t_posicion* r_pos = malloc(sizeof(t_posicion));
-
-    memcpy(&r_pos->x, stream, sizeof(uint8_t));
-    memcpy(&r_pos->y, stream+sizeof(uint8_t), sizeof(uint8_t));
-
-    *posicion = r_pos;
 }
 
 
@@ -422,38 +416,6 @@ bool send_fin_fsck(int fd){
 }
 
 // TAREAS //
-bool send_solicitar_tarea(int fd) {
-    return send_codigo_op(fd, SOLICITAR_TAREA);
-}
-
-bool send_tarea(int fd, t_tarea* tarea) {
-    size_t size;
-    void* stream = serializar_tarea(&size, tarea);
-    if (send(fd, stream, size, 0) == -1) {
-        free(stream);
-        return false;
-    }
-    free(stream);
-    return true;
-}
-bool recv_tarea(int fd, t_tarea** tarea) {
-    size_t size;
-    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
-        return false;
-    }
-    void* stream = malloc(size);
-    if (recv(fd, stream, size, 0) != size) {
-        free(stream);
-        return false;
-    }
-
-    t_tarea* r_tarea;
-    deserializar_tarea(stream, &r_tarea);
-    *tarea = r_tarea;
-
-    free(stream);
-    return true;
-}
 
 static void* serializar_tarea(size_t* size, t_tarea* tarea) {
     op_code cop = TAREA;
@@ -546,11 +508,12 @@ static void deserializar_tarea(void* stream, t_tarea** tarea) {
     *tarea = r_tarea;
 }
 
-// MOVIMIENTO //
-
-bool send_movimiento(int fd, uint8_t id_tripulante, t_posicion* origen, t_posicion* destino) {
-    size_t size = sizeof(op_code) + sizeof(uint8_t) + 2*sizeof(t_posicion);
-    void* stream = serializar_movimiento(id_tripulante, origen, destino);
+bool send_solicitar_tarea(int fd) {
+    return send_codigo_op(fd, SOLICITAR_TAREA);
+}
+bool send_tarea(int fd, t_tarea* tarea) {
+    size_t size;
+    void* stream = serializar_tarea(&size, tarea);
     if (send(fd, stream, size, 0) == -1) {
         free(stream);
         return false;
@@ -558,22 +521,26 @@ bool send_movimiento(int fd, uint8_t id_tripulante, t_posicion* origen, t_posici
     free(stream);
     return true;
 }
-bool recv_movimiento(int fd, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino) {
-    size_t size = sizeof(uint8_t) + 2*sizeof(t_posicion);
+bool recv_tarea(int fd, t_tarea** tarea) {
+    size_t size;
+    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
+        return false;
+    }
     void* stream = malloc(size);
     if (recv(fd, stream, size, 0) != size) {
         free(stream);
         return false;
     }
 
-    t_posicion* r_origen, *r_destino;
-    deserializar_movimiento(stream, id_tripulante, &r_origen, &r_destino);
-    *origen = r_origen;
-    *destino = r_destino;
+    t_tarea* r_tarea;
+    deserializar_tarea(stream, &r_tarea);
+    *tarea = r_tarea;
 
     free(stream);
     return true;
 }
+
+// MOVIMIENTO //
 
 static void* serializar_movimiento
 (uint8_t id_tripulante, t_posicion* origen, t_posicion* destino) {
@@ -603,6 +570,98 @@ static void deserializar_movimiento
 
     *origen = r_origen;
     *destino = r_destino;
+}
+
+bool send_movimiento(int fd, uint8_t id_tripulante, t_posicion* origen, t_posicion* destino) {
+    size_t size = sizeof(op_code) + sizeof(uint8_t) + 2*sizeof(t_posicion);
+    void* stream = serializar_movimiento(id_tripulante, origen, destino);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool recv_movimiento(int fd, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino) {
+    size_t size = sizeof(uint8_t) + 2*sizeof(t_posicion);
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+
+    t_posicion* r_origen, *r_destino;
+    deserializar_movimiento(stream, id_tripulante, &r_origen, &r_destino);
+    *origen = r_origen;
+    *destino = r_destino;
+
+    free(stream);
+    return true;
+}
+
+// BITACORA //
+
+static void* serializar_string(size_t* size, char* cadena) {
+    size_t sz_cadena = strlen(cadena) + 1;
+    void* stream = malloc(sizeof(size_t) + sz_cadena);
+
+    memcpy(stream, &sz_cadena, sizeof(size_t));
+    memcpy(stream+sizeof(size_t), cadena, sz_cadena);
+
+    *size = sizeof(size_t) + sz_cadena;
+
+    return stream;
+}
+static void* serializar_bitacora(size_t* size, char* bitacora) {
+    size_t sz_stream_bitacora;
+    void* stream_bitacora = serializar_string(&sz_stream_bitacora, bitacora);
+
+    *size = sizeof(op_code) + sz_stream_bitacora;
+    void* stream = malloc(*size);
+
+    op_code cop = BITACORA;
+    memcpy(stream, &cop, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), stream_bitacora, sz_stream_bitacora);
+
+    free(stream_bitacora);
+    return stream;
+}
+bool send_obtener_bitacora(int fd, uint8_t id_tripulante) {
+    return send_tripulante(fd, id_tripulante, OBTENER_BITACORA);
+}
+bool send_bitacora(int fd, char* bitacora) {
+    size_t size;
+    void* stream = serializar_bitacora(&size, bitacora);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool recv_bitacora(int fd, char** bitacora) {
+    size_t size;
+    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
+        return false;
+    }
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+    // ya fue, se deserializa aca esto
+    // creo que char* r_bitacora = strdup((char*) stream); alcanzaba btw
+    char* r_bitacora = malloc(size);
+    memcpy(r_bitacora, stream, size);
+
+    *bitacora = r_bitacora;
+    free(stream);
+    return true;
+}
+
+// DESCARTAR_BASURA //
+bool send_descartar_basura(int fd) {
+    return send_codigo_op(fd, DESCARTAR_BASURA);
 }
 
 // faltan

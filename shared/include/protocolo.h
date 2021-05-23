@@ -69,8 +69,6 @@ void print_t_tarea(void* t);
 
 //////
 
-static op_code recibir_cop(int fd);
-
 // GUIDO ESTUVO AQUI
 
 // / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / //
@@ -108,21 +106,14 @@ static op_code recibir_cop(int fd);
 // RESOLUCION_SABOTAJE
 bool recv_tripulante(int fd, uint8_t* id_tripulante);
 bool send_tripulante(int fd, uint8_t id_tripulante, op_code cop);
-
-static void* serializar_tripulante(uint8_t id_tripulante, op_code cop);
+void* serializar_tripulante(uint8_t id_tripulante, op_code cop);
 void deserializar_uint8_t(void* stream, uint8_t* n);
 
 // INICIAR_PATOTA //
 // void dump_archivo(FILE* f);
 bool recv_patota(int fd, uint8_t* n_tripulantes, t_list** tareas, t_list** posiciones);
 bool send_patota(int, uint8_t, void*, size_t, t_list*);
-
-static void* serializar_iniciar_patota(size_t*, uint8_t, void*, size_t, t_list*);
-static void deserializar_iniciar_patota(void*, uint8_t*, char**, t_list**);
 void* serializar_contenido_archivo(size_t*, char*, t_log*);
-static void deserializar_contenido_archivo(void* stream, char** out, size_t size);
-static void* serializar_t_list_posiciones(size_t* size, t_list* lista);
-static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements);
 
 ////// faltan
 
@@ -130,44 +121,27 @@ static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements);
 bool send_iniciar_self_en_patota(int fd, uint8_t id_tripulante, uint8_t id_patota);
 bool recv_iniciar_self_en_patota(int fd, uint8_t* id_tripulante, uint8_t* id_patota);
 
-static void* serializar_iniciar_self_en_patota(uint8_t id_tripulante, uint8_t id_patota);
-static void deserializar_iniciar_self_en_patota(void* stream, uint8_t* id_tripulante, uint8_t* id_patota);
-
 // SOLICITAR_TAREA //
 bool send_solicitar_tarea(int fd);          //Tripulante: hey! quiero una tarea!
 bool send_tarea(int fd, t_tarea* tarea);    //MRH: toma tu tarea
 bool recv_tarea(int fd, t_tarea** tarea);   //Tripulante: yuhu me llego tu tarea
 
-static void* serializar_tarea(size_t* size, t_tarea* tarea);
-static void deserializar_tarea(void* stream, t_tarea** tarea);
-
 // MOVIMIENTO //
 bool send_movimiento(int fd, uint8_t id_t, t_posicion* origen, t_posicion* destino);
 bool recv_movimiento(int fd, uint8_t* id_t, t_posicion** origen, t_posicion** destino);
-
-static void* serializar_movimiento
-(uint8_t id_tripulante, t_posicion* origen, t_posicion* destino);
-static void deserializar_movimiento
-(void* stream, uint8_t* id_tripulante, t_posicion** origen, t_posicion** destino);
 
 // como enviamos/recibimos la bitacora? una gran cadena con los datos para printear o algo?
 // ver
 // OBTENER_BITACORA //
 bool send_obtener_bitacora(int fd, uint8_t id_tripulante);  //kiero la vitacoras deltripulante 69
+// el recv de esto ^ deberia ser algo tipo
+// case OBTENER_BITACORA:; uint8_t id_tripulante; recv_tripulante(fd, &id_tripulante);
 bool send_bitacora(int fd, char* bitacora);                 //toma
 bool recv_bitacora(int fd, char** bitacora);                //me llegouna vitacoras
-
-static void* serializar_obtener_bitacora(uint8_t id_tripulante);
-//void deserializar_uint8_t(uint8_t*); // para deserializar_obtener_bitacora
-static void* serializar_bitacora(size_t* size, char* bitacora);
-static void deserializar_bitacora(void* stream, uint8_t* tripulante, char** bitacora);
 
 // SABOTAJE //
 bool send_sabotaje(int fd, t_posicion* posicion);
 bool recv_sabotaje(int fd, t_posicion** posicion);
-
-static void* serializar_sabotaje(t_posicion* posicion);
-static void deserializar_sabotaje(void* stream, t_posicion** posicion);
 
 // Generico
 bool send_codigo_op();
@@ -186,15 +160,13 @@ bool send_solicitar_tarea(int fd);
 bool send_tarea(int fd, t_tarea* t);
 bool recv_tarea(int fd, t_tarea** t);
 
-bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
-bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
-bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea);
-
-static void* serializar_tarea_accion(size_t* size, uint8_t id_tripulante, char* nombre_tarea, op_code cop);
-static void deserializar_tripulante_nombretarea(void* stream, uint8_t* id_tripulante, char** nombre_tarea);
+bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea); //falta
+bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea); //falta
+bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea); //falta
 
 // GENERAR //
 // CONSUMIR //
+// faltan
 bool send_generar_consumir(int fd, char* item, uint16_t cant, op_code cop);
 bool recv_item_cantidad(int fd, char** item, uint16_t* cant);
 static void* serializar_generar(size_t* size, char* item, uint16_t cant);

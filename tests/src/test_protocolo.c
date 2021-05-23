@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 5555 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 7000 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -573,7 +573,7 @@ void test_movimiento() {
             log_error(logger, "Error enviando movimiento");
         }
         sem_post(sem_padre);
-        
+
         free_t_posicion(origen);
         free_t_posicion(destino);
         exit(0);
@@ -608,6 +608,93 @@ void test_movimiento() {
     }
 }
 
+void test_bitacora() {
+    char* bitacora = strdup("No tenemos idea como se va a mandar esto, pero podemos poner esta cadena para probar por el momento.");
+    uint8_t id_tripulante = 13;
+
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_obtener_bitacora(cliente_fd, id_tripulante)) {
+            log_error(logger, "Error enviando obtener_bitacora");
+        }
+        sem_post(sem_padre);
+
+        sem_wait(sem_hijo);
+        if (!send_bitacora(cliente_fd, bitacora)) {
+            log_error(logger, "Error enviando bitacora");
+        }
+        sem_post(sem_padre);
+        free(bitacora);
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+
+        // cop OBTENER_BITACORA
+        op_code cop1;
+        if (recv(conexion_fd, &cop1, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "(1) Error recibiendo cop1 %d", cop1);
+        }
+        uint8_t r_id_tripulante;
+        if (!recv_tripulante(conexion_fd, &r_id_tripulante)) {
+            log_error(logger, "Error recibiendo id_tripulante de OBTENER_BITACORA");
+        }
+        sem_post(sem_hijo);
+
+        // cop BITACORA + la bitacora a continuacion
+        sem_wait(sem_padre);
+        op_code cop2;
+        if (recv(conexion_fd, &cop2, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "(2) Error recibiendo cop2 %d", cop2);
+        }
+        char* r_bitacora;
+        if (!recv_bitacora(conexion_fd, &r_bitacora)) {
+            log_error(logger, "Error recibiendo bitacora");
+        }
+
+        CU_ASSERT_EQUAL(cop1, OBTENER_BITACORA);
+        CU_ASSERT_EQUAL(cop2, BITACORA);
+        CU_ASSERT_EQUAL(id_tripulante, r_id_tripulante);
+        CU_ASSERT_TRUE( strcmp(bitacora, r_bitacora) == 0 );
+
+        free(bitacora);
+        free(r_bitacora);
+    }
+}
+
 // y muuuchos, muuuchos mas!
 
 /////////
@@ -622,5 +709,6 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv op_code", test_send_cop },
     { "Test send/recv tarea", test_tarea },
     { "Test send/recv movimiento", test_movimiento },
+    { "Test send/recv bitacora", test_bitacora },
     CU_TEST_INFO_NULL,
 };

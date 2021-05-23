@@ -87,6 +87,7 @@ int server_escuchar(t_log* logger, char* server_name, int server_socket){
                 else
                     log_error(logger, "Error recibiendo patota en MRH");
                 list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                list_destroy_and_destroy_elements(tareas, *free_t_posicion); // quizas no quieran hacerle free en un futuro (muy cercano!)
                 free(tareas);
                 break;
 
