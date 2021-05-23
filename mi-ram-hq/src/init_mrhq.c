@@ -70,7 +70,8 @@ int server_escuchar(t_log* logger, char* server_name, int server_socket){
         switch (cop) {
             case INICIAR_PATOTA:;
                 uint8_t n_tripulantes;
-                char* tareas;
+                // char* tareas;
+                t_list* tareas;
                 t_list* posiciones;
                 if (recv_patota(cliente_socket, &n_tripulantes, &tareas, &posiciones)) {
                     // log_info(logger, "iniciaron a una patota de %d tripulantes", n_tripulantes);

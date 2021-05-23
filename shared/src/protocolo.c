@@ -29,17 +29,19 @@ t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t du
 
     return tarea;
 }
-void print_t_tarea(t_tarea* t) {
+void print_t_tarea(void* t) {
+    t_tarea* tarea = (t_tarea*) t;
     printf("%s %d;%d;%d;%d;%d\n",
-        t->nombre,
-        t->param,
-        t->pos->x,
-        t->pos->y,
-        t->duracion,
-        t->tipo
+        tarea->nombre,
+        tarea->param,
+        tarea->pos->x,
+        tarea->pos->y,
+        tarea->duracion,
+        tarea->tipo
     );
 }
-void free_t_tarea(t_tarea* tarea) {
+void free_t_tarea(void* t) {
+    t_tarea* tarea = (t_tarea*) t;
     free(tarea->nombre);
     free_t_posicion(tarea->pos);
     free(tarea);
@@ -108,7 +110,7 @@ void deserializar_uint8_t(void* stream, uint8_t* n) {
 //     puts("");
 // }
 
-bool recv_patota(int fd, uint8_t* n_tripulantes, char** tareas, t_list** posiciones) {
+bool recv_patota(int fd, uint8_t* n_tripulantes, t_list** tareas, t_list** posiciones) {
     // tamanio total del stream
     size_t size;
     if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
@@ -125,9 +127,13 @@ bool recv_patota(int fd, uint8_t* n_tripulantes, char** tareas, t_list** posicio
     char* r_tareas;         // el malloc lo realiza deserializar_iniciar_patota()
     t_list* r_posiciones;   // same
     deserializar_iniciar_patota(stream, n_tripulantes, &r_tareas, &r_posiciones);
-    *tareas = r_tareas;
+    
+    t_list* r_list_tareas = raw_tareas_to_list(r_tareas);
+    *tareas = r_list_tareas;
     *posiciones = r_posiciones;
+
     free(stream);
+    free(r_tareas);
     return true;
 }
 

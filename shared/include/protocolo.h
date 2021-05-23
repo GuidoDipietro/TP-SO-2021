@@ -64,8 +64,8 @@ typedef struct {
 // si usas funciones de otros archivos de shared/ no compila
 void print_t_posicion(void* p);
 t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t dur, char* tipo);
-void free_t_tarea(t_tarea* tarea);
-void print_t_tarea(t_tarea* t);
+void free_t_tarea(void* tarea);
+void print_t_tarea(void* t);
 
 //////
 
@@ -114,7 +114,7 @@ void deserializar_uint8_t(void* stream, uint8_t* n);
 
 // INICIAR_PATOTA //
 // void dump_archivo(FILE* f);
-bool recv_patota(int fd, uint8_t* n_tripulantes, char** tareas, t_list** posiciones);
+bool recv_patota(int fd, uint8_t* n_tripulantes, t_list** tareas, t_list** posiciones);
 bool send_patota(int, uint8_t, void*, size_t, t_list*);
 
 static void* serializar_iniciar_patota(size_t*, uint8_t, void*, size_t, t_list*);

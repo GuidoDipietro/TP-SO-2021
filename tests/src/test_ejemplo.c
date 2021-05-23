@@ -17,16 +17,11 @@ void esta_cosa_rara_da_cinco() {
     CU_ASSERT_EQUAL(p, 5);
 }
 
-void dos_mas_dos_es_setecientos() {
-    CU_ASSERT_TRUE( 2+2 == 700 );
-}
-
 // Se llena esta estrctura asi
 
 CU_TestInfo tests_ejemplo[] = {
     { "Dos mas dos es cuatro?", dos_mas_dos_es_cuatro },
     { "La cosa rara da cinco", esta_cosa_rara_da_cinco },
-    { "Dos mas dos es 700 (claramente no va a fallar)", dos_mas_dos_es_setecientos },
     CU_TEST_INFO_NULL
 };
 

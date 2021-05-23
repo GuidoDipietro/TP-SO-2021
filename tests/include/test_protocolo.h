@@ -6,6 +6,7 @@
 #include <sys/mman.h>
 #include <sysexits.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "../../shared/include/protocolo.h"
 #include "../../shared/include/sockets.h"
 

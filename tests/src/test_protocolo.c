@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 6000 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 6666 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -215,6 +215,106 @@ void test_iniciar_self_en_patota() {
     }
 }
 
+static bool t_posicion_equals(t_posicion* p1, t_posicion* p2) {
+    return p1->x==p2->x && p1->y==p2->y;
+}
+void test_patota() {    
+    // A enviar
+    uint8_t n_tripulantes = 3;
+    size_t sz_s_tareas;
+    void* s_tareas = serializar_contenido_archivo(
+        &sz_s_tareas,
+        "/media/sf_tp-2021-1c-...undefined/tests/src/tareas/tareasTest.txt",
+        logger
+    );
+    if (s_tareas == NULL) {
+        log_error(logger, "Error abriendo el archivo de tareas");
+        CU_ASSERT_EQUAL(1,0);
+        return;
+    }
+    t_list* posiciones = list_create();
+    t_posicion* p1 = malloc(sizeof(t_posicion));
+    t_posicion* p2 = malloc(sizeof(t_posicion));
+    t_posicion* p3 = malloc(sizeof(t_posicion));
+    p1->x = 14; p2->x = 27; p3->x = 49;
+    p1->y = 41; p2->y = 72; p3->x = 94;
+    list_add(posiciones, p1);
+    list_add(posiciones, p2);
+    list_add(posiciones, p3);
+
+    // Para recibir
+    uint8_t r_n_tripulantes;
+    t_list* r_tareas, *r_posiciones;
+
+    // Inicializacion de semaforos compartidos (wtf? y bueno.)
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_patota(cliente_fd, n_tripulantes, s_tareas, sz_s_tareas, posiciones)) {
+            log_error(logger, "Error enviando iniciar_patota");
+        }
+        sem_post(sem_padre);
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        op_code cop;
+        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop %d", cop);
+        }
+        if (!recv_patota(conexion_fd, &r_n_tripulantes, &r_tareas, &r_posiciones)) {
+            log_error(logger, "Error recibiendo iniciar_patota");
+        }
+
+        // ASSERT QUE ANDUVO BIEN
+        CU_ASSERT_EQUAL(n_tripulantes, r_n_tripulantes);
+        list_iterate(r_tareas, &print_t_tarea); puts("ME GUSTA LA MANDIOCA");
+        for (int i=0; i<list_size(posiciones); i++) {
+            t_posicion *p_orig, *p_recv;
+            p_orig = (t_posicion*) list_get(posiciones, i);
+            p_recv = (t_posicion*) list_get(r_posiciones, i);
+            CU_ASSERT_TRUE(t_posicion_equals(p_orig, p_recv));
+            free(p_orig); free(p_recv);
+        }
+    }
+    list_destroy_and_destroy_elements(r_tareas, &free_t_tarea);
+    list_destroy_and_destroy_elements(posiciones, &free_t_posicion);
+    list_destroy_and_destroy_elements(r_posiciones, &free_t_posicion);
+    free(s_tareas);
+}
+
 // y muuuchos, muuuchos mas!
 
 /////////
@@ -224,5 +324,6 @@ CU_TestInfo tests_protocolo[] = {
     // { "Test raw tareas to list (2)", test_raw_tareas_to_list_2 },
     { "Test send/recv tripulante", test_tripulante },
     { "Test send/recv iniciar_self_en_patota", test_iniciar_self_en_patota },
+    { "Test send/recv iniciar_patota", test_patota },
     CU_TEST_INFO_NULL
 };
