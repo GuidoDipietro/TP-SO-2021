@@ -43,6 +43,8 @@ void planificador() {
         pthread_detach(thread->thread);
         list_add(LISTA_HILOS, (void*) thread);
     }
+    //list_destroy(LISTA_HILOS); // Los elementos de la lista los elimina el hilo mismo
+    sem_destroy(&active_threads);
 }
 
 // Esta funcion es donde se corre la tarea de cada tripulante
@@ -66,6 +68,7 @@ void correr_tarea_FIFO(t_tripulante* t) {
                 t->status = EXIT;
                 tid_cmp = t->tid;
                 void* p = list_remove_by_condition(LISTA_HILOS, filter_by_tid);
+                free_t_tarea(t->tarea);
                 free((t_running_thread*) p); // Limpiamos el nodo de la lista de hilos
                 reasignar_tripulante(t);
                 sem_post(&active_threads); // Actualizamos el semaforo, marcando que hay un nuevo hilo disponible

@@ -6,6 +6,7 @@
 #include "config.h"
 #include "../include/config.h"
 #include <stdlib.h>
+#include <pthread.h>
 #include "../../shared/include/frees.h"
 #include "../../shared/include/sockets.h"
 #include "monitor_tripulante.h"
