@@ -452,6 +452,7 @@ bool recv_tarea(int fd, t_tarea** tarea) {
     *tarea = r_tarea;
 
     free(stream);
+    return true;
 }
 
 static void* serializar_tarea(size_t* size, t_tarea* tarea) {

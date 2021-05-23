@@ -169,18 +169,23 @@ bool recv_sabotaje(int fd, t_posicion** posicion);
 static void* serializar_sabotaje(t_posicion* posicion);
 static void deserializar_sabotaje(void* stream, t_posicion** posicion);
 
+// Generico
+bool send_codigo_op();
+
 // no necesita serializar
 // FIN_FSCK //
 bool send_fin_fsck(int fd); // solo op code
-bool recv_fin_fsck(int fd); // solo op code
 
 // no necesita serializar
 // INICIAR_FSCK //
 bool send_iniciar_fsck(int fd); // solo op code
-bool recv_iniciar_fsck(int fd); // solo op code
 
 // INICIO_TAREA //
 // FIN_TAREA //
+bool send_solicitar_tarea(int fd);
+bool send_tarea(int fd, t_tarea* t);
+bool recv_tarea(int fd, t_tarea** t);
+
 bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
 bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
 bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea);
