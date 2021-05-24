@@ -30,6 +30,7 @@ void free_t_tripulante(void* t_p) {
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_COLA, NULL);
     pthread_mutex_init(&MUTEX_LISTA_HILOS, NULL);
+    sem_init(&SEM_BLOCKED_THREADS, 0, 0);
 }
 
 void finalizar_mutex() {

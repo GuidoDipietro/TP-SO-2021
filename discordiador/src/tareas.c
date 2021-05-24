@@ -8,20 +8,13 @@ static int16_t signo(uint16_t val) {
     return (0 < val) - (val < 0);
 }
 
-// Iterador para remover de una lista
-
-static uint16_t tid_cmp = 0;
-
-static bool filter_by_tid(void* t_p) {
-    t_running_thread* t = (t_running_thread*) t_p;
-    return (t->t)->tid == tid_cmp;
-}
-
 // TODO: Monitor de la LISTA_HILOS
 
 //
 // Public functions
 //
+
+static bool blocked = true;
 
 // Este es el loop principal del planificador
 void planificador() {
@@ -35,7 +28,7 @@ void planificador() {
             &(thread->thread),
             NULL,
             (void*) correr_tarea_FIFO,
-            thread->t
+            thread
         );
         pthread_detach(thread->thread);
         monitor_add_lista_hilos((void*) thread);
@@ -45,9 +38,13 @@ void planificador() {
 }
 
 // Esta funcion es donde se corre la tarea de cada tripulante
-void correr_tarea_FIFO(t_tripulante* t) {
+void correr_tarea_FIFO(t_running_thread* r_t) {
+    t_tripulante* t = r_t->t;
     // Primero nos movemos a la posicion correcta
     while(1) {
+        if(blocked)
+            sem_wait(&SEM_BLOCKED_THREADS);
+
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             int16_t dif = (t->pos)->x - ((t->tarea)->pos)->x;
 
@@ -63,10 +60,8 @@ void correr_tarea_FIFO(t_tripulante* t) {
             else { // Termino la tarea
                 // Lo sacamos de la lista de hilos activos
                 t->status = EXIT;
-                tid_cmp = t->tid;
-                void* p = monitor_remove_by_condition_lista_hilos(filter_by_tid);
                 free_t_tarea(t->tarea);
-                free((t_running_thread*) p); // Limpiamos el nodo de la lista de hilos
+                free((t_running_thread*) r_t); // Limpiamos el nodo de la lista de hilos
                 reasignar_tripulante(t);
                 sem_post(&active_threads); // Actualizamos el semaforo, marcando que hay un nuevo hilo disponible
                 return;

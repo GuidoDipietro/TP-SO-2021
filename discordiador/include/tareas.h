@@ -8,15 +8,10 @@
 #include "monitor_tripulante.h"
 #include "config.h"
 
-typedef struct {
-    t_tripulante* t;
-    pthread_t thread;
-} t_running_thread;
-
 sem_t active_threads;
 
 void planificador();
-void correr_tarea_FIFO(t_tripulante*);
+void correr_tarea_FIFO(t_running_thread*);
 void reasignar_tripulante(t_tripulante*);
 
 #endif

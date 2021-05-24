@@ -3,6 +3,8 @@
 
 #include <commons/collections/queue.h>
 #include <pthread.h>
+#include <semaphore.h>
+#include <stdbool.h>
 #include "../../shared/include/protocolo.h"
 
 typedef enum {
@@ -35,9 +37,17 @@ uint16_t largo_cola();
 
 // Lista hilos
 
+typedef struct {
+    t_tripulante* t;
+    pthread_t thread;
+} t_running_thread;
+
 extern t_list* LISTA_HILOS;
+sem_t SEM_BLOCKED_THREADS;
 
 void monitor_add_lista_hilos(void*); 
 void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
+void pausar_tripulantes();
+void desbloquear_tripulantes();
 
 #endif
