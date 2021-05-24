@@ -160,9 +160,9 @@ bool send_solicitar_tarea(int fd);
 bool send_tarea(int fd, t_tarea* t);
 bool recv_tarea(int fd, t_tarea** t);
 
-bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea); //falta
-bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea); //falta
-bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea); //falta
+bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
+bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea);
+bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea);
 
 // GENERAR //
 // CONSUMIR //

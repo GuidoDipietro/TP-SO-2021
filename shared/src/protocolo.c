@@ -540,6 +540,69 @@ bool recv_tarea(int fd, t_tarea** tarea) {
     return true;
 }
 
+// INICIO_TAREA //
+// FIN_TAREA //
+
+static void* serializar_accion_tarea_tripulante
+(size_t* size, uint8_t id_tripulante, char* nombre, op_code accion) {
+    size_t sz_nombre = strlen(nombre)+1;
+    *size = sizeof(op_code) + sizeof(size_t) + sizeof(uint8_t) + sizeof(size_t) + sz_nombre;
+    void* stream = malloc(*size);
+
+    size_t sz_payload = *size - sizeof(op_code) - sizeof(size_t);
+    memcpy(stream, &accion, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &sz_payload, sizeof(size_t));
+    memcpy(stream+sizeof(op_code)+sizeof(size_t), &id_tripulante, sizeof(uint8_t));
+    memcpy(stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint8_t), &sz_nombre, sizeof(size_t));
+    memcpy(stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint8_t)+sizeof(size_t), nombre, sz_nombre);
+
+    return stream;
+}
+static void deserializar_accion_tarea_tripulante
+(void* stream, uint8_t* id_tripulante, char** nombre) {
+    memcpy(id_tripulante, stream, sizeof(uint8_t));
+    size_t sz_nombre;
+    memcpy(&sz_nombre, stream+sizeof(uint8_t), sizeof(size_t));
+    char* r_nombre = malloc(sz_nombre);
+    memcpy(r_nombre, stream+sizeof(uint8_t)+sizeof(size_t), sz_nombre);
+    *nombre = r_nombre;
+}
+static bool send_accion_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea, op_code accion) {
+    size_t size;
+    void* stream = serializar_accion_tarea_tripulante(
+        &size, id_tripulante, nombre_tarea, accion
+    );
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool send_inicio_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea) {
+    return send_accion_tarea(fd, id_tripulante, nombre_tarea, INICIO_TAREA);
+}
+bool send_fin_tarea(int fd, uint8_t id_tripulante, char* nombre_tarea) {
+    return send_accion_tarea(fd, id_tripulante, nombre_tarea, FIN_TAREA);
+}
+bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_tarea) {
+    size_t size_payload;
+    if (recv(fd, &size_payload, sizeof(size_t), 0) != sizeof(size_t)) {
+        return false;
+    }
+    void* stream = malloc(size_payload);
+    if (recv(fd, stream, size_payload, 0) != size_payload) {
+        free(stream);
+        return false;
+    }
+    char* r_nombre_tarea;
+    deserializar_accion_tarea_tripulante(stream, id_tripulante, &r_nombre_tarea);
+    *nombre_tarea = r_nombre_tarea;
+
+    free(stream);
+    return true;
+}
+
 // MOVIMIENTO //
 
 static void* serializar_movimiento

@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 7000 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 6666 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -695,6 +695,96 @@ void test_bitacora() {
     }
 }
 
+void test_accion_tarea() {
+    char* nombre1 = strdup("Dormir la cafe con leche y tomarse una siesta");
+    char* nombre2 = strdup("Irse de vacaciones a milanesa y comerse una Tuvalu");
+    uint8_t id_tripulante1 = 49, id_tripulante2 = 27;
+
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_inicio_tarea(cliente_fd, id_tripulante1, nombre1)) {
+            log_error(logger, "Error enviando inicio_tarea");
+        }
+        sem_post(sem_padre);
+
+        sem_wait(sem_hijo);
+        if (!send_fin_tarea(cliente_fd, id_tripulante2, nombre2)) {
+            log_error(logger, "Error enviando fin_tarea");
+        }
+        sem_post(sem_padre);
+
+        free(nombre1); free(nombre2);
+
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        op_code cop1;
+        if (recv(conexion_fd, &cop1, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop1 %d", cop1);
+        }
+        uint8_t r_id_tripulante1;
+        char* r_nombre1;
+        if (!recv_tripulante_nombretarea(conexion_fd, &r_id_tripulante1, &r_nombre1)) {
+            log_error(logger, "Error recibiendo tripulante/nombre de inicio_tarea");
+        }
+        sem_post(sem_hijo);
+
+        sem_wait(sem_padre);
+        op_code cop2;
+        if (recv(conexion_fd, &cop2, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop2 %d", cop2);
+        }
+        uint8_t r_id_tripulante2;
+        char* r_nombre2;
+        if (!recv_tripulante_nombretarea(conexion_fd, &r_id_tripulante2, &r_nombre2)) {
+            log_error(logger, "Error recibiendo tripulante/nombre de fin_tarea");
+        }
+
+        CU_ASSERT_EQUAL(cop1, INICIO_TAREA);
+        CU_ASSERT_EQUAL(cop2, FIN_TAREA);
+        CU_ASSERT_EQUAL(id_tripulante1, r_id_tripulante1);
+        CU_ASSERT_EQUAL(id_tripulante2, r_id_tripulante2);
+        CU_ASSERT_TRUE(strcmp(nombre1, r_nombre1) == 0);
+        CU_ASSERT_TRUE(strcmp(nombre2, r_nombre2) == 0);
+
+        free(nombre1); free(r_nombre1); free(nombre2); free(r_nombre2);
+    }
+}
+
 // y muuuchos, muuuchos mas!
 
 /////////
@@ -710,5 +800,6 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv tarea", test_tarea },
     { "Test send/recv movimiento", test_movimiento },
     { "Test send/recv bitacora", test_bitacora },
+    { "Test send/recv accion+tarea", test_accion_tarea },
     CU_TEST_INFO_NULL,
 };
