@@ -95,3 +95,32 @@ void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*)) {
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
     return ret;
 }
+
+void iterar_lista_hilos(void (*f)(void*)) {
+    pthread_mutex_lock(&MUTEX_LISTA_HILOS);
+    list_iterate(LISTA_HILOS, f);
+    pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
+}
+
+uint16_t largo_lista_hilos() {
+    pthread_mutex_lock(&MUTEX_LISTA_HILOS);
+    uint16_t ret = list_size(LISTA_HILOS);
+    pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
+    return ret;
+}
+
+//
+// Funciones de manejo de hilos de tripulantes
+//
+
+void bloquear_tripulantes() {
+    BLOCKED_THREADS = true;
+    log_info(main_log, "Planificacion pausada");
+}
+
+void desbloquear_tripulantes() {
+    for(uint16_t i = 0; i < largo_lista_hilos(); i++)
+        sem_post(&SEM_BLOCKED_THREADS);
+    BLOCKED_THREADS = false;
+    log_info(main_log, "Planificacion reanudada");
+}

@@ -6,6 +6,7 @@
 #include <semaphore.h>
 #include <stdbool.h>
 #include "../../shared/include/protocolo.h"
+#include "logs.h"
 
 typedef enum {
     NEW,
@@ -44,10 +45,16 @@ typedef struct {
 
 extern t_list* LISTA_HILOS;
 sem_t SEM_BLOCKED_THREADS;
+extern bool BLOCKED_THREADS;
 
 void monitor_add_lista_hilos(void*); 
 void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
-void pausar_tripulantes();
+uint16_t largo_lista_hilos();
+void iterar_lista_hilos(void (*f)(void*));
+
+// Hilos tripulantes
+
+void bloquear_tripulantes();
 void desbloquear_tripulantes();
 
 #endif
