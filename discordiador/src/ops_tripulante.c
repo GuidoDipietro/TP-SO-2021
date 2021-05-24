@@ -23,6 +23,7 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     t->status = NEW;
     t->pos = pos;
     t->tarea = NULL;
+    t->quantum = 0;
 
     char* port_i_mongo_store = string_itoa(DISCORDIADOR_CFG->PUERTO_I_MONGO_STORE);
     char* port_mi_ram_hq = string_itoa(DISCORDIADOR_CFG->PUERTO_MI_RAM_HQ);
@@ -90,6 +91,13 @@ uint8_t solicitar_tarea(t_tripulante* t) {
         return 1;
     }
 
+    static uint16_t tareas = 0;
+
+    if(tareas >= 4) {
+        t->tarea = NULL;
+        return 1;
+    }
+
     t_tarea* tarea = malloc(sizeof(t_tarea));
     tarea->nombre = string_duplicate("Cositas pronto");
     tarea->tipo = OTRO_T;
@@ -101,6 +109,7 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     tarea->duracion = 6;
     t->tarea = tarea;
     t->status = READY;
+    tareas++;
 
     return 0;
 }

@@ -20,11 +20,18 @@ static void imprimir_tripulante(void* t_p) {
     printf("\nTripulante: %3d        Patota: %3d        Status: %s", t->tid, t->pid, print_status(t->status));
 }
 
+// Para imprimir los tripulantes que se estan ejecutando
+static void imprimir_tripulante_exec(void* t_p) {
+    t_tripulante* t = ((t_running_thread*) t_p)->t;
+    imprimir_tripulante(t);
+}
+
 void op_listar_tripulantes() {
     printf("\n------------------------------");
     char* timestamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
     printf("\nEstado de la nave al %s", timestamp);
     free(timestamp);
+    iterar_lista_hilos(imprimir_tripulante_exec);
     iterar_cola(imprimir_tripulante);
     printf("\n------------------------------");
 }

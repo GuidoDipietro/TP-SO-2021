@@ -169,13 +169,19 @@ void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     free(args_arr);
 }
 
+pthread_t thread_planificacion;
 void iniciar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args != NULL) {
         mensaje_error_sin_args("INICIAR_PLANIFICACION");
         return;
     }
 
-    printf("\nComando INICIAR_PLANIFICACION\n");
+    if(BLOCKED_THREADS)
+        desbloquear_tripulantes();
+    else {
+        pthread_create(&thread_planificacion, NULL, (void*) planificador, NULL);
+        pthread_detach(thread_planificacion);  
+    }
 }
 
 void pausar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
@@ -184,7 +190,7 @@ void pausar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) 
         return;
     }
 
-    printf("\nComando PAUSAR_PLANIFICACION\n");
+    bloquear_tripulantes();
 }
 
 void obtener_bitacora(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {

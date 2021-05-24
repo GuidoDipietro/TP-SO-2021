@@ -16,6 +16,7 @@
 #include "../include/logs.h"
 #include "ops_tripulante.h"
 #include "listar_tripulantes.h"
+#include "tareas.h"
 
 void iniciar_patota(char*, int*, int*);
 void listar_tripulantes(char*, int*, int*);
