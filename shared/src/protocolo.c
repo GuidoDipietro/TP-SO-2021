@@ -722,6 +722,43 @@ bool recv_bitacora(int fd, char** bitacora) {
     return true;
 }
 
+// GENERAR / CONSUMIR //
+
+static void* serializar_generar_consumir(tipo_item item, uint16_t cant, op_code accion) {
+    size_t size = sizeof(op_code) + sizeof(tipo_item) + sizeof(uint16_t);
+    void* stream = malloc(size);
+
+    memcpy(stream, &accion, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &item, sizeof(tipo_item));
+    memcpy(stream+sizeof(op_code)+sizeof(tipo_item), &cant, sizeof(uint16_t));
+
+    return stream;
+}
+bool send_generar_consumir(int fd, tipo_item item, uint16_t cant, op_code accion) {
+    size_t size = sizeof(op_code) + sizeof(tipo_item) + sizeof(uint16_t);
+    void* stream = serializar_generar_consumir(item, cant, accion);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool recv_item_cantidad(int fd, tipo_item* item, uint16_t* cant) {
+    size_t size = sizeof(tipo_item) + sizeof(uint16_t);
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+    // lo deserializo aca por orden de Terry Davis
+    memcpy(item, stream, sizeof(tipo_item));
+    memcpy(cant, stream+sizeof(tipo_item), sizeof(uint16_t));
+
+    free(stream);
+    return true;
+}
+
 // DESCARTAR_BASURA //
 bool send_descartar_basura(int fd) {
     return send_codigo_op(fd, DESCARTAR_BASURA);

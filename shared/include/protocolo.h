@@ -46,6 +46,12 @@ typedef enum {
     OTRO_T              =20,
 } tipo_tarea;
 
+typedef enum {
+    OXIGENO =  8,
+    COMIDA  = 14,
+    BASURA  = 60,
+} tipo_item;
+
 typedef struct {
     uint8_t x;
     uint8_t y;
@@ -166,12 +172,8 @@ bool recv_tripulante_nombretarea(int fd, uint8_t* id_tripulante, char** nombre_t
 
 // GENERAR //
 // CONSUMIR //
-// faltan
-bool send_generar_consumir(int fd, char* item, uint16_t cant, op_code cop);
-bool recv_item_cantidad(int fd, char** item, uint16_t* cant);
-static void* serializar_generar(size_t* size, char* item, uint16_t cant);
-static void* serializar_consumir(size_t* size, char* item, uint16_t cant);
-static void deserializar_item_cantidad(void* stream, char** item, uint16_t* cant);
+bool send_generar_consumir(int fd, tipo_item item, uint16_t cant, op_code cop);
+bool recv_item_cantidad(int fd, tipo_item* item, uint16_t* cant);
 
 // no necesita serializar
 // DESCARTAR_BASURA //

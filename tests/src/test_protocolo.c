@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 6666 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 4544 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -237,7 +237,7 @@ void test_patota() {
     t_posicion* p2 = malloc(sizeof(t_posicion));
     t_posicion* p3 = malloc(sizeof(t_posicion));
     p1->x = 14; p2->x = 27; p3->x = 49;
-    p1->y = 41; p2->y = 72; p3->x = 94;
+    p1->y = 41; p2->y = 72; p3->y = 94;
     list_add(posiciones, p1);
     list_add(posiciones, p2);
     list_add(posiciones, p3);
@@ -537,7 +537,7 @@ void test_tarea() {
 void test_movimiento() {
     uint8_t id_tripulante = 32;
     t_posicion* origen = malloc(sizeof(t_posicion));
-    origen->x = 7; origen->y ; 66;
+    origen->x = 7; origen->y = 66;
     t_posicion* destino = malloc(sizeof(t_posicion));
     destino->x = 22; destino->y = 29; // alto salto se mando
 
@@ -695,7 +695,7 @@ void test_bitacora() {
     }
 }
 
-void test_accion_tarea() {
+void test_accion_tripulante_tarea() {
     char* nombre1 = strdup("Dormir la cafe con leche y tomarse una siesta");
     char* nombre2 = strdup("Irse de vacaciones a milanesa y comerse una Tuvalu");
     uint8_t id_tripulante1 = 49, id_tripulante2 = 27;
@@ -785,7 +785,68 @@ void test_accion_tarea() {
     }
 }
 
-// y muuuchos, muuuchos mas!
+void test_generar_consumir_item() {
+    // un test solo porque es literalmente la misma funcion para CONSUMIR cambiando un arg
+    tipo_item item = OXIGENO;
+    uint16_t cant = 10;
+
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_generar_consumir(cliente_fd, item, cant, GENERAR)) {
+            log_error(logger, "Error enviando tripulante");
+        }
+        sem_post(sem_padre);
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        op_code cop;
+        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop %d", cop);
+        }
+        tipo_item r_item;
+        uint16_t r_cant;
+        if (!recv_item_cantidad(conexion_fd, &r_item, &r_cant)) {
+            log_error(logger, "Error recibiendo tripulante");
+        }
+
+        CU_ASSERT_EQUAL(item, r_item);
+        CU_ASSERT_EQUAL(cant, r_cant);
+    }
+}
 
 /////////
 
@@ -800,6 +861,7 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv tarea", test_tarea },
     { "Test send/recv movimiento", test_movimiento },
     { "Test send/recv bitacora", test_bitacora },
-    { "Test send/recv accion+tarea", test_accion_tarea },
+    { "Test send/recv inicio/fin+tarea", test_accion_tripulante_tarea },
+    { "Test send/recv generar/consumir+item", test_generar_consumir_item },
     CU_TEST_INFO_NULL,
 };
