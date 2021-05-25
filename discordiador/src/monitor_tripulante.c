@@ -10,6 +10,11 @@ bool filter_by_tid(void* t_p) {
     return t->tid == obj_tid;
 }
 
+bool filter_t_running_thread_by_tid(void* item) {
+    t_running_thread* t_r = (t_running_thread*) item;
+    return t_r->t->tid == obj_tid;
+}
+
 // Funciones publicas
 
 pthread_mutex_t MUTEX_COLA;
@@ -100,6 +105,20 @@ void iterar_lista_hilos(void (*f)(void*)) {
     pthread_mutex_lock(&MUTEX_LISTA_HILOS);
     list_iterate(LISTA_HILOS, f);
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
+}
+
+void* buscar_lista_hilos(uint16_t tid) {
+    pthread_mutex_lock(&MUTEX_COLA);
+    obj_tid = tid;
+    void* p = list_find(LISTA_HILOS, filter_t_running_thread_by_tid);
+    pthread_mutex_unlock(&MUTEX_COLA);
+    return p;
+}
+
+void remover_lista_hilos() {
+    void* p = monitor_remove_by_condition_lista_hilos(&filter_t_running_thread_by_tid);
+    free_t_tripulante(((t_running_thread*)p)->t);
+    free(p);
 }
 
 uint16_t largo_lista_hilos() {

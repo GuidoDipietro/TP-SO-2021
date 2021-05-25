@@ -116,9 +116,14 @@ uint8_t solicitar_tarea(t_tripulante* t) {
 
 uint8_t op_expulsar_tripulante(uint16_t tid) {
     void* p = buscar_cola_tripulante(tid);
-    if(p == NULL) { // No se encontro el elemento en la cola. No es necesario pero para que haya logs :)
-        log_warning(main_log, "El tripulante %d no existe", tid);
-        return 1;
+    if (p == NULL) { // No se encontro el elemento en la cola. Busquemos en LISTA_HILOS
+        p = buscar_lista_hilos(tid);
+        if (p == NULL) { // weno ahora si juiste
+            log_warning(main_log, "El tripulante %d no existe", tid);
+            return 1;
+        }
+        remover_lista_hilos(tid);
+        return 0;
     }
 
     remover_cola_tripulante(tid);

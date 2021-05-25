@@ -50,6 +50,8 @@ extern bool BLOCKED_THREADS;
 void monitor_add_lista_hilos(void*); 
 void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
 uint16_t largo_lista_hilos();
+void* buscar_lista_hilos(uint16_t);
+void remover_lista_hilos();
 void iterar_lista_hilos(void (*f)(void*));
 
 // Hilos tripulantes
