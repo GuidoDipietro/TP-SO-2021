@@ -35,6 +35,9 @@ makeFolder:
 		mkdir obj; \
 	fi
 
+debug: CFLAGS := $(CFLAGS) -g
+debug: build
+
 valgrind: build
 	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)
 

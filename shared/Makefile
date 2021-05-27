@@ -17,6 +17,9 @@ LINK = -lcommons -lpthread
 
 build: makeFolder $(OBJ)
 
+debug: CFLAGS := $(CFLAGS) -g
+debug: build
+
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) $@ $< $(LINK) -g
 

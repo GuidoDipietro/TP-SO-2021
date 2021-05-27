@@ -35,7 +35,7 @@ makeFolder:
 		mkdir obj; \
 	fi
 
-debug: CFLAGS+=-g
+debug: CFLAGS := $(CFLAGS) -g
 debug: build
 
 valgrind: debug build
