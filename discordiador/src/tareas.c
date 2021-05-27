@@ -4,7 +4,7 @@ static bool posiciones_iguales(t_posicion* p1, t_posicion* p2) {
     return p1->x == p2->x && p1->y == p2->y;
 }
 
-static int16_t signo(uint16_t val) {
+static int16_t signo(int16_t val) {
     return (0 < val) - (val < 0);
 }
 
@@ -54,14 +54,22 @@ void correr_tarea_FIFO(t_running_thread* r_t) {
             sem_wait(&SEM_BLOCKED_THREADS);
 
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
+            t_posicion* origen = malloc(sizeof(t_posicion));
+            origen->x = t->pos->x;
+            origen->y = t->pos->y;
+
             int16_t dif = (t->pos)->x - ((t->tarea)->pos)->x;
 
             if(dif != 0)
-                (t->pos)->x += signo(dif);
+                (t->pos)->x -= signo(dif);
             else {
                 dif = (t->pos)->y - ((t->tarea)->pos)->y;
-                (t->pos)->y += signo(dif);
+                (t->pos)->y -= signo(dif);
             }
+
+            // Le avisamos al MRH que actualice la GUI
+
+            free(origen);
         } else {
             if((t->tarea)->duracion)
                 ((t->tarea)->duracion)--; // Decrementamos hasta que no tenga mas duracion

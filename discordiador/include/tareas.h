@@ -7,6 +7,7 @@
 #include "ops_tripulante.h"
 #include "monitor_tripulante.h"
 #include "config.h"
+#include "../../shared/include/protocolo.h"
 
 sem_t active_threads;
 
