@@ -80,12 +80,12 @@ uint8_t iniciar_tripulante(void* args) {
     if(err) {
         log_error(main_log, "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d", t->tid, t->pid);
         free_t_tripulante(t);
-        free((t_iniciar_tripulante_args*) args);
+        free(args);
         return 1;
     }
 
     push_cola_tripulante(t);
-    free((t_iniciar_tripulante_args*) args); // args->pos queda referenciado por el tripulante
+    free(args); // args->pos queda referenciado por el tripulante
     return 0;
 }
 

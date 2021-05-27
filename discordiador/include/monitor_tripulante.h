@@ -47,6 +47,8 @@ extern t_list* LISTA_HILOS;
 sem_t SEM_BLOCKED_THREADS;
 extern bool BLOCKED_THREADS;
 
+void iniciar_mutex();
+
 void monitor_add_lista_hilos(void*); 
 void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
 uint16_t largo_lista_hilos();

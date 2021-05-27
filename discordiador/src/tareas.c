@@ -68,7 +68,7 @@ void correr_tarea_FIFO(t_running_thread* r_t) {
             }
 
             // Le avisamos al MRH que actualice la GUI
-
+            
             free(origen);
         } else {
             if((t->tarea)->duracion)
@@ -94,8 +94,10 @@ void correr_tarea_FIFO(t_running_thread* r_t) {
 void reasignar_tripulante(t_tripulante* t) {
     uint8_t ret = solicitar_tarea(t);
 
-    if(ret) { // Borrar el tripulante, no hay mas tareas que hacer
-        free_t_tripulante(t);
+    if (ret) { // Borrar el tripulante, no hay mas tareas que hacer
+        // t->tarea es NULL entonces falla free_t_tripulante(), debe hacerse a mano
+        free(t->pos);
+        free(t);
         return;
     }
 

@@ -25,6 +25,7 @@ int main() {
     DISCORDIADOR_CFG = initialize_cfg();
     COLA_TRIPULANTES = queue_create();
     LISTA_HILOS = list_create();
+    iniciar_mutex();
 
     main_log = log_create("discordiador.log", "DISCORDIADOR", true, LOG_LEVEL_INFO);
     main_log_inv = log_create("discordiador.log", "DISCORDIADOR", false, LOG_LEVEL_TRACE);
