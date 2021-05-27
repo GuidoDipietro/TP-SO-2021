@@ -23,11 +23,8 @@ pthread_mutex_t MUTEX_LISTA_HILOS;
 void free_t_tripulante(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
 
-    if(t->pos != NULL)
-        free_t_posicion(t->pos);
-
-    if(t->tarea != NULL)
-        free_t_tarea(t->tarea);
+    free_t_posicion(t->pos);
+    free_t_tarea(t->tarea);
 
     free(t);
 }

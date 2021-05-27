@@ -43,10 +43,12 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     );
 
     if(t->fd_mi_ram_hq == 0 || t->fd_i_mongo_store == 0) {
+        log_error(main_log, "Error fatal al crear el tripulante %d en la patota %d", t->tid, t->pid);
         free(port_i_mongo_store);
         free(port_mi_ram_hq);
-        free_t_tripulante(t);
-        log_error(main_log, "Error fatal al crear el tripulante %d en la patota %d", t->tid, t->pid);
+        // free_t_tripulante(t);
+        free(t->pos);
+        free(t);
         return NULL;
     }
 
@@ -65,8 +67,10 @@ uint8_t iniciar_tripulante(void* args) {
 
     t_tripulante* t = init_tripulante(pos, pid);
 
-    if(t == NULL) // Si t es NULL, error fatal en la creacion del tripulante
+    if(t == NULL) { // Si t es NULL, error fatal en la creacion del tripulante
+        free(args);
         return 1;
+    }
 
     // TODO: enviar bien el TID y PID al MI-RAM-HQ
 
