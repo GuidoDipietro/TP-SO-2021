@@ -24,7 +24,7 @@ static bool filter_by_tid(void* t_p) {
 void planificador() {
     sem_init(&active_threads, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
     log_info(main_log, "Planificacion iniciada");
-    bloquear_tripulantes();
+    //bloquear_tripulantes();
     while(largo_cola() != 0) {
         sem_wait(&active_threads);
         t_running_thread* thread = malloc(sizeof(t_running_thread));
@@ -50,6 +50,8 @@ void correr_tarea_FIFO(t_running_thread* r_t) {
     t->status = EXEC;
     // Primero nos movemos a la posicion correcta
     while(1) {
+        sleep(2);
+
         if(BLOCKED_THREADS)
             sem_wait(&SEM_BLOCKED_THREADS);
 

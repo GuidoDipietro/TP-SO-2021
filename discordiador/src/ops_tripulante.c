@@ -78,7 +78,6 @@ uint8_t iniciar_tripulante(void* args) {
 
     // TODO: enviar bien el TID y PID al MI-RAM-HQ
 
-    log_info(main_log, "Tripulante %d creado en la patota %d", t->tid, t->pid);
     uint8_t err = solicitar_tarea(t);
 
     if(err) {
@@ -89,6 +88,7 @@ uint8_t iniciar_tripulante(void* args) {
     }
 
     push_cola_tripulante(t);
+    log_info(main_log, "Tripulante %d creado en la patota %d", t->tid, t->pid);
     free(args); // args->pos queda referenciado por el tripulante
     return 0;
 }
