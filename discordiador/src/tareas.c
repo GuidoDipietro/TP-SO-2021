@@ -92,7 +92,7 @@ void correr_tarea_FIFO(t_running_thread* r_t) {
             }
             else { // Termino la tarea
                 // Lo sacamos de la lista de hilos activos
-                log_info(main_log, "tid#(%d) DISMISSED", t->tid);
+                log_info(main_log, "tid#%d DISMISSED", t->tid);
                 t->status = EXIT;
                 free_t_tarea(t->tarea);
 
