@@ -16,6 +16,7 @@ typedef struct {
     uint16_t pid;
 } t_iniciar_tripulante_args;
 
+void cerrar_conexiones_tripulante(t_tripulante*);
 void free_t_tripulante(void*);
 uint8_t iniciar_tripulante(void*);
 uint8_t solicitar_tarea(t_tripulante*);

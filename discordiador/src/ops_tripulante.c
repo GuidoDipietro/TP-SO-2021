@@ -44,11 +44,10 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
 
     if(t->fd_mi_ram_hq == 0 || t->fd_i_mongo_store == 0) {
         log_error(main_log, "Error fatal al crear el tripulante %d en la patota %d", t->tid, t->pid);
+        cerrar_conexiones_tripulante(t);
         free(port_i_mongo_store);
         free(port_mi_ram_hq);
-        // free_t_tripulante(t);
-        free(t->pos);
-        free(t);
+        free_t_tripulante(t);
         return NULL;
     }
 
@@ -60,6 +59,11 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
 //
 // Public functions
 //
+
+void cerrar_conexiones_tripulante(t_tripulante* t) {
+    if (t->fd_mi_ram_hq) close(t->fd_mi_ram_hq);
+    if (t->fd_i_mongo_store) close (t->fd_i_mongo_store);
+}
 
 uint8_t iniciar_tripulante(void* args) {
     t_posicion* pos = ((t_iniciar_tripulante_args*) args)->pos;
@@ -126,10 +130,12 @@ uint8_t op_expulsar_tripulante(uint16_t tid) {
             log_warning(main_log, "El tripulante %d no existe", tid);
             return 1;
         }
+        cerrar_conexiones_tripulante(p);
         remover_lista_hilos(tid);
         return 0;
     }
 
+    cerrar_conexiones_tripulante(p);
     remover_cola_tripulante(tid);
     return 0;
 }

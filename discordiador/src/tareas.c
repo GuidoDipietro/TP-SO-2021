@@ -68,13 +68,31 @@ void correr_tarea_FIFO(t_running_thread* r_t) {
             }
 
             // Le avisamos al MRH que actualice la GUI
-            
+            int ret_code = send_movimiento(
+                t->fd_mi_ram_hq,
+                t->tid,
+                origen,
+                t->pos
+            );
+            if (ret_code == -1) {
+                log_error(main_log, "Error enviando movimiento del tripulante %d", t->tid);
+            }
+
+            log_info(main_log, "Mover tid#%d %d|%d => %d|%d",
+                t->tid, origen->x, origen->y, t->pos->x, t->pos->y
+            );
+
             free(origen);
         } else {
-            if((t->tarea)->duracion)
+            if((t->tarea)->duracion > 0) {
                 ((t->tarea)->duracion)--; // Decrementamos hasta que no tenga mas duracion
+                log_info(main_log, "tid#%d @ %d|%d (dur: %d)",
+                    t->tid, t->pos->x, t->pos->y, t->tarea->duracion
+                );
+            }
             else { // Termino la tarea
                 // Lo sacamos de la lista de hilos activos
+                log_info(main_log, "tid#(%d) DISMISSED", t->tid);
                 t->status = EXIT;
                 free_t_tarea(t->tarea);
 
@@ -95,9 +113,9 @@ void reasignar_tripulante(t_tripulante* t) {
     uint8_t ret = solicitar_tarea(t);
 
     if (ret) { // Borrar el tripulante, no hay mas tareas que hacer
-        // t->tarea es NULL entonces falla free_t_tripulante(), debe hacerse a mano
-        free(t->pos);
-        free(t);
+        cerrar_conexiones_tripulante(t);
+        free_t_tripulante(t);
+        // TODO: avisar al MRH que se murio el tripulante
         return;
     }
 

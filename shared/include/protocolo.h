@@ -34,6 +34,7 @@ typedef enum {
     GENERAR,
     CONSUMIR,
     DESCARTAR_BASURA,
+    DEBUG = 69,
 } op_code;
 
 typedef enum {

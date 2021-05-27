@@ -2,7 +2,7 @@
 
 int main() {
     t_config_mrhq* cfg = initialize_cfg();
-    logger = log_create("mi-ram-hq.log", MODULENAME, true, LOG_LEVEL_INFO);
+    logger = log_create("mi-ram-hq.log", MODULENAME, false, LOG_LEVEL_INFO);
 
     if(!cargar_configuracion(cfg, logger)) {
         cerrar_programa(cfg, logger);
