@@ -25,6 +25,23 @@ bool config_has_all_properties(t_config* cfg, char** properties) {
     return true;
 }
 
+char* leer_archivo_completo(char* path) {
+    FILE* fp = fopen(path, "r+");
+
+    if(fp == NULL)
+        return NULL;
+    
+    fseek(fp, 0L, SEEK_END);
+    long lSize = ftell(fp);
+    rewind(fp);
+
+    char* text = calloc(1, lSize + 1);
+    fread(text, lSize, 1, fp);
+    fclose(fp);
+    
+    return text;
+}
+
 // El array tiene que estar terminado en NULL
 t_list* extraer_posiciones(char** str_posiciones) {
     t_list* lista = list_create();

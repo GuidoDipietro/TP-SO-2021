@@ -101,7 +101,7 @@ uint8_t solicitar_tarea(t_tripulante* t) {
 
     static uint16_t tareas = 0;
 
-    if(tareas >= 4) {
+    if(tareas >= 7) {
         t->tarea = NULL;
         return 1;
     }

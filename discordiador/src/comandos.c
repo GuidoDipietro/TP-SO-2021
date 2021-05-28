@@ -96,15 +96,30 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         list_add(lista_posiciones, n);
     }
 
+    // Chequeos terminados. Pasamos a iniciar la patota
     // Envio del mensaje
 
-    // Necesitamos pasarle el contenido del archivo en bytes
-    // Porque si no aparentemente no puede leerlo desde otro directorio
-    // no se no preguntes
     size_t sz_s_tareas;
     void* s_tareas = serializar_contenido_archivo(&sz_s_tareas, args_arr[1], main_log);
 
     if(s_tareas != NULL) {
+        // Primero vamos a calcular cuantos tripulantes hay que crear
+        char* text = leer_archivo_completo(args_arr[1]);
+
+        t_list* tareas = raw_tareas_to_list(text);
+        int16_t dif = cantidad_tripulantes - list_size(tareas);
+        list_destroy_and_destroy_elements(tareas, free_t_tarea);
+
+        // IMPORTANTE: Observar que por ahora no se le piden las tareas al Mi-Ram-HQ. Sincronizar la cantidad de tareas
+        // con las que da la funcion solicitar_tarea()
+
+        if(dif > 0) { // Hay mas tripulantes que tareas
+            for(uint16_t k = cantidad_tripulantes - dif; k <= cantidad_tripulantes; k++)
+                log_warning(main_log, "No hay tarea para el tripulante %d. No va a ser creado.", k);
+
+            cantidad_tripulantes -= dif;
+        }
+            
         bool envio_mrh = send_patota(
                 *mi_ram_hq_fd,
                 cantidad_tripulantes,
