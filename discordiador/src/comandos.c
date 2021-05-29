@@ -109,6 +109,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         t_list* tareas = raw_tareas_to_list(text);
         int16_t dif = cantidad_tripulantes - list_size(tareas);
         list_destroy_and_destroy_elements(tareas, free_t_tarea);
+        free(text);
 
         // IMPORTANTE: Observar que por ahora no se le piden las tareas al Mi-Ram-HQ. Sincronizar la cantidad de tareas
         // con las que da la funcion solicitar_tarea()

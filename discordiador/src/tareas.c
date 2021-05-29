@@ -47,7 +47,8 @@ void correr_tripulante(t_running_thread* thread_data) {
         }
     }
 
-    //free_t_tripulante(t);
+    // Este free va a haber que sacarlo para guardar al tripulante en la lista de finalizados
+    free_t_tripulante(t);
     sem_destroy(&(thread_data->sem_pause));
     free(thread_data);
 }   
@@ -55,8 +56,9 @@ void correr_tripulante(t_running_thread* thread_data) {
 uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) {
     remover_lista_hilos(t->tid);
     sem_post(&ACTIVE_THREADS);
+    free_t_tarea(t->tarea); // Limpiamos la tarea vieja
 
-    if(solicitar_tarea(t)) // Error
+    if(solicitar_tarea(t))
         return 1;
 
     push_cola_tripulante(thread_data);
