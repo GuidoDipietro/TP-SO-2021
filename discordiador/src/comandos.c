@@ -132,18 +132,27 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         else {
             // Iniciamos cada tripulante
             uint16_t pid = generar_pid();
-            pthread_t threads[cantidad_tripulantes];
             for(uint8_t j = 0; j < cantidad_tripulantes; j++) {
-                t_iniciar_tripulante_args* args = malloc(sizeof(t_iniciar_tripulante_args));
-                args->pid = pid;
-                args->pos = malloc(sizeof(t_posicion));
-                memcpy(args->pos, list_get(lista_posiciones, j), sizeof(t_posicion));
-                pthread_create(&threads[j], NULL, (void*) iniciar_tripulante, (void*) args);
-                // args se libera adentro de la funcion iniciar_tripulante
-            }
+                t_posicion* pos = malloc(sizeof(t_posicion));
+                memcpy(pos, list_get(lista_posiciones, j), sizeof(t_posicion));
 
-            for(uint8_t j = 0; j < cantidad_tripulantes; j++)
-                pthread_join(threads[j], NULL);
+                t_running_thread* thread_data = malloc(sizeof(t_running_thread));
+                thread_data->quantum = 0;
+                thread_data->t = iniciar_tripulante(pos, pid);
+                thread_data->blocked = false;
+                sem_init(&(thread_data->sem_pause), 0, 0);
+
+                // Si la planificacion no esta bloqueada, el planificador lo acepta directamente
+                if(PLANIFICACION_BLOQUEADA)
+                    push_cola_new(thread_data);
+                else {
+                    (thread_data->t)->status = READY;
+                    push_cola_tripulante(thread_data);
+                }
+
+                pthread_create(&(thread_data->thread), NULL, (void*) correr_tripulante, thread_data);
+                pthread_detach(thread_data->thread);
+            }
         }
         free(s_tareas);
     }
@@ -170,7 +179,7 @@ void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         return;
     }
 
-    uint8_t ret_code1 = op_expulsar_tripulante(atoi(args_arr));
+    /*uint8_t ret_code1 = op_expulsar_tripulante(atoi(args_arr));
 
     if(!ret_code1) {
         uint8_t ret_code2 = send_tripulante(*mi_ram_hq_fd, (uint8_t) atoi(args_arr), EXPULSAR_TRIPULANTE);
@@ -179,7 +188,7 @@ void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
             log_info(main_log, "El tripulante %s fue expulsado", args_arr);
         else
             log_error(main_log, "No se pudo eliminar al tripulante %s", args_arr);
-    }
+    }*/
 
     free(args_arr);
 }
@@ -191,9 +200,10 @@ void iniciar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd)
         return;
     }
 
-    if(BLOCKED_THREADS)
-        desbloquear_tripulantes();
-    else {
+    if(PLANIFICACION_BLOQUEADA)
+        reanudar_planificacion();
+
+    if(!PLANIFICADOR_ALIVE) {
         pthread_create(&thread_planificacion, NULL, (void*) planificador, NULL);
         pthread_detach(thread_planificacion);  
     }
@@ -205,7 +215,7 @@ void pausar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) 
         return;
     }
 
-    bloquear_tripulantes();
+    bloquear_planificacion();
 }
 
 void obtener_bitacora(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
