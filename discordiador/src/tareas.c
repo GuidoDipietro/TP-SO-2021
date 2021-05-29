@@ -34,7 +34,7 @@ void correr_tripulante(t_running_thread* thread_data) {
         if(PLANIFICACION_BLOQUEADA)
             sem_wait(&(thread_data->sem_pause));
 
-        sleep(1);
+        //sleep(1);
 
         if((t->tarea)->duracion)
             correr_tarea(thread_data);

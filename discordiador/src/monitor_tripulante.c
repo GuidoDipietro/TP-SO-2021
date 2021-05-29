@@ -23,7 +23,7 @@ pthread_mutex_t MUTEX_LISTA_NEW;
 void free_t_tripulante(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
 
-    free_t_posicion(t->pos);
+    if(t->pos != NULL) free_t_posicion(t->pos);
     if (t->tarea != NULL) free_t_tarea(t->tarea);
 
     free(t);

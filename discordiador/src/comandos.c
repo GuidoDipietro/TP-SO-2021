@@ -140,6 +140,12 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
                 t_running_thread* thread_data = malloc(sizeof(t_running_thread));
                 thread_data->quantum = 0;
                 thread_data->t = iniciar_tripulante(pos, pid);
+
+                if(thread_data->t == NULL) { // Error creando el tripulante
+                    free(thread_data);
+                    continue;
+                }
+
                 thread_data->blocked = false;
                 sem_init(&(thread_data->sem_pause), 0, 0);
 

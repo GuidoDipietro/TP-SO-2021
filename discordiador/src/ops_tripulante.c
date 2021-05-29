@@ -90,17 +90,14 @@ void cerrar_conexiones_tripulante(t_tripulante* t) {
 t_tripulante* iniciar_tripulante(t_posicion* pos, uint16_t pid) {
     t_tripulante* t = init_tripulante(pos, pid);
 
-    if(t == NULL) {
-        free_t_posicion(pos);
+    if(t == NULL)
         return NULL;
-    }
         
     uint8_t err = solicitar_tarea(t);
 
     if(err) {
         log_error(main_log, "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d", t->tid, t->pid);
         free_t_tripulante(t);
-        free_t_posicion(pos);
         return NULL;
     }
 
