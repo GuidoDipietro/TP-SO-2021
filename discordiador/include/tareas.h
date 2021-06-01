@@ -9,10 +9,11 @@
 #include "config.h"
 #include "../../shared/include/protocolo.h"
 
-sem_t active_threads;
+bool PLANIFICADOR_ALIVE;
 
 void planificador();
-void correr_tarea_FIFO(t_running_thread*);
-void reasignar_tripulante(t_tripulante*);
+void correr_tripulante(t_running_thread* thread_data);
+uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t);
+void correr_tarea(t_running_thread* r_t);
 
 #endif

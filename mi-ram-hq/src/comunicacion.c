@@ -14,10 +14,12 @@ void procesar_conexion(void* void_args) {
     free(args);
 
     op_code cop;
-    while(cliente_socket != -1) {
+    while (cliente_socket != -1) {
 
-        if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code))
+        if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_info(logger, "DISCONNECT!");
             return;
+        }
 
         switch (cop) {
             case DEBUG:;
@@ -25,7 +27,7 @@ void procesar_conexion(void* void_args) {
                 break;
 
             case INICIAR_PATOTA:;
-                uint8_t n_tripulantes;
+                uint16_t n_tripulantes;
                 // char* tareas;
                 t_list* tareas;
                 t_list* posiciones;
@@ -45,7 +47,7 @@ void procesar_conexion(void* void_args) {
 
             case MOVIMIENTO:
             {
-                uint8_t id_tripulante;
+                uint16_t id_tripulante;
                 t_posicion *origen, *destino;
                 if (!recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
                     log_error(logger, "Error recibiendo movimiento");
@@ -59,7 +61,7 @@ void procesar_conexion(void* void_args) {
             }
             case EXPULSAR_TRIPULANTE:
             {
-                uint8_t id_tripulante;
+                uint16_t id_tripulante;
                  if (recv_tripulante(cliente_socket, &id_tripulante)){
                      int err = expulsar_tripulante(id_tripulante);
                      chequear_errores(err);

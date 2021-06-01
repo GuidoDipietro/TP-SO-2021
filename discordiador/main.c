@@ -11,6 +11,8 @@
 t_log* main_log;
 t_log* main_log_inv;
 t_queue* COLA_TRIPULANTES;
+t_list* LISTA_HILOS;
+t_queue* COLA_NEW;
 t_config_disc* DISCORDIADOR_CFG;
 
 static t_config_disc* initialize_cfg() {
@@ -24,6 +26,7 @@ static t_config_disc* initialize_cfg() {
 int main() {
     DISCORDIADOR_CFG = initialize_cfg();
     COLA_TRIPULANTES = queue_create();
+    COLA_NEW = queue_create();
     LISTA_HILOS = list_create();
     iniciar_mutex();
 

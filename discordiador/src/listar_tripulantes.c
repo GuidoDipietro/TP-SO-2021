@@ -14,7 +14,7 @@ static char* print_status(t_status status) {
 }
 
 static void imprimir_tripulante(void* t_p) {
-    t_tripulante* t = (t_tripulante*) t_p;
+    t_tripulante* t = ((t_running_thread*) t_p)->t;
 
     // 8 espacios
     printf("\nTripulante: %3d        Patota: %3d        Status: %s", t->tid, t->pid, print_status(t->status));
@@ -31,7 +31,8 @@ void op_listar_tripulantes() {
     char* timestamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
     printf("\nEstado de la nave al %s", timestamp);
     free(timestamp);
-    iterar_lista_hilos(imprimir_tripulante_exec);
-    iterar_cola(imprimir_tripulante);
+    iterar_lista_hilos(imprimir_tripulante);
+    iterar_cola_ready(imprimir_tripulante);
+    iterar_cola_new(imprimir_tripulante);
     printf("\n------------------------------");
 }

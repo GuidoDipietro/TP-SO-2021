@@ -1,5 +1,7 @@
 #include "../include/ops_tripulante.h"
 
+bool PLANIFICACION_BLOQUEADA = false;
+
 uint16_t generar_pid() {
     static uint16_t ultimo = 1;
     ultimo++;
@@ -16,6 +18,27 @@ uint16_t generar_tid() {
 // Static functions
 //
 
+static void reanudar_hilo(void* r_t) {
+    sem_post(&(((t_running_thread*) r_t)->sem_pause));
+}
+
+void bloquear_planificacion() {
+    PLANIFICACION_BLOQUEADA = true;
+    log_info(main_log, "Planificacion bloqueada");
+}
+
+void reanudar_planificacion() {
+    PLANIFICACION_BLOQUEADA = false;
+    iterar_lista_hilos(reanudar_hilo);
+
+    while(largo_cola_new()) { // Movemos todos los hilos de NEW a READY
+        t_running_thread* r_t = pop_cola_new();
+        (r_t->t)->status = READY;
+        push_cola_tripulante(r_t);
+    }
+    log_info(main_log, "Planificacion desbloqueada");
+}
+
 static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     t_tripulante* t = malloc(sizeof(t_tripulante));
     t->pid = pid;
@@ -23,7 +46,6 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
     t->status = NEW;
     t->pos = pos;
     t->tarea = NULL;
-    t->quantum = 0;
 
     char* port_i_mongo_store = string_itoa(DISCORDIADOR_CFG->PUERTO_I_MONGO_STORE);
     char* port_mi_ram_hq = string_itoa(DISCORDIADOR_CFG->PUERTO_MI_RAM_HQ);
@@ -57,7 +79,7 @@ static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
 }
 
 //
-// Public functions
+//
 //
 
 void cerrar_conexiones_tripulante(t_tripulante* t) {
@@ -65,32 +87,22 @@ void cerrar_conexiones_tripulante(t_tripulante* t) {
     if (t->fd_i_mongo_store) close (t->fd_i_mongo_store);
 }
 
-uint8_t iniciar_tripulante(void* args) {
-    t_posicion* pos = ((t_iniciar_tripulante_args*) args)->pos;
-    uint16_t pid = ((t_iniciar_tripulante_args*) args)->pid;
-
+t_tripulante* iniciar_tripulante(t_posicion* pos, uint16_t pid) {
     t_tripulante* t = init_tripulante(pos, pid);
 
-    if(t == NULL) { // Si t es NULL, error fatal en la creacion del tripulante
-        free(args);
-        return 1;
-    }
-
-    // TODO: enviar bien el TID y PID al MI-RAM-HQ
-
+    if(t == NULL)
+        return NULL;
+        
     uint8_t err = solicitar_tarea(t);
 
     if(err) {
         log_error(main_log, "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d", t->tid, t->pid);
+        cerrar_conexiones_tripulante(t);
         free_t_tripulante(t);
-        free(args);
-        return 1;
+        return NULL;
     }
 
-    push_cola_tripulante(t);
-    log_info(main_log, "Tripulante %d creado en la patota %d", t->tid, t->pid);
-    free(args); // args->pos queda referenciado por el tripulante
-    return 0;
+    return t;
 }
 
 uint8_t solicitar_tarea(t_tripulante* t) {
@@ -116,26 +128,7 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     tarea->param = 0;
     tarea->duracion = 6;
     t->tarea = tarea;
-    t->status = READY;
     tareas++;
 
-    return 0;
-}
-
-uint8_t op_expulsar_tripulante(uint16_t tid) {
-    void* p = buscar_cola_tripulante(tid);
-    if (p == NULL) { // No se encontro el elemento en la cola. Busquemos en LISTA_HILOS
-        p = buscar_lista_hilos(tid);
-        if (p == NULL) { // weno ahora si juiste
-            log_warning(main_log, "El tripulante %d no existe", tid);
-            return 1;
-        }
-        cerrar_conexiones_tripulante(p);
-        remover_lista_hilos(tid);
-        return 0;
-    }
-
-    cerrar_conexiones_tripulante(p);
-    remover_cola_tripulante(tid);
     return 0;
 }
