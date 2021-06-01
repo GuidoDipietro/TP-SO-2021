@@ -99,7 +99,7 @@ void test_raw_tareas_to_list_2() {
 
 // TESTS DE SEND-RECV CON DOS PROCESOS
 void test_tripulante() {
-    uint8_t id_tripulante=14, r_id_tripulante;
+    uint16_t id_tripulante=14, r_id_tripulante;
 
     // Inicializacion de semaforos compartidos (wtf? y bueno.)
     sem_t* sem_padre = (sem_t*) mmap(
@@ -158,8 +158,8 @@ void test_tripulante() {
 }
 
 void test_iniciar_self_en_patota() {
-    uint8_t id_tripulante=69, r_id_tripulante;
-    uint8_t id_patota=13, r_id_patota;
+    uint16_t id_tripulante=69, r_id_tripulante;
+    uint16_t id_patota=13, r_id_patota;
 
     // semaforos compartidos
     sem_t* sem_padre = (sem_t*) mmap(
@@ -220,7 +220,7 @@ static bool t_posicion_equals(t_posicion* p1, t_posicion* p2) {
 }
 void test_patota() {    
     // A enviar
-    uint8_t n_tripulantes = 3;
+    uint16_t n_tripulantes = 3;
     size_t sz_s_tareas;
     void* s_tareas = serializar_contenido_archivo(
         &sz_s_tareas,
@@ -294,7 +294,7 @@ void test_patota() {
         }
 
         // Para recibir
-        uint8_t r_n_tripulantes;
+        uint16_t r_n_tripulantes;
         t_list* r_tareas, *r_posiciones;
         if (!recv_patota(conexion_fd, &r_n_tripulantes, &r_tareas, &r_posiciones)) {
             log_error(logger, "Error recibiendo iniciar_patota");
@@ -535,7 +535,7 @@ void test_tarea() {
 }
 
 void test_movimiento() {
-    uint8_t id_tripulante = 32;
+    uint16_t id_tripulante = 32;
     t_posicion* origen = malloc(sizeof(t_posicion));
     origen->x = 7; origen->y = 66;
     t_posicion* destino = malloc(sizeof(t_posicion));
@@ -592,7 +592,7 @@ void test_movimiento() {
             log_error(logger, "Error recibiendo cop %d", cop);
         }
 
-        uint8_t r_id_tripulante;
+        uint16_t r_id_tripulante;
         t_posicion* r_origen, *r_destino;
         if (!recv_movimiento(conexion_fd, &r_id_tripulante, &r_origen, &r_destino)) {
             log_error(logger, "Error recibiendo movimiento");
@@ -610,7 +610,7 @@ void test_movimiento() {
 
 void test_bitacora() {
     char* bitacora = strdup("No tenemos idea como se va a mandar esto, pero podemos poner esta cadena para probar por el momento.");
-    uint8_t id_tripulante = 13;
+    uint16_t id_tripulante = 13;
 
     sem_t* sem_padre = (sem_t*) mmap(
         0,
@@ -668,7 +668,7 @@ void test_bitacora() {
         if (recv(conexion_fd, &cop1, sizeof(op_code), 0) != sizeof(op_code)) {
             log_error(logger, "(1) Error recibiendo cop1 %d", cop1);
         }
-        uint8_t r_id_tripulante;
+        uint16_t r_id_tripulante;
         if (!recv_tripulante(conexion_fd, &r_id_tripulante)) {
             log_error(logger, "Error recibiendo id_tripulante de OBTENER_BITACORA");
         }
@@ -698,7 +698,7 @@ void test_bitacora() {
 void test_accion_tripulante_tarea() {
     char* nombre1 = strdup("Dormir la cafe con leche y tomarse una siesta");
     char* nombre2 = strdup("Irse de vacaciones a milanesa y comerse una Tuvalu");
-    uint8_t id_tripulante1 = 49, id_tripulante2 = 27;
+    uint16_t id_tripulante1 = 49, id_tripulante2 = 27;
 
     sem_t* sem_padre = (sem_t*) mmap(
         0,
@@ -756,7 +756,7 @@ void test_accion_tripulante_tarea() {
         if (recv(conexion_fd, &cop1, sizeof(op_code), 0) != sizeof(op_code)) {
             log_error(logger, "Error recibiendo cop1 %d", cop1);
         }
-        uint8_t r_id_tripulante1;
+        uint16_t r_id_tripulante1;
         char* r_nombre1;
         if (!recv_tripulante_nombretarea(conexion_fd, &r_id_tripulante1, &r_nombre1)) {
             log_error(logger, "Error recibiendo tripulante/nombre de inicio_tarea");
@@ -768,7 +768,7 @@ void test_accion_tripulante_tarea() {
         if (recv(conexion_fd, &cop2, sizeof(op_code), 0) != sizeof(op_code)) {
             log_error(logger, "Error recibiendo cop2 %d", cop2);
         }
-        uint8_t r_id_tripulante2;
+        uint16_t r_id_tripulante2;
         char* r_nombre2;
         if (!recv_tripulante_nombretarea(conexion_fd, &r_id_tripulante2, &r_nombre2)) {
             log_error(logger, "Error recibiendo tripulante/nombre de fin_tarea");
