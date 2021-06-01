@@ -14,10 +14,12 @@ void procesar_conexion(void* void_args) {
     free(args);
 
     op_code cop;
-    while(cliente_socket != -1) {
+    while (cliente_socket != -1) {
 
-        if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code))
+        if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_info(logger, "DISCONNECT!");
             return;
+        }
 
         switch (cop) {
             case DEBUG:;

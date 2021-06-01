@@ -97,6 +97,7 @@ t_tripulante* iniciar_tripulante(t_posicion* pos, uint16_t pid) {
 
     if(err) {
         log_error(main_log, "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d", t->tid, t->pid);
+        cerrar_conexiones_tripulante(t);
         free_t_tripulante(t);
         return NULL;
     }

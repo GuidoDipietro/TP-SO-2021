@@ -30,7 +30,7 @@ void correr_tripulante(t_running_thread* thread_data) {
     t->status = EXEC;
     // Este semaforo es para que empiece a correr
 
-    while(1) {
+    while (1) {
         if(PLANIFICACION_BLOQUEADA)
             sem_wait(&(thread_data->sem_pause));
 
@@ -48,6 +48,7 @@ void correr_tripulante(t_running_thread* thread_data) {
     }
 
     // Este free va a haber que sacarlo para guardar al tripulante en la lista de finalizados
+    cerrar_conexiones_tripulante(t);
     free_t_tripulante(t);
     sem_destroy(&(thread_data->sem_pause));
     free(thread_data);
