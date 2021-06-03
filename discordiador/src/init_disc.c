@@ -2,6 +2,8 @@
 #include "../include/logs.h"
 
 
+void* correr_tripulante;
+
 void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
     log_destroy(main_log);
     log_destroy(main_log_inv);
@@ -79,6 +81,11 @@ uint8_t cargar_configuracion(t_config_disc* config) {
     config->QUANTUM = config_get_int_value(cfg, "QUANTUM");
     config->DURACION_SABOTAJE = config_get_int_value(cfg, "DURACION_SABOTAJE");
     config->RETARDO_CICLO_CPU = config_get_int_value(cfg, "RETARDO_CICLO_CPU");
+
+    if(strncmp(config->ALGORITMO, "RR", 2) == 0)
+        correr_tripulante = correr_tripulante_RR;
+    else
+        correr_tripulante = correr_tripulante_FIFO;
 
     log_info(main_log, "Archivo de configuracion cargado correctamente");
 

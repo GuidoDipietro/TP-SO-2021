@@ -157,7 +157,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
                     push_cola_tripulante(thread_data);
                 }
 
-                pthread_create(&(thread_data->thread), NULL, (void*) correr_tripulante, thread_data);
+                pthread_create(&(thread_data->thread), NULL, correr_tripulante, thread_data);
                 pthread_detach(thread_data->thread);
             }
         }

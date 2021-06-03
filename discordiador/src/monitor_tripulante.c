@@ -33,12 +33,14 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_COLA, NULL);
     pthread_mutex_init(&MUTEX_LISTA_HILOS, NULL);
     pthread_mutex_init(&MUTEX_LISTA_NEW, NULL);
+    sem_init(&TRIPULANTES_EN_COLA, 0, 0);
 }
 
 void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_COLA);
     pthread_mutex_destroy(&MUTEX_LISTA_HILOS);
     pthread_mutex_destroy(&MUTEX_LISTA_NEW);
+    sem_destroy(&TRIPULANTES_EN_COLA);
 }
 
 // Lista new
@@ -74,6 +76,7 @@ uint16_t largo_cola_new() {
 void push_cola_tripulante(t_running_thread* t) {
     pthread_mutex_lock(&MUTEX_COLA);
     queue_push(COLA_TRIPULANTES, (void*) t);
+    sem_post(&TRIPULANTES_EN_COLA);
     pthread_mutex_unlock(&MUTEX_COLA);
     (t->t)->status = READY;
 }

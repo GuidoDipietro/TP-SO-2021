@@ -20,6 +20,7 @@ uint16_t generar_tid() {
 
 static void reanudar_hilo(void* r_t) {
     sem_post(&(((t_running_thread*) r_t)->sem_pause));
+    sem_post(&BLOQUEAR_PLANIFICADOR);
 }
 
 void bloquear_planificacion() {

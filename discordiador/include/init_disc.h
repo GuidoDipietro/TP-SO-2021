@@ -10,6 +10,7 @@
 #include "../../shared/include/utils.h"
 #include "config.h"
 #include "ops_tripulante.h"
+#include "tareas.h"
 
 uint8_t cargar_configuracion(t_config_disc*);
 uint8_t generar_conexiones(int*, int*, t_config_disc*);

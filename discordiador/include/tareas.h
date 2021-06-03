@@ -11,9 +11,13 @@
 
 bool PLANIFICADOR_ALIVE;
 
+extern void* correr_tripulante;
+
 void planificador();
-void correr_tripulante(t_running_thread* thread_data);
+void correr_tripulante_FIFO(t_running_thread* thread_data);
+void correr_tripulante_RR(t_running_thread* thread_data);
 uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t);
 void correr_tarea(t_running_thread* r_t);
+void desalojar_tripulante(t_running_thread* thread_data);
 
 #endif

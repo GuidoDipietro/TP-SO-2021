@@ -47,6 +47,8 @@ uint16_t largo_cola_new();
 
 extern t_queue* COLA_TRIPULANTES;
 
+sem_t TRIPULANTES_EN_COLA;
+
 void push_cola_tripulante(t_running_thread*);
 t_running_thread* pop_cola_tripulante();
 t_running_thread* buscar_cola_tripulante(uint16_t);

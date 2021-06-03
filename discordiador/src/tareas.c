@@ -14,27 +14,45 @@ bool PLANIFICADOR_ALIVE = false;
 void planificador() {
     PLANIFICADOR_ALIVE = true;
     sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
-    while(largo_cola()) {
+    sem_init(&BLOQUEAR_PLANIFICADOR, 0, 0);
+    while(1) {
         sem_wait(&ACTIVE_THREADS);
+        sem_wait(&TRIPULANTES_EN_COLA);
+
+        if(PLANIFICACION_BLOQUEADA)
+            sem_wait(&BLOQUEAR_PLANIFICADOR);
+
         t_running_thread* new = pop_cola_tripulante();
+        // Preparamos el hilo para correr
+        (new->t)->status = EXEC;
+        new->blocked = false;
         monitor_add_lista_hilos((void*) new);
         sem_post(&(new->sem_pause)); // Para arrancar el loop
     }
     PLANIFICADOR_ALIVE = false;
+    printf("\nFin planificacion\n");
 }
 
-void correr_tripulante(t_running_thread* thread_data) {
+/*
+    correr_tripulante_FIFO y correr_tripulante_RR son la misma funcion, nada mas que
+    correr_tripulante_RR agrega la logica del algoritmo RR
+
+*/
+
+void correr_tripulante_FIFO(t_running_thread* thread_data) {
     t_tripulante* t = thread_data->t;
 
     sem_wait(&(thread_data->sem_pause));
-    t->status = EXEC;
     // Este semaforo es para que empiece a correr
 
     while (1) {
         if(PLANIFICACION_BLOQUEADA)
             sem_wait(&(thread_data->sem_pause));
 
-        //sleep(1);
+        if(thread_data->blocked)
+            sem_wait(&(thread_data->sem_pause));
+
+        sleep(1);
 
         if((t->tarea)->duracion)
             correr_tarea(thread_data);
@@ -54,6 +72,54 @@ void correr_tripulante(t_running_thread* thread_data) {
     free(thread_data);
 }   
 
+void correr_tripulante_RR(t_running_thread* thread_data) {
+    t_tripulante* t = thread_data->t;
+
+    sem_wait(&(thread_data->sem_pause));
+    // Este semaforo es para que empiece a correr
+
+    while (1) {
+        if(PLANIFICACION_BLOQUEADA)
+            sem_wait(&(thread_data->sem_pause));
+
+        if(thread_data->blocked)
+            sem_wait(&(thread_data->sem_pause));
+
+        sleep(1);
+
+        if((t->tarea)->duracion)
+            if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
+                desalojar_tripulante(thread_data);
+            else {
+                correr_tarea(thread_data);
+                (thread_data->quantum)++;
+            }
+        else {
+            if(replanificar_tripulante(thread_data, t)) {
+                log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                break;
+            } else
+                log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+        }
+    }
+
+    // Este free va a haber que sacarlo para guardar al tripulante en la lista de finalizados
+    cerrar_conexiones_tripulante(t);
+    free_t_tripulante(t);
+    sem_destroy(&(thread_data->sem_pause));
+    free(thread_data);
+}   
+
+void desalojar_tripulante(t_running_thread* thread_data) {
+    log_info(main_log, "El tripulante %d fue desalojado por fin de quantum", (thread_data->t)->tid);
+    remover_lista_hilos((thread_data->t)->tid);
+    thread_data->blocked = true;
+    thread_data->quantum = 0;
+    sem_post(&ACTIVE_THREADS);
+    (thread_data->t)->status = READY;
+    push_cola_tripulante(thread_data);
+}
+
 uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) {
     remover_lista_hilos(t->tid);
     sem_post(&ACTIVE_THREADS);
@@ -62,6 +128,7 @@ uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) 
     if(solicitar_tarea(t))
         return 1;
 
+    thread_data->quantum = 0;
     push_cola_tripulante(thread_data);
     t->status = READY;
     return 0;
