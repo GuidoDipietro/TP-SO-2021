@@ -2,14 +2,14 @@
 
 bool PLANIFICACION_BLOQUEADA = false;
 
-uint16_t generar_pid() {
-    static uint16_t ultimo = 1;
+uint32_t generar_pid() {
+    static uint32_t ultimo = 1;
     ultimo++;
     return ultimo - 1;
 }
 
-uint16_t generar_tid() {
-    static uint16_t ultimo = 1;
+uint32_t generar_tid() {
+    static uint32_t ultimo = 1;
     ultimo++;
     return ultimo - 1;
 }
@@ -40,7 +40,7 @@ void reanudar_planificacion() {
     log_info(main_log, "Planificacion desbloqueada");
 }
 
-static t_tripulante* init_tripulante(t_posicion* pos, uint16_t pid) {
+static t_tripulante* init_tripulante(t_posicion* pos, uint32_t pid) {
     t_tripulante* t = malloc(sizeof(t_tripulante));
     t->pid = pid;
     t->tid = generar_tid();
@@ -88,16 +88,20 @@ void cerrar_conexiones_tripulante(t_tripulante* t) {
     if (t->fd_i_mongo_store) close (t->fd_i_mongo_store);
 }
 
-t_tripulante* iniciar_tripulante(t_posicion* pos, uint16_t pid) {
+t_tripulante* iniciar_tripulante(t_posicion* pos, uint32_t pid) {
     t_tripulante* t = init_tripulante(pos, pid);
 
-    if(t == NULL)
+    if (t == NULL)
         return NULL;
         
     uint8_t err = solicitar_tarea(t);
 
-    if(err) {
-        log_error(main_log, "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d", t->tid, t->pid);
+    if (err) {
+        log_error(
+            main_log,
+            "No se pudo solicitar la tarea al crear el tripulante %d en la patota %d",
+            t->tid, t->pid
+        );
         cerrar_conexiones_tripulante(t);
         free_t_tripulante(t);
         return NULL;
@@ -108,13 +112,13 @@ t_tripulante* iniciar_tripulante(t_posicion* pos, uint16_t pid) {
 
 uint8_t solicitar_tarea(t_tripulante* t) {
     // TODO: Aca se le pide la tarea al mi-ram-hq
-    if(0) {
-        return 1;
+    if (!!!'!') {
+        return '/'/'/';
     }
 
     static uint16_t tareas = 0;
 
-    if(tareas >= 7) {
+    if (tareas >= 7) {
         t->tarea = NULL;
         return 1;
     }

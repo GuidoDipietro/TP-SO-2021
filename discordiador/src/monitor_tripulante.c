@@ -2,7 +2,7 @@
 
 // Funcion y variable para buscar_cola_tripulante()
 
-static uint16_t obj_tid = 0;
+static uint32_t obj_tid = 0;
 
 bool filter_by_tid(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
@@ -88,7 +88,7 @@ t_running_thread* pop_cola_tripulante() {
     return (t_running_thread*) t;
 }
 
-t_running_thread* buscar_cola_tripulante(uint16_t tid) {
+t_running_thread* buscar_cola_tripulante(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_COLA);
     obj_tid = tid;
     void* p = list_find(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid);
@@ -103,7 +103,7 @@ uint16_t largo_cola() {
     return ret;
 }
 
-void remover_cola_tripulante(uint16_t tid) {
+void remover_cola_tripulante(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_COLA);
     list_remove_and_destroy_by_condition(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid, free_t_tripulante);
     pthread_mutex_unlock(&MUTEX_COLA);
@@ -138,7 +138,7 @@ void iterar_lista_hilos(void (*f)(void*)) {
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
 }
 
-void* buscar_lista_hilos(uint16_t tid) {
+void* buscar_lista_hilos(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_COLA);
     obj_tid = tid;
     void* p = list_find(LISTA_HILOS, filter_t_running_thread_by_tid);
@@ -146,7 +146,7 @@ void* buscar_lista_hilos(uint16_t tid) {
     return p;
 }
 
-void* remover_lista_hilos(uint16_t tid) {
+void* remover_lista_hilos(uint32_t tid) {
     obj_tid = tid;
     void* p = monitor_remove_by_condition_lista_hilos(&filter_t_running_thread_by_tid);
     return p;

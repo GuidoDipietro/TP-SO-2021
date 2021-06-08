@@ -28,7 +28,7 @@ void procesar_conexion(void* void_args) {
 
             case INICIAR_PATOTA:
             {
-                uint16_t n_tripulantes;
+                uint32_t n_tripulantes;
                 // char* tareas;
                 t_list* tareas;
                 t_list* posiciones;
@@ -46,9 +46,11 @@ void procesar_conexion(void* void_args) {
                 list_destroy_and_destroy_elements(tareas, *free_t_tarea); // quizas no quieran hacerle free en un futuro (muy cercano!)
                 break;
             }
+            case INICIAR_SELF_EN_PATOTA:
+                break;
             case MOVIMIENTO:
             {
-                uint16_t id_tripulante;
+                uint32_t id_tripulante;
                 t_posicion *origen, *destino;
                 if (!recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
                     log_error(logger, "Error recibiendo movimiento");
@@ -66,7 +68,7 @@ void procesar_conexion(void* void_args) {
             }
             case EXPULSAR_TRIPULANTE:
             {
-                uint16_t id_tripulante;
+                uint32_t id_tripulante;
                  if (recv_tripulante(cliente_socket, &id_tripulante)) {
                     int err = expulsar_tripulante(id_tripulante);
                     chequear_errores(err);

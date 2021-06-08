@@ -9,11 +9,11 @@ uint8_t cargar_configuracion(t_config_ims* config, t_log* log) {
     }
 
     char* properties[] = {
-            "PUNTO_MONTAJE",
-            "PUERTO",
-            "TIEMPO_SINCRONIZACION",
-            "POSICIONES_SABOTAJE",
-            NULL
+        "PUNTO_MONTAJE",
+        "PUERTO",
+        "TIEMPO_SINCRONIZACION",
+        "POSICIONES_SABOTAJE",
+        NULL
     };
 
     // Falta alguna propiedad

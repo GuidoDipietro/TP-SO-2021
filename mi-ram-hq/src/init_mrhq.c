@@ -9,15 +9,16 @@ uint8_t cargar_configuracion(t_config_mrhq* config, t_log* log) {
     }
 
     char* properties[] = {
-            "TAMANIO_MEMORIA",
-            "ESQUEMA_MEMORIA",
-            "TAMANIO_PAGINA",
-            "TAMANIO_SWAP",
-            "PATH_SWAP",
-            "ALGORITMO_REEMPLAZO",
-            "PUERTO",
-            "IP",
-            NULL
+        "TAMANIO_MEMORIA",
+        "ESQUEMA_MEMORIA",
+        "TAMANIO_PAGINA",
+        "TAMANIO_SWAP",
+        "PATH_SWAP",
+        "ALGORITMO_REEMPLAZO",
+        "CRITERIO_SELECCION",
+        "PUERTO",
+        "IP",
+        NULL
     };
 
     // Falta alguna propiedad
@@ -33,6 +34,7 @@ uint8_t cargar_configuracion(t_config_mrhq* config, t_log* log) {
     config->TAMANIO_SWAP = config_get_int_value(cfg, "TAMANIO_SWAP");
     config->PATH_SWAP = strdup(config_get_string_value(cfg, "PATH_SWAP"));
     config->ALGORITMO_REEMPLAZO = strdup(config_get_string_value(cfg, "ALGORITMO_REEMPLAZO"));
+    config->CRITERIO_SELECCION = strdup(config_get_string_value(cfg, "CRITERIO_SELECCION"));
     config->PUERTO = config_get_int_value(cfg, "PUERTO");
     config->IP = config_get_int_value(cfg, "IP");
 

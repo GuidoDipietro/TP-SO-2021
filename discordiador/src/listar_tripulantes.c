@@ -19,7 +19,10 @@ static void imprimir_tripulante(void* t_p) {
     t_tripulante* t = ((t_running_thread*) t_p)->t;
 
     // 8 espacios
-    printf("\nTripulante: %3d        Patota: %3d        Status: %s", t->tid, t->pid, print_status(t->status));
+    printf(
+        "\nTripulante: %3d        Patota: %3d        Status: %s",
+        t->tid, t->pid, print_status(t->status)
+    );
 }
 
 // Para imprimir los tripulantes que se estan ejecutando

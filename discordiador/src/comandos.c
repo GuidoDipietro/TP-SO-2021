@@ -60,7 +60,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     }
 
     t_list* lista_posiciones;
-    uint8_t cantidad_tripulantes = atoi(args_arr[0]);
+    uint32_t cantidad_tripulantes = atoi(args_arr[0]);
 
     if(args_arr[2] != NULL) {
         bool error = false;
@@ -71,13 +71,13 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
             // cantidad no puede ser 0 / esta mal inicializado
             error = true;
             printf("\nFormato invalido o cantidad debe ser mayor que 0.\n");
-        } else if(cant_args > cantidad_tripulantes) {
+        } else if (cant_args > cantidad_tripulantes) {
             // hay mas posiciones que tripulantes inicializados
             error = true;
             printf("\nHay mas posiciones que tripulantes inicializados.\n");
         }
 
-        if(error) {
+        if (error) {
             string_split_free(&args_arr);
             string_split_free(&init_pos);
             return;
@@ -89,7 +89,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         lista_posiciones = list_create();
 
     // Agregamos los que faltan para que esten todos en 0
-    while(list_size(lista_posiciones) != cantidad_tripulantes) {
+    while (list_size(lista_posiciones) != cantidad_tripulantes) {
         t_posicion* n = malloc(sizeof(t_posicion));
         n->x = 0;
         n->y = 0;
@@ -102,7 +102,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     size_t sz_s_tareas;
     void* s_tareas = serializar_contenido_archivo(&sz_s_tareas, args_arr[1], main_log);
 
-    if(s_tareas != NULL) {
+    if (s_tareas != NULL) {
         // Primero vamos a calcular cuantos tripulantes hay que crear
         char* text = leer_archivo_completo(args_arr[1]);
 
@@ -114,8 +114,8 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         // IMPORTANTE: Observar que por ahora no se le piden las tareas al Mi-Ram-HQ. Sincronizar la cantidad de tareas
         // con las que da la funcion solicitar_tarea()
 
-        if(dif > 0) { // Hay mas tripulantes que tareas
-            for(uint16_t k = cantidad_tripulantes - dif; k <= cantidad_tripulantes; k++)
+        if (dif > 0) { // Hay mas tripulantes que tareas
+            for (uint32_t k = cantidad_tripulantes - dif; k <= cantidad_tripulantes; k++)
                 log_warning(main_log, "No hay tarea para el tripulante %d. No va a ser creado.", k);
 
             cantidad_tripulantes -= dif;
@@ -132,8 +132,8 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
             log_error(main_log, "El envio de INICIAR_PATOTA al MI-RAM-HQ fallo");
         else {
             // Iniciamos cada tripulante
-            uint16_t pid = generar_pid();
-            for(uint8_t j = 0; j < cantidad_tripulantes; j++) {
+            uint32_t pid = generar_pid();
+            for (uint32_t j = 0; j < cantidad_tripulantes; j++) {
                 t_posicion* pos = malloc(sizeof(t_posicion));
                 memcpy(pos, list_get(lista_posiciones, j), sizeof(t_posicion));
 
@@ -189,7 +189,7 @@ void expulsar_tripulante(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     /*uint8_t ret_code1 = op_expulsar_tripulante(atoi(args_arr));
 
     if(!ret_code1) {
-        uint8_t ret_code2 = send_tripulante(*mi_ram_hq_fd, (uint8_t) atoi(args_arr), EXPULSAR_TRIPULANTE);
+        uint8_t ret_code2 = send_tripulante(*mi_ram_hq_fd, (uint32_t) atoi(args_arr), EXPULSAR_TRIPULANTE);
 
         if(ret_code2)
             log_info(main_log, "El tripulante %s fue expulsado", args_arr);

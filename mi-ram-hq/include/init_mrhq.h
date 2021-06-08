@@ -16,6 +16,7 @@ typedef struct {
     uint16_t TAMANIO_SWAP;
     char* PATH_SWAP;
     char* ALGORITMO_REEMPLAZO;
+    char* CRITERIO_SELECCION;
     uint16_t PUERTO;
     uint16_t IP;
 } t_config_mrhq;

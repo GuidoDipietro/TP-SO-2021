@@ -1,7 +1,6 @@
 #include "../include/init_disc.h"
 #include "../include/logs.h"
 
-
 void* correr_tripulante;
 
 void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
@@ -53,16 +52,16 @@ uint8_t cargar_configuracion(t_config_disc* config) {
     }
 
     char* properties[] = {
-            "IP_MI_RAM_HQ",
-            "IP_I_MONGO_STORE",
-            "PUERTO_I_MONGO_STORE",
-            "IP_MI_RAM_HQ",
-            "GRADO_MULTITAREA",
-            "ALGORITMO",
-            "QUANTUM",
-            "DURACION_SABOTAJE",
-            "RETARDO_CICLO_CPU",
-            NULL
+        "IP_MI_RAM_HQ",
+        "IP_I_MONGO_STORE",
+        "PUERTO_I_MONGO_STORE",
+        "IP_MI_RAM_HQ",
+        "GRADO_MULTITAREA",
+        "ALGORITMO",
+        "QUANTUM",
+        "DURACION_SABOTAJE",
+        "RETARDO_CICLO_CPU",
+        NULL
     };
 
     // Falta alguna propiedad

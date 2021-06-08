@@ -18,8 +18,8 @@ typedef enum {
 } t_status;
 
 typedef struct {
-    uint16_t tid;
-    uint16_t pid;
+    uint32_t tid;
+    uint32_t pid;
     t_status status;
     t_tarea* tarea;
     t_posicion* pos;
@@ -52,8 +52,8 @@ sem_t TRIPULANTES_EN_COLA;
 
 void push_cola_tripulante(t_running_thread*);
 t_running_thread* pop_cola_tripulante();
-t_running_thread* buscar_cola_tripulante(uint16_t);
-void remover_cola_tripulante(uint16_t); 
+t_running_thread* buscar_cola_tripulante(uint32_t);
+void remover_cola_tripulante(uint32_t); 
 void iterar_cola_ready(void (*f)(void*));
 uint16_t largo_cola();
 
@@ -66,8 +66,8 @@ void iniciar_mutex();
 void monitor_add_lista_hilos(void*); 
 void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
 uint16_t largo_lista_hilos();
-void* buscar_lista_hilos(uint16_t);
-void* remover_lista_hilos(uint16_t);
+void* buscar_lista_hilos(uint32_t);
+void* remover_lista_hilos(uint32_t);
 void iterar_lista_hilos(void (*f)(void*));
 
 // Hilos tripulantes

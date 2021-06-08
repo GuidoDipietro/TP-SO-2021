@@ -8,23 +8,23 @@ static void parse_command(char*, int*, int*);
 
 // Este array es para la libreria readline
 char* commands[] = {
-        "INICIAR_PATOTA",
-        "LISTAR_TRIPULANTES",
-        "EXPULSAR_TRIPULANTE",
-        "INICIAR_PLANIFICACION",
-        "PAUSAR_PLANIFICACION",
-        "OBTENER_BITACORA",
-        NULL
+    "INICIAR_PATOTA",
+    "LISTAR_TRIPULANTES",
+    "EXPULSAR_TRIPULANTE",
+    "INICIAR_PLANIFICACION",
+    "PAUSAR_PLANIFICACION",
+    "OBTENER_BITACORA",
+    NULL
 };
 
 commandMap cmdMap[] = {
-        { iniciar_patota, "INICIAR_PATOTA" },
-        { listar_tripulantes, "LISTAR_TRIPULANTES" },
-        { expulsar_tripulante, "EXPULSAR_TRIPULANTE" },
-        { iniciar_planificacion, "INICIAR_PLANIFICACION" },
-        { pausar_planificacion, "PAUSAR_PLANIFICACION" },
-        { obtener_bitacora, "OBTENER_BITACORA" },
-        NULL
+    { iniciar_patota, "INICIAR_PATOTA" },
+    { listar_tripulantes, "LISTAR_TRIPULANTES" },
+    { expulsar_tripulante, "EXPULSAR_TRIPULANTE" },
+    { iniciar_planificacion, "INICIAR_PLANIFICACION" },
+    { pausar_planificacion, "PAUSAR_PLANIFICACION" },
+    { obtener_bitacora, "OBTENER_BITACORA" },
+    NULL
 };
 
 void menu_start(int* i_mongo_store_fd, int* mi_ram_hq_fd) {
@@ -80,12 +80,12 @@ char* generator(const char* text, int state) {
     static int idx;
     char* ret;
 
-    if(!state)
-        idx = 0;
+    if (!state) idx = 0;
 
-    while((ret = commands[idx++]))
-        if(strstr(ret, text) != NULL)
+    while ((ret = commands[idx++])) {
+        if (strstr(ret, text) != NULL)
             return strdup(ret);
+    }
 
-    return NULL;
+    return NULL;;;
 }

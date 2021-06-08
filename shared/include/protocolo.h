@@ -34,23 +34,23 @@ typedef enum {
     GENERAR,
     CONSUMIR,
     DESCARTAR_BASURA,
-    DEBUG = 69,
+    DEBUG               = 69,
 } op_code;
 
 typedef enum {
-    GENERAR_COMIDA_T    =14,
-    CONSUMIR_COMIDA_T   =15,
-    GENERAR_OXIGENO_T   =16,
-    CONSUMIR_OXIGENO_T  =17,
-    GENERAR_BASURA_T    =18,
-    DESCARTAR_BASURA_T  =19,
-    OTRO_T              =20,
+    GENERAR_COMIDA_T    = 14,
+    CONSUMIR_COMIDA_T   = 15,
+    GENERAR_OXIGENO_T   = 16,
+    CONSUMIR_OXIGENO_T  = 17,
+    GENERAR_BASURA_T    = 18,
+    DESCARTAR_BASURA_T  = 19,
+    OTRO_T              = 20,
 } tipo_tarea;
 
 typedef enum {
-    OXIGENO =  8,
-    COMIDA  = 14,
-    BASURA  = 60,
+    OXIGENO             =  8,
+    COMIDA              = 14,
+    BASURA              = 60,
 } tipo_item;
 
 typedef struct {
@@ -113,22 +113,22 @@ bool send_debug(int fd);
 // EXPULSAR_TRIPULANTE
 // ATENCION_SABOTAJE
 // RESOLUCION_SABOTAJE
-bool recv_tripulante(int fd, uint16_t* id_tripulante);
-bool send_tripulante(int fd, uint16_t id_tripulante, op_code cop);
-void* serializar_tripulante(uint16_t id_tripulante, op_code cop);
-void deserializar_uint16_t(void* stream, uint16_t* n);
+bool recv_tripulante(int fd, uint32_t* id_tripulante);
+bool send_tripulante(int fd, uint32_t id_tripulante, op_code cop);
+void* serializar_tripulante(uint32_t id_tripulante, op_code cop);
+void deserializar_uint32_t(void* stream, uint32_t* n);
 
 // INICIAR_PATOTA //
 // void dump_archivo(FILE* f);
-bool recv_patota(int fd, uint16_t* n_tripulantes, t_list** tareas, t_list** posiciones);
-bool send_patota(int, uint16_t, void*, size_t, t_list*);
+bool recv_patota(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones);
+bool send_patota(int, uint32_t, void*, size_t, t_list*);
 void* serializar_contenido_archivo(size_t*, char*, t_log*);
 
 ////// faltan
 
 // INICIAR_SELF_EN_PATOTA
-bool send_iniciar_self_en_patota(int fd, uint16_t id_tripulante, uint16_t id_patota);
-bool recv_iniciar_self_en_patota(int fd, uint16_t* id_tripulante, uint16_t* id_patota);
+bool send_iniciar_self_en_patota(int fd, uint32_t id_tripulante, uint32_t id_patota);
+bool recv_iniciar_self_en_patota(int fd, uint32_t* id_tripulante, uint32_t* id_patota);
 
 // SOLICITAR_TAREA //
 bool send_solicitar_tarea(int fd);          //Tripulante: hey! quiero una tarea!
@@ -136,15 +136,15 @@ bool send_tarea(int fd, t_tarea* tarea);    //MRH: toma tu tarea
 bool recv_tarea(int fd, t_tarea** tarea);   //Tripulante: yuhu me llego tu tarea
 
 // MOVIMIENTO //
-bool send_movimiento(int fd, uint16_t id_t, t_posicion* origen, t_posicion* destino);
-bool recv_movimiento(int fd, uint16_t* id_t, t_posicion** origen, t_posicion** destino);
+bool send_movimiento(int fd, uint32_t id_t, t_posicion* origen, t_posicion* destino);
+bool recv_movimiento(int fd, uint32_t* id_t, t_posicion** origen, t_posicion** destino);
 
 // como enviamos/recibimos la bitacora? una gran cadena con los datos para printear o algo?
 // ver
 // OBTENER_BITACORA //
-bool send_obtener_bitacora(int fd, uint16_t id_tripulante);  //kiero la vitacoras deltripulante 69
+bool send_obtener_bitacora(int fd, uint32_t id_tripulante);  //kiero la vitacoras deltripulante 69
 // el recv de esto ^ deberia ser algo tipo
-// case OBTENER_BITACORA:; uint16_t id_tripulante; recv_tripulante(fd, &id_tripulante);
+// case OBTENER_BITACORA:; uint32_t id_tripulante; recv_tripulante(fd, &id_tripulante);
 bool send_bitacora(int fd, char* bitacora);                 //toma
 bool recv_bitacora(int fd, char** bitacora);                //me llegouna vitacoras
 
@@ -169,9 +169,9 @@ bool send_solicitar_tarea(int fd);
 bool send_tarea(int fd, t_tarea* t);
 bool recv_tarea(int fd, t_tarea** t);
 
-bool send_inicio_tarea(int fd, uint16_t id_tripulante, char* nombre_tarea);
-bool send_fin_tarea(int fd, uint16_t id_tripulante, char* nombre_tarea);
-bool recv_tripulante_nombretarea(int fd, uint16_t* id_tripulante, char** nombre_tarea);
+bool send_inicio_tarea(int fd, uint32_t id_tripulante, char* nombre_tarea);
+bool send_fin_tarea(int fd, uint32_t id_tripulante, char* nombre_tarea);
+bool recv_tripulante_nombretarea(int fd, uint32_t* id_tripulante, char** nombre_tarea);
 
 // GENERAR //
 // CONSUMIR //

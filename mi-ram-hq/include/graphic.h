@@ -12,12 +12,11 @@
 extern t_log* logger;
 
 void iniciar_gui(t_log*, char*);
-int crear_tripulantes(uint16_t, t_list*);
-int expulsar_tripulante(uint16_t);
+int crear_tripulantes(uint32_t, t_list*);
+int expulsar_tripulante(uint32_t);
 void chequear_errores(int);
-int mover_tripulante(uint16_t,t_posicion*);
+int mover_tripulante(uint32_t, t_posicion*);
 
 NIVEL* among_nivel;
-
 
 #endif
