@@ -26,7 +26,8 @@ void procesar_conexion(void* void_args) {
                 log_info(logger, "Me llego el debug!");
                 break;
 
-            case INICIAR_PATOTA:;
+            case INICIAR_PATOTA:
+            {
                 uint16_t n_tripulantes;
                 // char* tareas;
                 t_list* tareas;
@@ -44,7 +45,7 @@ void procesar_conexion(void* void_args) {
                 list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
                 list_destroy_and_destroy_elements(tareas, *free_t_tarea); // quizas no quieran hacerle free en un futuro (muy cercano!)
                 break;
-
+            }
             case MOVIMIENTO:
             {
                 uint16_t id_tripulante;
@@ -52,6 +53,10 @@ void procesar_conexion(void* void_args) {
                 if (!recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
                     log_error(logger, "Error recibiendo movimiento");
                 }
+
+                int err = mover_tripulante(id_tripulante, destino);
+                chequear_errores(err);
+
                 log_info(logger, "Se movio al %d de %d|%d a %d|%d",
                     id_tripulante, origen->x, origen->y, destino->x, destino->y
                 );
@@ -62,9 +67,9 @@ void procesar_conexion(void* void_args) {
             case EXPULSAR_TRIPULANTE:
             {
                 uint16_t id_tripulante;
-                 if (recv_tripulante(cliente_socket, &id_tripulante)){
-                     int err = expulsar_tripulante(id_tripulante);
-                     chequear_errores(err);
+                 if (recv_tripulante(cliente_socket, &id_tripulante)) {
+                    int err = expulsar_tripulante(id_tripulante);
+                    chequear_errores(err);
                     // TODO: borrar tripulante de memoria
                  }
                 break;

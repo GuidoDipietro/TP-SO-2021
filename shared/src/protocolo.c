@@ -59,6 +59,14 @@ static op_code recibir_cop(int fd) {
     }    
 }
 
+bool send_debug(int fd) {
+    op_code cop = DEBUG;
+    if (send(fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+        return false;
+    }
+    return true;
+}
+
 // EXPULSAR_TRIPULANTE //
 // ATENCION_SABOTAJE //
 // RESOLUCION_SABOTAJE //

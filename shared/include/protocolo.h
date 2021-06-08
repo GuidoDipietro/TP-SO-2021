@@ -108,6 +108,8 @@ void print_t_tarea(void* t);
 
 //////////// MENSAJES /////////////
 
+bool send_debug(int fd);
+
 // EXPULSAR_TRIPULANTE
 // ATENCION_SABOTAJE
 // RESOLUCION_SABOTAJE
