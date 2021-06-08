@@ -122,10 +122,10 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         }
             
         bool envio_mrh = send_patota(
-                *mi_ram_hq_fd,
-                cantidad_tripulantes,
-                s_tareas, sz_s_tareas,
-                lista_posiciones
+            *mi_ram_hq_fd,
+            cantidad_tripulantes,
+            s_tareas, sz_s_tareas,
+            lista_posiciones
         );
 
         if (!envio_mrh)

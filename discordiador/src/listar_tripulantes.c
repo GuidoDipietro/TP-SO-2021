@@ -9,6 +9,8 @@ static char* print_status(t_status status) {
         return "EXEC";
     else if(status == BLOCKED)
         return "BLOCK I/O";
+    else if(status == BLOCKEDSAB)
+        return "BLOCK SAB";
     else if(status == EXIT)
         return "EXIT";
 }

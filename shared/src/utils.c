@@ -115,3 +115,8 @@ t_list* raw_tareas_to_list(char* texto) {
     free(tareas);
     return lista_tareas;
 }
+
+#define CICLO_SEGS 1
+void ciclo() {
+    sleep(CICLO_SEGS);
+}

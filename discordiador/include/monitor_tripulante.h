@@ -13,6 +13,7 @@ typedef enum {
     READY,
     EXEC,
     BLOCKED,
+    BLOCKEDSAB,
     EXIT
 } t_status;
 

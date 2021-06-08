@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
@@ -18,5 +19,7 @@ t_list* extraer_posiciones(char**);
 bool string_is_number(char*);
 t_list* raw_tareas_to_list(char*);
 char* leer_archivo_completo(char*);
+
+void ciclo();
 
 #endif

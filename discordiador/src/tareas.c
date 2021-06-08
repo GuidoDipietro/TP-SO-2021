@@ -15,11 +15,11 @@ void planificador() {
     PLANIFICADOR_ALIVE = true;
     sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
     sem_init(&BLOQUEAR_PLANIFICADOR, 0, 0);
-    while(1) {
+    while (1) {
         sem_wait(&ACTIVE_THREADS);
         sem_wait(&TRIPULANTES_EN_COLA);
 
-        if(PLANIFICACION_BLOQUEADA)
+        if (PLANIFICACION_BLOQUEADA)
             sem_wait(&BLOQUEAR_PLANIFICADOR);
 
         t_running_thread* new = pop_cola_tripulante();
@@ -52,7 +52,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         if(thread_data->blocked)
             sem_wait(&(thread_data->sem_pause));
 
-        sleep(1);
+        ciclo();
 
         if((t->tarea)->duracion)
             correr_tarea(thread_data);
@@ -85,15 +85,16 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         if(thread_data->blocked)
             sem_wait(&(thread_data->sem_pause));
 
-        sleep(1);
+        ciclo();
 
-        if((t->tarea)->duracion)
-            if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
+        if ((t->tarea)->duracion) {
+            if(thread_data->quantum >= DISCORDIADOR_CFG->QUANTUM) // nunca deberia ser >, pero safety
                 desalojar_tripulante(thread_data);
             else {
                 correr_tarea(thread_data);
                 (thread_data->quantum)++;
             }
+        }
         else {
             if(replanificar_tripulante(thread_data, t)) {
                 log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
@@ -162,14 +163,14 @@ void correr_tarea(t_running_thread* r_t) {
             log_error(main_log, "Error enviando movimiento del tripulante %d", t->tid);
         }
 
-        log_info(main_log, "Mover tid#%d %d|%d => %d|%d",
+        log_info(main_log, "MOVE tid#%d %d|%d => %d|%d",
             t->tid, origen->x, origen->y, t->pos->x, t->pos->y
         );
 
         free(origen);
     } else {
         ((t->tarea)->duracion)--; // Decrementamos hasta que no tenga mas duracion
-        log_info(main_log, "tid#%d @ %d|%d (dur: %d)",
+        log_info(main_log, "WAIT tid#%d @ %d|%d (dur: %d)",
             t->tid, t->pos->x, t->pos->y, t->tarea->duracion
         );
     }

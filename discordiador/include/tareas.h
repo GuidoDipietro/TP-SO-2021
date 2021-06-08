@@ -8,6 +8,7 @@
 #include "monitor_tripulante.h"
 #include "config.h"
 #include "../../shared/include/protocolo.h"
+#include "../../shared/include/utils.h"
 
 bool PLANIFICADOR_ALIVE;
 
