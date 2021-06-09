@@ -5,10 +5,12 @@
 
 extern CU_TestInfo tests_protocolo[];
 extern CU_TestInfo tests_ejemplo[]; // ver test_ejemplo.c
+extern CU_TestInfo tests_utils[];
 
 CU_SuiteInfo suites[] = {
     { "suite_protocolo", NULL, NULL, crear_conexiones, cerrar_conexiones, tests_protocolo },
-    { "suite_ejempol", NULL, NULL, NULL, NULL, tests_ejemplo },
+    { "suite_ejemplo", NULL, NULL, NULL, NULL, tests_ejemplo },
+    { "suite_utils", NULL, NULL, NULL, NULL, tests_utils },
     CU_SUITE_INFO_NULL
 };
 

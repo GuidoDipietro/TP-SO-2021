@@ -127,6 +127,7 @@ t_tarea* tarea_string_to_t_tarea(char* str_tarea) {
     sscanf(str_tarea, "%[^;];%hhd;%hhd;%hd", header, &pos->x, &pos->y, &duracion);
     string_trim(&header);
 
+    // Nombre y parametro opcional
     char** header_split = string_split(header, " ");
     nombre = header_split[0];
     param = header_split[1]? atoi(header_split[1]) : 0;
