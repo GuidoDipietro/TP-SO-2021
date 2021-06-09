@@ -277,7 +277,42 @@ void* serializar_contenido_archivo(size_t* size, char* path, t_log* logger) {
     fclose(file);
     return stream;
 }
-bool recv_patota(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones) {
+bool recv_patota(int fd, uint32_t* n_tripulantes, char*** tareas, t_list** posiciones) {
+    // tamanio total del stream
+    size_t size;
+    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
+        return false;
+    }
+    // recibe TODO el stream
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+
+    // desarmando el chorizo de bits
+    char* r_tareas;         // el malloc lo realiza deserializar_iniciar_patota()
+    t_list* r_posiciones;   // same
+    deserializar_iniciar_patota(stream, n_tripulantes, &r_tareas, &r_posiciones);
+    
+    // Tareas string choclazo a char**
+    
+    char** r_tareas_split = string_split(r_tareas, "\n");
+
+    // Sacamos los \r feos
+    char** p_r_tareas_split = r_tareas_split;
+    for (; *p_r_tareas_split != NULL; p_r_tareas_split++)
+        string_trim(p_r_tareas_split);
+
+    *tareas = r_tareas_split;
+
+    *posiciones = r_posiciones;
+
+    free(stream);
+    free(r_tareas);
+    return true;
+}
+bool recv_patota_old(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones) {
     // tamanio total del stream
     size_t size;
     if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
