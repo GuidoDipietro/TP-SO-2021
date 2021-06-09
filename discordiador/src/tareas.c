@@ -8,7 +8,6 @@ static int16_t signo(int16_t val) {
     return (0 < val) - (val < 0);
 }
 
-sem_t ACTIVE_THREADS;
 bool PLANIFICADOR_ALIVE = false;
 
 void planificador() {

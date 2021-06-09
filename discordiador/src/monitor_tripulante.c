@@ -67,6 +67,14 @@ void iterar_cola_new(void (*function)(void*)) {
     pthread_mutex_unlock(&MUTEX_LISTA_NEW);
 }
 
+void* remover_cola_new(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_LISTA_NEW);
+    obj_tid = tid;
+    void* p = list_remove_by_condition(COLA_NEW->elements, filter_t_running_thread_by_tid);
+    pthread_mutex_unlock(&MUTEX_LISTA_NEW);
+    return p;
+}
+
 uint16_t largo_cola_new() {
     pthread_mutex_lock(&MUTEX_LISTA_NEW);
     uint16_t ret = queue_size(COLA_NEW);
@@ -106,10 +114,12 @@ uint16_t largo_cola() {
     return ret;
 }
 
-void remover_cola_tripulante(uint32_t tid) {
+void* remover_cola_tripulante(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_COLA);
-    list_remove_and_destroy_by_condition(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid, free_t_tripulante);
+    obj_tid = tid;
+    void* p = list_remove_by_condition(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid);
     pthread_mutex_unlock(&MUTEX_COLA);
+    return p;
 }
 
 void iterar_cola_ready(void (*function)(void*)) {
@@ -142,16 +152,18 @@ void iterar_lista_hilos(void (*f)(void*)) {
 }
 
 void* buscar_lista_hilos(uint32_t tid) {
-    pthread_mutex_lock(&MUTEX_COLA);
+    pthread_mutex_lock(&MUTEX_LISTA_HILOS);
     obj_tid = tid;
     void* p = list_find(LISTA_HILOS, filter_t_running_thread_by_tid);
-    pthread_mutex_unlock(&MUTEX_COLA);
+    pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
     return p;
 }
 
 void* remover_lista_hilos(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_LISTA_HILOS);
     obj_tid = tid;
-    void* p = monitor_remove_by_condition_lista_hilos(&filter_t_running_thread_by_tid);
+    void* p = list_remove_by_condition(LISTA_HILOS, filter_t_running_thread_by_tid);
+    pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
     return p;
 }
 
@@ -172,6 +184,7 @@ void agregar_lista_exit(void* p) {
 
 void* remover_lista_exit(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_COLA_EXIT);
+    obj_tid = tid;
     void* p = list_remove_by_condition(COLA_EXIT, filter_by_tid);
     pthread_mutex_unlock(&MUTEX_COLA_EXIT);
     return p;

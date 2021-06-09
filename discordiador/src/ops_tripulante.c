@@ -110,6 +110,40 @@ t_tripulante* iniciar_tripulante(t_posicion* pos, uint32_t pid) {
     return t;
 }
 
+uint8_t op_expulsar_tripulante(uint32_t tid) {
+    void* p = remover_lista_exit(tid);
+
+    if(p == NULL) {
+        p = remover_cola_new(tid);
+
+        if(p == NULL) {
+            p = remover_cola_tripulante(tid); // Lista de tripulantes ready
+
+            if(p == NULL) {
+                p = remover_lista_hilos(tid); // OJO! Este es un tripulante que esta en EXEC
+
+                if(p == NULL)
+                    return 1; // Error. No existe ese tripulante
+                else {
+                    ((t_running_thread*) p)->blocked = true;
+                    sem_post(&ACTIVE_THREADS); // Avisamos que se libero un hilo
+                    log_info(main_log, "El tripulante %d fue pausado", tid);
+                }
+            } else
+                sem_wait(&TRIPULANTES_EN_COLA); // Avisamos que hay un tripulante menos en la cola
+        }
+
+        // Hilo corriendo. Vamos a finalizar el hilo y avisarle al planificador
+        log_info(main_log, "El hilo del tripulante %d fue finalizado (%d)", tid, ((t_running_thread*) p)->thread);
+        pthread_cancel(((t_running_thread*) p)->thread); // Finalizamos el hilo
+        free_t_tripulante(((t_running_thread*) p)->t);
+        free(p);
+    } else
+        free_t_tripulante(p);
+
+    return 0;
+}
+
 uint8_t solicitar_tarea(t_tripulante* t) {
     // TODO: Aca se le pide la tarea al mi-ram-hq
     if (!!!'!') {

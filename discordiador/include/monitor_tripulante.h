@@ -8,6 +8,13 @@
 #include "../../shared/include/protocolo.h"
 #include "logs.h"
 
+// Semaforo del planificador
+
+sem_t ACTIVE_THREADS;
+sem_t TRIPULANTES_EN_COLA;
+
+//
+
 typedef enum {
     NEW,
     READY,
@@ -48,12 +55,10 @@ uint16_t largo_cola_new();
 
 extern t_queue* COLA_TRIPULANTES;
 
-sem_t TRIPULANTES_EN_COLA;
-
 void push_cola_tripulante(t_running_thread*);
 t_running_thread* pop_cola_tripulante();
 t_running_thread* buscar_cola_tripulante(uint32_t);
-void remover_cola_tripulante(uint32_t); 
+void* remover_cola_tripulante(uint32_t); 
 void iterar_cola_ready(void (*f)(void*));
 uint16_t largo_cola();
 
@@ -82,5 +87,6 @@ extern t_list* COLA_EXIT;
 void agregar_lista_exit(void*);
 void* remover_lista_exit(uint32_t);
 void iterar_lista_exit(void (*f)(void*));
+void* remover_cola_new(uint32_t tid);
 
 #endif
