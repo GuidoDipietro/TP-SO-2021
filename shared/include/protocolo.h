@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
+#include "structures.h"
 #include "utils.h"
 #include "frees.h"
 
@@ -36,35 +37,6 @@ typedef enum {
     DESCARTAR_BASURA,
     DEBUG               = 69,
 } op_code;
-
-typedef enum {
-    GENERAR_COMIDA_T    = 14,
-    CONSUMIR_COMIDA_T   = 15,
-    GENERAR_OXIGENO_T   = 16,
-    CONSUMIR_OXIGENO_T  = 17,
-    GENERAR_BASURA_T    = 18,
-    DESCARTAR_BASURA_T  = 19,
-    OTRO_T              = 20,
-} tipo_tarea;
-
-typedef enum {
-    OXIGENO             =  8,
-    COMIDA              = 14,
-    BASURA              = 60,
-} tipo_item;
-
-typedef struct {
-    uint8_t x;
-    uint8_t y;
-} t_posicion;
-
-typedef struct {
-    char* nombre;
-    uint16_t param;
-    t_posicion* pos;
-    uint16_t duracion;
-    tipo_tarea tipo;
-} t_tarea;
 
 // no se bien donde meter esto (me gustaria en utils y frees)
 // hay que cambiar los makefiles porque en shared/
@@ -120,7 +92,8 @@ void deserializar_uint32_t(void* stream, uint32_t* n);
 
 // INICIAR_PATOTA //
 // void dump_archivo(FILE* f);
-bool recv_patota(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones);
+bool recv_patota(int fd, uint32_t* n_tripulantes, char*** tareas, t_list** posiciones);
+bool recv_patota_old(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones);
 bool send_patota(int, uint32_t, void*, size_t, t_list*);
 void* serializar_contenido_archivo(size_t*, char*, t_log*);
 

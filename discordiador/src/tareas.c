@@ -88,7 +88,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         ciclo();
 
         if ((t->tarea)->duracion) {
-            if(thread_data->quantum >= DISCORDIADOR_CFG->QUANTUM) // nunca deberia ser >, pero safety
+            if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
                 desalojar_tripulante(thread_data);
             else {
                 correr_tarea(thread_data);

@@ -117,6 +117,31 @@ t_list* raw_tareas_to_list(char* texto) {
     return lista_tareas;
 }
 
+t_tarea* tarea_string_to_t_tarea(char* str_tarea) {
+    t_posicion* pos = malloc(sizeof(t_posicion)); pos->x=0; pos->y=0;
+    uint16_t duracion=0;
+    char* nombre;
+    uint16_t param=0;
+
+    char* header = malloc(100);
+    sscanf(str_tarea, "%[^;];%hhd;%hhd;%hd", header, &pos->x, &pos->y, &duracion);
+    string_trim(&header);
+
+    char** header_split = string_split(header, " ");
+    nombre = header_split[0];
+    param = header_split[1]? atoi(header_split[1]) : 0;
+
+    t_tarea* tarea = tarea_create(nombre, param, pos, duracion, nombre);
+
+    free(nombre);
+    free(header);
+    free(header_split[1]);
+    free(header_split);
+    free(pos);
+
+    return tarea;
+}
+
 #define CICLO_SEGS 1
 void ciclo() {
     sleep(CICLO_SEGS);
