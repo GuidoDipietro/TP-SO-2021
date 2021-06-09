@@ -75,4 +75,12 @@ void iterar_lista_hilos(void (*f)(void*));
 void bloquear_tripulantes();
 void desbloquear_tripulantes();
 
+// Cola exit
+
+extern t_list* COLA_EXIT;
+
+void agregar_lista_exit(void*);
+void* remover_lista_exit(uint32_t);
+void iterar_lista_exit(void (*f)(void*));
+
 #endif

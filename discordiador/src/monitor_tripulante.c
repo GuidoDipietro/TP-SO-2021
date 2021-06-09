@@ -19,6 +19,7 @@ bool filter_t_running_thread_by_tid(void* item) {
 pthread_mutex_t MUTEX_COLA;
 pthread_mutex_t MUTEX_LISTA_HILOS;
 pthread_mutex_t MUTEX_LISTA_NEW;
+pthread_mutex_t MUTEX_COLA_EXIT;
 
 void free_t_tripulante(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
@@ -33,6 +34,7 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_COLA, NULL);
     pthread_mutex_init(&MUTEX_LISTA_HILOS, NULL);
     pthread_mutex_init(&MUTEX_LISTA_NEW, NULL);
+    pthread_mutex_init(&MUTEX_COLA_EXIT, NULL);
     sem_init(&TRIPULANTES_EN_COLA, 0, 0);
 }
 
@@ -40,6 +42,7 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_COLA);
     pthread_mutex_destroy(&MUTEX_LISTA_HILOS);
     pthread_mutex_destroy(&MUTEX_LISTA_NEW);
+    pthread_mutex_destroy(&MUTEX_COLA_EXIT);
     sem_destroy(&TRIPULANTES_EN_COLA);
 }
 
@@ -157,4 +160,25 @@ uint16_t largo_lista_hilos() {
     uint16_t ret = list_size(LISTA_HILOS);
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
     return ret;
+}
+
+// Cola exit
+
+void agregar_lista_exit(void* p) {
+    pthread_mutex_lock(&MUTEX_COLA_EXIT);
+    list_add(COLA_EXIT, p);
+    pthread_mutex_unlock(&MUTEX_COLA_EXIT);
+}
+
+void* remover_lista_exit(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_COLA_EXIT);
+    void* p = list_remove_by_condition(COLA_EXIT, filter_by_tid);
+    pthread_mutex_unlock(&MUTEX_COLA_EXIT);
+    return p;
+}
+
+void iterar_lista_exit(void (*f)(void*)) {
+    pthread_mutex_lock(&MUTEX_COLA_EXIT);
+    list_iterate(COLA_EXIT, f);
+    pthread_mutex_unlock(&MUTEX_COLA_EXIT);
 }

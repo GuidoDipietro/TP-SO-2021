@@ -59,17 +59,17 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         else {
             if(replanificar_tripulante(thread_data, t)) {
                 log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
-                break;
+                goto final;
             } else
                 log_info(main_log, "El tripulante %d fue replanificado", t->tid);
         }
     }
 
-    // Este free va a haber que sacarlo para guardar al tripulante en la lista de finalizados
-    cerrar_conexiones_tripulante(t);
-    free_t_tripulante(t);
-    sem_destroy(&(thread_data->sem_pause));
-    free(thread_data);
+    final:
+        cerrar_conexiones_tripulante(t);
+        agregar_lista_exit(t);
+        sem_destroy(&(thread_data->sem_pause));
+        free(thread_data);
 }   
 
 void correr_tripulante_RR(t_running_thread* thread_data) {
@@ -98,17 +98,18 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         else {
             if(replanificar_tripulante(thread_data, t)) {
                 log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
-                break;
+                goto final;
             } else
                 log_info(main_log, "El tripulante %d fue replanificado", t->tid);
         }
     }
 
-    // Este free va a haber que sacarlo para guardar al tripulante en la lista de finalizados
-    cerrar_conexiones_tripulante(t);
-    free_t_tripulante(t);
-    sem_destroy(&(thread_data->sem_pause));
-    free(thread_data);
+    final:
+        cerrar_conexiones_tripulante(t);
+        t->status = EXIT;
+        agregar_lista_exit(t);
+        sem_destroy(&(thread_data->sem_pause));
+        free(thread_data);
 }   
 
 void desalojar_tripulante(t_running_thread* thread_data) {
