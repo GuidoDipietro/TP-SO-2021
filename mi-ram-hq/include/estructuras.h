@@ -2,6 +2,8 @@
 #define ESTRUCTURAS_MRH_H_
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <commons/collections/list.h>
 
 typedef struct {
@@ -35,5 +37,11 @@ typedef struct {
 } ts_tripulante_t; // confeccionado como tabla pero solo tiene 1 entrada
 
 t_list* segmentos_libres;
+
+
+///////// FUNCIONES /////////
+
+segmento_t* proximo_hueco_best_fit(uint32_t tamanio);
+segmento_t* proximo_hueco_first_fit(uint32_t tamanio);
 
 #endif

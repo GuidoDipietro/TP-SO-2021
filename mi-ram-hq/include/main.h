@@ -27,5 +27,6 @@ static t_config_mrhq* initialize_cfg() {
 
 t_config_mrhq* cfg;
 t_log* logger;
+extern t_list* segmentos_libres;
 
 #endif

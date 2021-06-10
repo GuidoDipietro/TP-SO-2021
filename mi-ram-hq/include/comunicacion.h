@@ -12,6 +12,7 @@
 #include "../../shared/include/protocolo.h"
 
 extern t_log* logger;
+extern t_list* segmentos_libres;
 
 int server_escuchar(char* server_name, int server_socket);
 

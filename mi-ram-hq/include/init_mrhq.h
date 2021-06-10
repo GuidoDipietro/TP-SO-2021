@@ -5,6 +5,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include "../include/graphic.h"
+#include "../include/estructuras.h"
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 #include <string.h>
@@ -23,8 +24,11 @@ typedef struct {
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
+extern t_list* segmentos_libres;
 
 uint8_t cargar_configuracion();
+uint8_t cargar_memoria(); // Init de segmentos_libres
+
 void cerrar_programa();
 int server_escuchar(char*, int);
 

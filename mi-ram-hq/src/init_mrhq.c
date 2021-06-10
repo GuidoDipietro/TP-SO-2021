@@ -45,6 +45,22 @@ uint8_t cargar_configuracion() {
     return 1;
 }
 
+uint8_t cargar_memoria() {
+    segmentos_libres = list_create();
+
+    segmento_t* hueco = malloc(sizeof(segmento_t));
+    if (hueco == NULL) {
+        log_error(logger, "Fallo en la creacion de t_list* segmentos_libres");
+        return 0;
+    }
+    hueco->inicio = 0;
+    hueco->tamanio = cfg->TAMANIO_MEMORIA;
+
+    list_add(segmentos_libres, (void*) hueco);
+
+    return 1;
+}
+
 void cerrar_programa() {
     log_destroy(logger);
 
@@ -52,4 +68,6 @@ void cerrar_programa() {
     free(cfg->PATH_SWAP);
     free(cfg->ESQUEMA_MEMORIA);
     free(cfg);
+
+    list_destroy_and_destroy_elements(segmentos_libres, (void*) free);
 }

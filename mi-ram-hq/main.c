@@ -4,7 +4,7 @@ int main() {
     cfg = initialize_cfg();
     logger = log_create("mi-ram-hq.log", MODULENAME, false, LOG_LEVEL_INFO);
 
-    if(!cargar_configuracion()) {
+    if(!cargar_configuracion() || !cargar_memoria()) {
         cerrar_programa();
         return EXIT_FAILURE;
     }
