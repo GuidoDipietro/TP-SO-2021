@@ -7,8 +7,6 @@
 #include <commons/config.h>
 #include <curses.h>
 
-t_log* logger;
-
 #include "graphic.h"
 #include "init_mrhq.h"
 #include "../../shared/include/utils.h"
@@ -26,5 +24,8 @@ static t_config_mrhq* initialize_cfg() {
     cfg->PATH_SWAP = NULL;
     return cfg;
 }
+
+t_config_mrhq* cfg;
+t_log* logger;
 
 #endif

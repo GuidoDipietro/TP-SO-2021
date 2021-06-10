@@ -21,8 +21,11 @@ typedef struct {
     uint16_t IP;
 } t_config_mrhq;
 
-uint8_t cargar_configuracion(t_config_mrhq*, t_log*);
-void cerrar_programa(t_config_mrhq*, t_log*);
-int server_escuchar(t_log*, char*, int);
+extern t_log* logger;
+extern t_config_mrhq* cfg;
+
+uint8_t cargar_configuracion();
+void cerrar_programa();
+int server_escuchar(char*, int);
 
 #endif

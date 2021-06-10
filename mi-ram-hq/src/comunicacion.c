@@ -2,14 +2,12 @@
 
 typedef struct {
     int fd;
-    t_log* logger;
     char* server_name;
 } t_procesar_conexion_args;
 
 void procesar_conexion(void* void_args) {
     t_procesar_conexion_args* args = (t_procesar_conexion_args*) void_args;
     int cliente_socket = args->fd;
-    t_log* logger = args->logger;
     char* server_name = args->server_name;
     free(args);
 
@@ -88,14 +86,13 @@ void procesar_conexion(void* void_args) {
     return;
 }
 
-int server_escuchar(t_log* logger, char* server_name, int server_socket){
+int server_escuchar(char* server_name, int server_socket){
     int cliente_socket = esperar_cliente(logger, server_name, server_socket);
 
     if (cliente_socket != -1) {
         pthread_t hilo;
         t_procesar_conexion_args* args = malloc(sizeof(t_procesar_conexion_args));
         args->fd = cliente_socket;
-        args->logger = logger;
         args->server_name = server_name;
         pthread_create(&hilo, NULL, (void*) procesar_conexion, (void*) args);
         pthread_detach(hilo);

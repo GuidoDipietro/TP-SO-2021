@@ -1,11 +1,11 @@
 #include "include/main.h"
 
 int main() {
-    t_config_mrhq* cfg = initialize_cfg();
+    cfg = initialize_cfg();
     logger = log_create("mi-ram-hq.log", MODULENAME, false, LOG_LEVEL_INFO);
 
-    if(!cargar_configuracion(cfg, logger)) {
-        cerrar_programa(cfg, logger);
+    if(!cargar_configuracion()) {
+        cerrar_programa();
         return EXIT_FAILURE;
     }
 
@@ -15,13 +15,13 @@ int main() {
     free(puerto);
 
     // ****** INICIALIZACION DE LA GUI ******
-    iniciar_gui(logger, NIVELNAME);
+    iniciar_gui(NIVELNAME);
 
-    while(server_escuchar(logger, SERVERNAME, mrh_server));
+    while(server_escuchar(SERVERNAME, mrh_server));
 
     nivel_destruir(among_nivel);
     liberar_conexion(&mrh_server);
-    cerrar_programa(cfg, logger);
+    cerrar_programa();
 
     return EXIT_SUCCESS;
 }

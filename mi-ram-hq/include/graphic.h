@@ -11,7 +11,7 @@
 
 extern t_log* logger;
 
-void iniciar_gui(t_log*, char*);
+void iniciar_gui(char*);
 int crear_tripulantes(uint32_t, t_list*);
 int expulsar_tripulante(uint32_t);
 void chequear_errores(int);

@@ -1,10 +1,10 @@
 #include "../include/init_mrhq.h"
 
-uint8_t cargar_configuracion(t_config_mrhq* config, t_log* log) {
-    t_config* cfg = config_create("mi-ram-hq.config");
+uint8_t cargar_configuracion() {
+    t_config* cfg_file = config_create("mi-ram-hq.config");
 
-    if(cfg == NULL) {
-        log_error(log, "No se encontro mi-ram-hq.config");
+    if(cfg_file == NULL) {
+        log_error(logger, "No se encontro mi-ram-hq.config");
         return 0;
     }
 
@@ -22,31 +22,31 @@ uint8_t cargar_configuracion(t_config_mrhq* config, t_log* log) {
     };
 
     // Falta alguna propiedad
-    if(!config_has_all_properties(cfg, properties)) {
-        log_error(log, "Propiedades faltantes en el archivo de configuracion");
-        config_destroy(cfg);
+    if(!config_has_all_properties(cfg_file, properties)) {
+        log_error(logger, "Propiedades faltantes en el archivo de configuracion");
+        config_destroy(cfg_file);
         return 0;
     }
 
-    config->TAMANIO_MEMORIA = config_get_int_value(cfg, "TAMANIO_MEMORIA");
-    config->ESQUEMA_MEMORIA = strdup(config_get_string_value(cfg, "ESQUEMA_MEMORIA"));
-    config->TAMANIO_PAGINA = config_get_int_value(cfg, "TAMANIO_PAGINA");
-    config->TAMANIO_SWAP = config_get_int_value(cfg, "TAMANIO_SWAP");
-    config->PATH_SWAP = strdup(config_get_string_value(cfg, "PATH_SWAP"));
-    config->ALGORITMO_REEMPLAZO = strdup(config_get_string_value(cfg, "ALGORITMO_REEMPLAZO"));
-    config->CRITERIO_SELECCION = strdup(config_get_string_value(cfg, "CRITERIO_SELECCION"));
-    config->PUERTO = config_get_int_value(cfg, "PUERTO");
-    config->IP = config_get_int_value(cfg, "IP");
+    cfg->TAMANIO_MEMORIA = config_get_int_value(cfg_file, "TAMANIO_MEMORIA");
+    cfg->ESQUEMA_MEMORIA = strdup(config_get_string_value(cfg_file, "ESQUEMA_MEMORIA"));
+    cfg->TAMANIO_PAGINA = config_get_int_value(cfg_file, "TAMANIO_PAGINA");
+    cfg->TAMANIO_SWAP = config_get_int_value(cfg_file, "TAMANIO_SWAP");
+    cfg->PATH_SWAP = strdup(config_get_string_value(cfg_file, "PATH_SWAP"));
+    cfg->ALGORITMO_REEMPLAZO = strdup(config_get_string_value(cfg_file, "ALGORITMO_REEMPLAZO"));
+    cfg->CRITERIO_SELECCION = strdup(config_get_string_value(cfg_file, "CRITERIO_SELECCION"));
+    cfg->PUERTO = config_get_int_value(cfg_file, "PUERTO");
+    cfg->IP = config_get_int_value(cfg_file, "IP");
 
-    log_info(log, "Archivo de configuracion cargado correctamente");
+    log_info(logger, "Archivo de configuracion cargado correctamente");
 
-    config_destroy(cfg);
+    config_destroy(cfg_file);
 
     return 1;
 }
 
-void cerrar_programa(t_config_mrhq* cfg, t_log* log) {
-    log_destroy(log);
+void cerrar_programa() {
+    log_destroy(logger);
 
     free(cfg->ALGORITMO_REEMPLAZO);
     free(cfg->PATH_SWAP);

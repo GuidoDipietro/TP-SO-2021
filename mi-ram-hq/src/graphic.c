@@ -1,6 +1,6 @@
 #include "../include/graphic.h"
 
-void iniciar_gui(t_log* logger, char* name) {
+void iniciar_gui(char* name) {
     nivel_gui_inicializar();
     // log_info(logger, "Se inicializo correctamente la ventana de MRH");
     among_nivel = nivel_crear(name);

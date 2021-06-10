@@ -11,6 +11,8 @@
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolo.h"
 
-int server_escuchar(t_log* logger, char* server_name, int server_socket);
+extern t_log* logger;
+
+int server_escuchar(char* server_name, int server_socket);
 
 #endif

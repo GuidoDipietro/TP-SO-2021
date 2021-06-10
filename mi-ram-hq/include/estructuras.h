@@ -22,20 +22,18 @@ typedef struct {
 
 // TS SIGNIFICA TABLA DE SEGMENTOS
 typedef struct {
-    uint32_t nro_seg;
     uint32_t inicio;
     uint32_t tamanio;
 } segmento_t;
 
 typedef struct {
-    segmento_t* seg_PCB;
-    segmento_t* seg_tareas;
-} ts_patota_t; // solo tiene 2 segmentos
+    segmento_t* tabla[2];
+} ts_patota_t; // solo tiene (siempre) 2 entradas
 
 typedef struct {
-    segmento_t* seg_TCB;
-} ts_tripulante_t; // confeccionado como tabla pero solo tiene 1 segmento
+    segmento_t* tabla;
+} ts_tripulante_t; // confeccionado como tabla pero solo tiene 1 entrada
 
-t_list* segmentos_libres; //???
+t_list* segmentos_libres;
 
 #endif
