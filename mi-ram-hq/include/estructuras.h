@@ -36,10 +36,9 @@ typedef struct {
     segmento_t* tabla;
 } ts_tripulante_t; // confeccionado como tabla pero solo tiene 1 entrada
 
-t_list* segmentos_libres;
-
-
 ///////// FUNCIONES /////////
+
+extern t_list* segmentos_libres;
 
 segmento_t* proximo_hueco_best_fit(uint32_t tamanio);
 segmento_t* proximo_hueco_first_fit(uint32_t tamanio);

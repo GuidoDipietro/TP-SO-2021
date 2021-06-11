@@ -24,7 +24,7 @@ typedef struct {
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
-extern t_list* segmentos_libres;
+t_list* segmentos_libres;
 
 uint8_t cargar_configuracion();
 uint8_t cargar_memoria(); // Init de segmentos_libres
