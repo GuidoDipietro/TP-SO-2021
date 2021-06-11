@@ -7,8 +7,13 @@
 
 #include "estructuras.h"
 
+// init
 void iniciar_mutex();
 void finalizar_mutex();
+
+// utils
+segmento_t* new_segmento(uint32_t inicio, uint32_t taman);
+segmento_t* segmento_t_duplicate(segmento_t*);
 
 void list_add_seglib(segmento_t* seg);
 t_list* list_filter_by_min_size_seglib(uint32_t min_size);
@@ -16,5 +21,8 @@ segmento_t* list_find_first_by_min_size_seglib(uint32_t min_size);
 segmento_t* list_add_all_holes_seglib();
 void list_clean_seglib();
 void asesinar_seglib();
+
+// debug
+void print_seglib();
 
 #endif

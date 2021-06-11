@@ -5,17 +5,26 @@ static void* hueco_menor(void* h1, void* h2) {
     segmento_t* hueco2 = (segmento_t*) h2;
     return hueco1->tamanio < hueco2->tamanio? h1 : h2;
 }
+
+// De todos los huecos, elige el que minimiza el espacio desaprovechado (si hay empate, el ultimo)
 segmento_t* proximo_hueco_best_fit(uint32_t tamanio) {
     t_list* huecos_disponibles = list_filter_by_min_size_seglib(tamanio);
+
     if (list_size(huecos_disponibles) == 0) {
         list_destroy(huecos_disponibles);
         return NULL;
     }
-    return (segmento_t*) list_get_minimum(huecos_disponibles, (void*) &hueco_menor);
+    segmento_t* ret = segmento_t_duplicate(
+        (segmento_t*) list_get_minimum(huecos_disponibles, (void*) &hueco_menor)
+    );
+    list_destroy(huecos_disponibles);
+
+    return ret;
 }
 
+// De todos los huecos, elige el primero en el que entra el tamanio dado
 segmento_t* proximo_hueco_first_fit(uint32_t tamanio) {
-	return list_find_first_by_min_size_seglib(tamanio);
+    return list_find_first_by_min_size_seglib(tamanio);
 }
 
 void compactar_segmentos_libres() {

@@ -15,20 +15,31 @@ void finalizar_mutex() {
 /// statics
 
 static uint32_t tamanio_static = 0;
+static uint32_t tamanio_acumulado = 0;
 
 static bool seg_entra_en_hueco(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
     return seg->tamanio >= tamanio_static;
 }
+static void add_tamanio_acumulado(void* s) {
+    segmento_t* seg = (segmento_t*) s;
+    tamanio_acumulado += seg->tamanio;
+}
 
-static void* merge_segmento_t(void* s1, void* s2) { // union de 2 segmentos por tamanio
-    segmento_t* seg1 = (segmento_t*) s1;
-    segmento_t* seg2 = (segmento_t*) s2;
-    segmento_t* merge = malloc(sizeof(segmento_t));
-    merge->tamanio = seg1->tamanio + seg2->tamanio;
-    merge->inicio = 0; // para que tenga algun valor no-basura
+/// cosas que serian static pero las uso en otro lado
 
-    return (void*) merge;
+segmento_t* new_segmento(uint32_t inicio, uint32_t taman) {
+    segmento_t* seg = malloc(sizeof(segmento_t));
+    seg->tamanio = taman;
+    seg->inicio = inicio;
+    return seg;
+}
+segmento_t* segmento_t_duplicate(segmento_t* s) {
+    if (s==NULL) return NULL;
+    segmento_t* seg = malloc(sizeof(segmento_t));
+    seg->inicio = s->inicio;
+    seg->tamanio = s->tamanio;
+    return seg;
 }
 
 /// funcs
@@ -56,15 +67,18 @@ segmento_t* list_find_first_by_min_size_seglib(uint32_t min_size) {
     segmento_t* ret = (segmento_t*) list_find(segmentos_libres, &seg_entra_en_hueco);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 
-    return ret;
+    return segmento_t_duplicate(ret);
 }
 
 segmento_t* list_add_all_holes_seglib() {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
-    segmento_t* ret = (segmento_t*) list_fold1(segmentos_libres, &merge_segmento_t);
+    tamanio_acumulado = 0;
+    list_iterate(segmentos_libres, add_tamanio_acumulado);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 
-    return ret;
+    return new_segmento(0, tamanio_acumulado);
+    // esta func antes era re linda con un fold pero tenia un leak
+    // incorregible por como son las commons :( maldito ranieri
 }
 
 void list_clean_seglib() {
@@ -81,11 +95,14 @@ void asesinar_seglib() {
 
 /// debug
 
-static void print_segmento_t(segmento_t* seg) {
-    printf("TAMAN: %5d | INICIO: %5d\n", seg->tamanio, seg->inicio);
+static void print_segmento_t(void* s) {
+    segmento_t* seg = (segmento_t*) s;
+    printf("INICIO: %5d | TAMAN: %5d\n", seg->inicio, seg->tamanio);
 }
 void print_seglib() {
+    puts("\n\n------ HUECOS LIBRES ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
-    
+    list_iterate(segmentos_libres, &print_segmento_t);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+    puts("------------------------------\n\n");
 }
