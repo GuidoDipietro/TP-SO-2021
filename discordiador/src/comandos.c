@@ -115,7 +115,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         // con las que da la funcion solicitar_tarea()
 
         if (dif > 0) { // Hay mas tripulantes que tareas
-            for (uint32_t k = cantidad_tripulantes - dif; k <= cantidad_tripulantes; k++)
+            for (uint32_t k = cantidad_tripulantes - dif + 1; k <= cantidad_tripulantes; k++)
                 log_warning(main_log, "No hay tarea para el tripulante %d. No va a ser creado.", k);
 
             cantidad_tripulantes -= dif;
