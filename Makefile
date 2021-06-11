@@ -16,11 +16,7 @@ clean:
 	make clean -C tests
 
 recontra:
-	make clean -C shared
-	make clean -C discordiador
-	make clean -C i_mongo_store
-	make clean -C mi-ram-hq
-	make clean -C tests
+	make clean
 	@if [ -d */*.log ]; then \
 		rm */*.log; \
 	fi
