@@ -1,12 +1,7 @@
 #include "include/main.h"
 
 int main() {
-    cfg = initialize_cfg();
-    logger = log_create("mi-ram-hq.log", MODULENAME, false, LOG_LEVEL_INFO);
-
-    iniciar_mutex();
-
-    if(!cargar_configuracion() || !cargar_memoria()) {
+    if(!init() || !cargar_configuracion() || !cargar_memoria()) {
         cerrar_programa();
         return EXIT_FAILURE;
     }

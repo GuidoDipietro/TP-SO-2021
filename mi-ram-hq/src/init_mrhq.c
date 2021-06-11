@@ -1,5 +1,13 @@
 #include "../include/init_mrhq.h"
 
+uint8_t init() {
+    cfg = initialize_cfg();
+    logger = log_create("mi-ram-hq.log", MODULENAME, false, LOG_LEVEL_INFO);
+    iniciar_mutex();
+
+    return 1;
+}
+
 uint8_t cargar_configuracion() {
     t_config* cfg_file = config_create("mi-ram-hq.config");
 

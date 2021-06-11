@@ -14,20 +14,11 @@
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolo.h"
 
-#define MODULENAME "MRH"
 #define SERVERNAME "MRH_SERVER"
 #define NIVELNAME "AMONG-OS"
 
-static t_config_mrhq* initialize_cfg() {
-    t_config_mrhq* cfg = malloc(sizeof(t_config_mrhq));
-    cfg->ALGORITMO_REEMPLAZO = NULL;
-    cfg->ESQUEMA_MEMORIA = NULL;
-    cfg->PATH_SWAP = NULL;
-    return cfg;
-}
-
-t_config_mrhq* cfg;
-t_log* logger;
+extern t_config_mrhq* cfg;
+extern t_log* logger;
 extern t_list* segmentos_libres;
 
 #endif

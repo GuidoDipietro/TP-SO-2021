@@ -6,8 +6,9 @@ ODIR = ./obj
 _OBJ = $(_SRC:.c=.o)
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-HEADERS = $(shell find ./include/*.h)
+HEADERS = $(shell find ./include/*.h) $(shell find ../mi-ram-hq/include/*.h)
 
+MIRAMHQ = $(shell find ../mi-ram-hq/obj/*.o)
 SHARED = $(shell find ../shared/obj/*.o)
 
 O_DIR = ./obj
@@ -21,14 +22,17 @@ OUT_NAME = tests.out
 
 .PHONY: makeFolder
 
-build: makeShared makeFolder $(OBJ)
-	$(CC) main.c -o $(OUT_NAME) $(OBJ) $(SHARED) $(LINK) -g
+build: makeShared makeFolder makeMRH $(OBJ)
+	$(CC) main.c -o $(OUT_NAME) $(OBJ) $(SHARED) $(MIRAMHQ) $(LINK) -g
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $< $(LINK) -g
 
 makeShared:
 	make -C ../shared
+
+makeMRH:
+	make -C ../mi-ram-hq
 
 makeFolder:
 	@if [ ! -d ./obj ]; then \
@@ -48,3 +52,4 @@ clean:
 	rm -rf obj
 	rm -rf *.out
 	make clean -C ../shared
+	make clean -C ../mi-ram-hq

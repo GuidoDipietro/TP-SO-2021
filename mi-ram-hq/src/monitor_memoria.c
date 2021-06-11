@@ -78,3 +78,14 @@ void asesinar_seglib() {
     list_destroy_and_destroy_elements(segmentos_libres, (void*) free);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 }
+
+/// debug
+
+static void print_segmento_t(segmento_t* seg) {
+    printf("TAMAN: %5d | INICIO: %5d\n", seg->tamanio, seg->inicio);
+}
+void print_seglib() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
+    
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+}
