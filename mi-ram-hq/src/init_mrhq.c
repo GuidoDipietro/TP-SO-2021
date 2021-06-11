@@ -69,5 +69,6 @@ void cerrar_programa() {
     free(cfg->ESQUEMA_MEMORIA);
     free(cfg);
 
-    list_destroy_and_destroy_elements(segmentos_libres, (void*) free);
+    asesinar_seglib();
+    finalizar_mutex();
 }

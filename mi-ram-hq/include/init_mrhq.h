@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include "monitor_memoria.h"
 #include "../include/graphic.h"
 #include "../include/estructuras.h"
 #include "../../shared/include/utils.h"

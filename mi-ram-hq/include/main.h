@@ -9,6 +9,7 @@
 
 #include "graphic.h"
 #include "init_mrhq.h"
+#include "monitor_memoria.h"
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolo.h"
