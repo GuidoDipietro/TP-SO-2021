@@ -15,9 +15,8 @@ typedef struct {
     t_list* POSICIONES_SABOTAJE;
 } t_config_ims;
 
-uint8_t cargar_configuracion(t_config_ims*, t_log*);
-bool crear_servidor(int* fd, char* name, t_config_ims* cfg, t_log* logger);
-int server_escuchar(t_log* logger, char* server_name, int server_fd);
-void cerrar_programa(t_log*, t_config_ims*);
+uint8_t cargar_configuracion();
+bool crear_servidor(int* fd, char* name);
+void cerrar_programa();
 
 #endif

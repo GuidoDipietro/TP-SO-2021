@@ -1,10 +1,13 @@
 #include "../include/init_ims.h"
 
-uint8_t cargar_configuracion(t_config_ims* config, t_log* log) {
-    t_config* cfg = config_create("i_mongo_store.config");
+extern t_log* logger;
+extern t_config_ims* cfg;
 
-    if(cfg == NULL) {
-        log_error(log, "No se encontro i_mongo_store.config");
+uint8_t cargar_configuracion() {
+    t_config* cfg_file = config_create("i_mongo_store.config");
+
+    if(cfg_file == NULL) {
+        log_error(logger, "No se encontro i_mongo_store.config");
         return 0;
     }
 
@@ -17,28 +20,28 @@ uint8_t cargar_configuracion(t_config_ims* config, t_log* log) {
     };
 
     // Falta alguna propiedad
-    if(!config_has_all_properties(cfg, properties)) {
-        log_error(log, "Propiedades faltantes en el archivo de configuracion");
-        config_destroy(cfg);
+    if(!config_has_all_properties(cfg_file, properties)) {
+        log_error(logger, "Propiedades faltantes en el archivo de configuracion");
+        config_destroy(cfg_file);
         return 0;
     }
 
-    config->PUNTO_MONTAJE = strdup(config_get_string_value(cfg, "PUNTO_MONTAJE"));
-    config->PUERTO = config_get_int_value(cfg, "PUERTO");
-    config->TIEMPO_SINCRONIZACION = config_get_long_value(cfg, "TIEMPO_SINCRONIZACION");
+    cfg->PUNTO_MONTAJE = strdup(config_get_string_value(cfg_file, "PUNTO_MONTAJE"));
+    cfg->PUERTO = config_get_int_value(cfg_file, "PUERTO");
+    cfg->TIEMPO_SINCRONIZACION = config_get_long_value(cfg_file, "TIEMPO_SINCRONIZACION");
 
-    char** posiciones_sabotaje = config_get_array_value(cfg, "POSICIONES_SABOTAJE");
-    config->POSICIONES_SABOTAJE = extraer_posiciones(posiciones_sabotaje);
+    char** posiciones_sabotaje = config_get_array_value(cfg_file, "POSICIONES_SABOTAJE");
+    cfg->POSICIONES_SABOTAJE = extraer_posiciones(posiciones_sabotaje);
     config_free_array_value(&posiciones_sabotaje);
 
-    log_info(log, "Archivo de configuracion cargado correctamente");
+    log_info(logger, "Archivo de configuracion cargado correctamente");
 
-    config_destroy(cfg);
+    config_destroy(cfg_file);
 
     return 1;
 }
 
-bool crear_servidor(int* fd, char* name, t_config_ims* cfg, t_log* logger) {
+bool crear_servidor(int* fd, char* name) {
     char* puerto = string_itoa(cfg->PUERTO);
     *fd = iniciar_servidor(
             logger,
@@ -47,56 +50,14 @@ bool crear_servidor(int* fd, char* name, t_config_ims* cfg, t_log* logger) {
             puerto
     );
     free(puerto);
-    log_info(logger, "Server listo en IMS");
-    return (*fd != -1);
+    if (*fd != -1) log_info(logger, "Server listo en IMS");
+    return *fd != -1;
 }
 
-int server_escuchar(t_log* logger, char* server_name, int server_fd) {
-    int cliente_fd = esperar_cliente(logger, server_name, server_fd);
+void cerrar_programa() {
+    log_destroy(logger);
 
-    // Mientras la conexion este abierta
-    op_code cop;
-    while (cliente_fd != -1) {
-        if (recv(cliente_fd, &cop, sizeof(op_code), 0) == 0)
-            break;
-
-        switch (cop) {
-            case OBTENER_BITACORA:
-                break;
-            case MOVIMIENTO:
-            case INICIO_TAREA:
-            case FIN_TAREA:
-            case ATENCION_SABOTAJE:
-            case RESOLUCION_SABOTAJE:
-            case GENERAR:
-            case CONSUMIR:
-            case DESCARTAR_BASURA:
-            case INICIO_FSCK:
-                break;
-            case -1:
-                log_info(logger, "cliente desconectado...");
-                // return 1;
-                return 0; // por pruebas!
-            default:
-                log_error(logger, "Algo anduvo mal en el server de IMS (que le mandaron?)");
-                return 0;
-        }
-    }
-
-    // Cliente se va
-    log_warning(logger, "Cliente desconectado de %s. Esperando otro cliente...", server_name);
-    // return 1;
-    return 0; // por pruebas!
-}
-
-void cerrar_programa(t_log* log, t_config_ims* cfg) {
-    log_destroy(log);
-
-    if(cfg->PUNTO_MONTAJE != NULL)
-        free(cfg->PUNTO_MONTAJE);
-
-    if(cfg->POSICIONES_SABOTAJE != NULL)
-        list_destroy_and_destroy_elements(cfg->POSICIONES_SABOTAJE, free_t_posicion);
-
+    free(cfg->PUNTO_MONTAJE);
+    list_destroy_and_destroy_elements(cfg->POSICIONES_SABOTAJE, free_t_posicion);
     free(cfg);
 }

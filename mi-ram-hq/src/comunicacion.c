@@ -8,7 +8,7 @@ typedef struct {
     char* server_name;
 } t_procesar_conexion_args;
 
-void procesar_conexion(void* void_args) {
+static void procesar_conexion(void* void_args) {
     t_procesar_conexion_args* args = (t_procesar_conexion_args*) void_args;
     int cliente_socket = args->fd;
     char* server_name = args->server_name;
@@ -76,6 +76,7 @@ void procesar_conexion(void* void_args) {
                  }
                 break;
             }
+            // Errores
             case -1:
                 log_error(logger, "Cliente desconectado de MRH...");
                 return;
