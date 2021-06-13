@@ -1,5 +1,8 @@
 #include "../include/comunicacion.h"
 
+extern t_log* logger;
+extern t_list* segmentos_libres;
+
 typedef struct {
     int fd;
     char* server_name;

@@ -15,8 +15,7 @@ clean:
 	make clean -C mi-ram-hq
 	make clean -C tests
 
+# Esto tambien borra todos los archivos de log
 recontra:
 	make clean
-	@if [ -d */*.log ]; then \
-		rm */*.log; \
-	fi
+	find . -name "*.log" -type f -delete

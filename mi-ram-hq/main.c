@@ -1,5 +1,9 @@
 #include "include/main.h"
 
+extern t_config_mrhq* cfg;
+extern t_log* logger;
+extern t_list* segmentos_libres;
+
 int main() {
     if(!init() || !cargar_configuracion() || !cargar_memoria()) {
         cerrar_programa();

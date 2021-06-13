@@ -34,10 +34,6 @@ static t_config_mrhq* initialize_cfg() {
     return cfg;
 }
 
-t_log* logger;
-t_config_mrhq* cfg;
-t_list* segmentos_libres;
-
 uint8_t init();                 // inicializa loger, cfg, y semaforos
 uint8_t cargar_configuracion(); // carga cfg en strut cfg
 uint8_t cargar_memoria();       // Init de segmentos_libres

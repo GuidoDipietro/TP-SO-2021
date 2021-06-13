@@ -17,8 +17,4 @@
 #define SERVERNAME "MRH_SERVER"
 #define NIVELNAME "AMONG-OS"
 
-extern t_config_mrhq* cfg;
-extern t_log* logger;
-extern t_list* segmentos_libres;
-
 #endif

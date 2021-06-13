@@ -1,5 +1,7 @@
 #include "../include/graphic.h"
 
+extern t_log* logger;
+
 void iniciar_gui(char* name) {
     nivel_gui_inicializar();
     // log_info(logger, "Se inicializo correctamente la ventana de MRH");

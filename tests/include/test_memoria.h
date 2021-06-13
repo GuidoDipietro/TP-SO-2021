@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../../mi-ram-hq/include/init_mrhq.h"
 #include "../../mi-ram-hq/include/estructuras.h"
 #include "../../mi-ram-hq/include/manejo_memoria.h"
 #include "../../mi-ram-hq/include/monitor_memoria.h"

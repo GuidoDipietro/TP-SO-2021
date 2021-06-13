@@ -1,5 +1,9 @@
 #include "../include/init_mrhq.h"
 
+t_log* logger;
+t_config_mrhq* cfg;
+t_list* segmentos_libres;
+
 uint8_t init() {
     cfg = initialize_cfg();
     logger = log_create("mi-ram-hq.log", MODULENAME, false, LOG_LEVEL_INFO);

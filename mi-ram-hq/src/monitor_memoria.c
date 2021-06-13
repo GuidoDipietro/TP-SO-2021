@@ -1,5 +1,7 @@
 #include "../include/monitor_memoria.h"
 
+extern t_config_mrhq* cfg;
+
 /// mutex
 
 pthread_mutex_t MUTEX_SEGMENTOS_LIBRES;
@@ -15,14 +17,23 @@ void finalizar_mutex() {
 /// statics
 
 static uint32_t tamanio_static = 0;
+static uint32_t inicio_static = 0;
 static uint32_t tamanio_acumulado = 0;
 
 static bool seg_entra_en_hueco(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
     return seg->tamanio >= tamanio_static;
 }
-static void add_tamanio_acumulado(void* s) {
-    segmento_t* seg = (segmento_t*) s;
+static bool seg_contiene_inicio(void* segmento) {
+    segmento_t* seg = (segmento_t*) segmento;
+    return inicio_static < (seg->inicio + seg->tamanio); //safety syntax
+}
+static bool seg_es_nulo(void* segmento) {
+    segmento_t* seg = (segmento_t*) segmento;
+    return seg->tamanio == 0;
+}
+static void add_tamanio_acumulado(void* segmento) {
+    segmento_t* seg = (segmento_t*) segmento;
     tamanio_acumulado += seg->tamanio;
 }
 
@@ -67,7 +78,17 @@ segmento_t* list_find_first_by_min_size_seglib(uint32_t min_size) {
     segmento_t* ret = (segmento_t*) list_find(segmentos_libres, &seg_entra_en_hueco);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 
-    return segmento_t_duplicate(ret);
+    return ret;
+}
+
+segmento_t* list_find_first_by_inicio_seglib(uint32_t inicio) {
+    inicio_static = inicio;
+
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
+    segmento_t* ret = (segmento_t*) list_find(segmentos_libres, &seg_contiene_inicio);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+
+    return ret;
 }
 
 segmento_t* list_add_all_holes_seglib() {
@@ -76,7 +97,7 @@ segmento_t* list_add_all_holes_seglib() {
     list_iterate(segmentos_libres, add_tamanio_acumulado);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 
-    return new_segmento(0, tamanio_acumulado);
+    return new_segmento(cfg->TAMANIO_MEMORIA - tamanio_acumulado, tamanio_acumulado);
     // esta func antes era re linda con un fold pero tenia un leak
     // incorregible por como son las commons :( maldito ranieri
 }
@@ -84,6 +105,12 @@ segmento_t* list_add_all_holes_seglib() {
 void list_clean_seglib() {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_clean_and_destroy_elements(segmentos_libres, (void*) free);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+}
+
+void remove_zero_sized_gap_seglib() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
+    list_remove_and_destroy_by_condition(segmentos_libres, &seg_es_nulo, (void*) free);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 }
 
