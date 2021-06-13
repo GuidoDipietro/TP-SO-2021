@@ -1,20 +1,5 @@
 #include "../include/tareas.h"
 
-static void imprimir_tripulante(void* t_p) {
-    t_tripulante* t = (t_tripulante*) t_p;
-
-    // 8 espacios
-    printf(
-        "\nTripulante: %3d        Patota: %3d",
-        t->tid, t->pid
-    );
-}
-
-// Para imprimir los tripulantes que se estan ejecutando
-static void imprimir_tripulante_exec(void* t_p) {
-    imprimir_tripulante(((t_running_thread*) t_p)->t);
-}
-
 static bool posiciones_iguales(t_posicion* p1, t_posicion* p2) {
     return p1->x == p2->x && p1->y == p2->y;
 }
@@ -30,6 +15,8 @@ void planificador() {
     sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
     sem_init(&BLOQUEAR_PLANIFICADOR, 0, 0);
     while (1) {
+        sem_wait(&ACTIVE_THREADS);
+        sem_wait(&TRIPULANTES_EN_COLA);
         if (PLANIFICACION_BLOQUEADA)
             sem_wait(&BLOQUEAR_PLANIFICADOR);
 
@@ -63,7 +50,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         if(thread_data->blocked)
             sem_wait(&(thread_data->sem_pause));
 
-        //ciclo();
+        ciclo();
 
         if((t->tarea)->duracion)
             correr_tarea(thread_data);
@@ -96,7 +83,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         if(thread_data->blocked)
             sem_wait(&(thread_data->sem_pause));
 
-        //ciclo();
+        ciclo();
 
         if ((t->tarea)->duracion) {
             if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)

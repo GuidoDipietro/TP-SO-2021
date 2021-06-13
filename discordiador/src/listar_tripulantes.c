@@ -31,9 +31,6 @@ static void imprimir_tripulante_exec(void* t_p) {
 }
 
 void op_listar_tripulantes() {
-    int a;
-    sem_getvalue(&TRIPULANTES_EN_COLA, &a);
-    printf("\n\n\n%d - %d\n\n\n", largo_cola(), a);
     printf("\n------------------------------");
     char* timestamp = temporal_get_string_time("%d/%m/%y %H:%M:%S");
     printf("\nEstado de la nave al %s", timestamp);
