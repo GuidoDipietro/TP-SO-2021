@@ -114,12 +114,13 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         // IMPORTANTE: Observar que por ahora no se le piden las tareas al Mi-Ram-HQ. Sincronizar la cantidad de tareas
         // con las que da la funcion solicitar_tarea()
 
-        if (dif > 0) { // Hay mas tripulantes que tareas
+        // Descomentar esto cuando se implemente el mi-ram-hq
+        /*if (dif > 0) { // Hay mas tripulantes que tareas
             for (uint32_t k = cantidad_tripulantes - dif + 1; k <= cantidad_tripulantes; k++)
                 log_warning(main_log, "No hay tarea para el tripulante %d. No va a ser creado.", k);
 
             cantidad_tripulantes -= dif;
-        }
+        }*/
             
         bool envio_mrh = send_patota(
             *mi_ram_hq_fd,

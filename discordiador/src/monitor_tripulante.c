@@ -177,6 +177,7 @@ uint16_t largo_lista_hilos() {
 // Cola exit
 
 void agregar_lista_exit(void* p) {
+    ((t_tripulante*) p)->status = EXIT;
     pthread_mutex_lock(&MUTEX_COLA_EXIT);
     list_add(COLA_EXIT, p);
     pthread_mutex_unlock(&MUTEX_COLA_EXIT);

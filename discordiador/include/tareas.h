@@ -7,6 +7,7 @@
 #include "ops_tripulante.h"
 #include "monitor_tripulante.h"
 #include "config.h"
+#include "listar_tripulantes.h"
 #include "../../shared/include/protocolo.h"
 #include "../../shared/include/utils.h"
 
