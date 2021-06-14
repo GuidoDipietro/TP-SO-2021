@@ -296,7 +296,7 @@ void test_meter_segmento_en_mp_bf() {
     mem_hexdump(memoria_principal, 65);
 
     print_seglib();
-    print_segus();
+    __asm__ __volatile__ ("call print_segus");
 
     free(data1);
     free(data2);
