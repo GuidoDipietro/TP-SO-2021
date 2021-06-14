@@ -3,6 +3,12 @@
 t_log* logger;
 t_config_mrhq* cfg;
 t_list* segmentos_libres;
+t_list* segmentos_usados;
+uint32_t memoria_disponible;
+
+void* memoria_principal;
+
+segmento_t* (*proximo_hueco)(uint32_t);
 
 uint8_t init() {
     cfg = initialize_cfg();
@@ -12,8 +18,8 @@ uint8_t init() {
     return 1;
 }
 
-uint8_t cargar_configuracion() {
-    t_config* cfg_file = config_create("mi-ram-hq.config");
+uint8_t cargar_configuracion(char* path) {
+    t_config* cfg_file = config_create(path);
 
     if(cfg_file == NULL) {
         log_error(logger, "No se encontro mi-ram-hq.config");
@@ -47,6 +53,11 @@ uint8_t cargar_configuracion() {
     cfg->PATH_SWAP = strdup(config_get_string_value(cfg_file, "PATH_SWAP"));
     cfg->ALGORITMO_REEMPLAZO = strdup(config_get_string_value(cfg_file, "ALGORITMO_REEMPLAZO"));
     cfg->CRITERIO_SELECCION = strdup(config_get_string_value(cfg_file, "CRITERIO_SELECCION"));
+
+    proximo_hueco = strcmp(cfg->CRITERIO_SELECCION, "FF") == 0
+                    ? &proximo_hueco_first_fit
+                    : &proximo_hueco_best_fit;
+
     cfg->PUERTO = config_get_int_value(cfg_file, "PUERTO");
     cfg->IP = config_get_int_value(cfg_file, "IP");
 
@@ -58,17 +69,24 @@ uint8_t cargar_configuracion() {
 }
 
 uint8_t cargar_memoria() {
-    segmentos_libres = list_create();
-
-    segmento_t* hueco = malloc(sizeof(segmento_t));
-    if (hueco == NULL) {
-        log_error(logger, "Fallo en la creacion de t_list* segmentos_libres");
+    memoria_principal = malloc(cfg->TAMANIO_MEMORIA); // void*
+    if (memoria_principal == NULL) {
+        log_error(logger, "Fallo en el malloc a memoria_principal");
         return 0;
     }
-    hueco->inicio = 0;
-    hueco->tamanio = cfg->TAMANIO_MEMORIA;
+    memset(memoria_principal, 0, cfg->TAMANIO_MEMORIA);
+    memoria_disponible = cfg->TAMANIO_MEMORIA; // int
 
+    segmentos_libres = list_create();
+    segmento_t* hueco = new_segmento(0, 0, cfg->TAMANIO_MEMORIA);
+    if (hueco == NULL) {
+        log_error(logger, "Fallo en la creacion de t_list* segmentos_libres");
+        asesinar_seglib();
+        return 0;
+    }
     list_add(segmentos_libres, (void*) hueco);
+
+    segmentos_usados = list_create();
 
     return 1;
 }
@@ -79,8 +97,11 @@ void cerrar_programa() {
     free(cfg->ALGORITMO_REEMPLAZO);
     free(cfg->PATH_SWAP);
     free(cfg->ESQUEMA_MEMORIA);
+    free(cfg->CRITERIO_SELECCION);
     free(cfg);
 
     asesinar_seglib();
+    asesinar_segus();
+    free(memoria_principal);
     finalizar_mutex();
 }

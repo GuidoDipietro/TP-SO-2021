@@ -24,6 +24,7 @@ typedef struct {
 
 // TS SIGNIFICA TABLA DE SEGMENTOS
 typedef struct {
+    uint8_t nro_segmento;
     uint32_t inicio;
     uint32_t tamanio;
 } segmento_t;
@@ -39,6 +40,7 @@ typedef struct {
 ///////// FUNCIONES /////////
 
 extern t_list* segmentos_libres;
+extern t_list* segmentos_usados;
 
 segmento_t* proximo_hueco_best_fit(uint32_t tamanio);
 segmento_t* proximo_hueco_first_fit(uint32_t tamanio);

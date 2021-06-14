@@ -7,13 +7,12 @@
 #include <sysexits.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <commons/memory.h>
 
 #include "../../mi-ram-hq/include/init_mrhq.h"
 #include "../../mi-ram-hq/include/estructuras.h"
 #include "../../mi-ram-hq/include/manejo_memoria.h"
 #include "../../mi-ram-hq/include/monitor_memoria.h"
-
-extern pthread_mutex_t MUTEX_SEGMENTOS_LIBRES;
 
 void iniciar();
 void finalizar();

@@ -44,4 +44,5 @@ valgrind: debug build
 clean:
 	rm -rf obj
 	rm -rf *.out
+	rm -rf *.dmp
 	make clean -C ../shared

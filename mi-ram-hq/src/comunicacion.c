@@ -2,6 +2,7 @@
 
 extern t_log* logger;
 extern t_list* segmentos_libres;
+extern uint32_t memoria_disponible;
 
 typedef struct {
     int fd;

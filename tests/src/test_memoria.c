@@ -1,40 +1,39 @@
 #include "../include/test_memoria.h"
 
-t_config_mrhq* cfg;
-t_config* cfg_file;
+extern t_log* logger;
+extern t_config_mrhq* cfg;
+extern t_list* segmentos_libres;
+extern t_list* segmentos_usados;
+extern uint32_t memoria_disponible;
+extern void* memoria_principal;
+extern segmento_t* (*proximo_hueco)(uint32_t);
 
 void iniciar() {
-    cfg = malloc(sizeof(t_config_mrhq));
-
-    cfg_file = config_create("src/test.config");
-    cfg->TAMANIO_MEMORIA = config_get_int_value(cfg_file, "TAMANIO_MEMORIA");
-    segmentos_libres = list_create();
-    pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
+    init();
+    cargar_configuracion("src/test.config");
+    cargar_memoria();
 }
 
 void finalizar() {
-    config_destroy(cfg_file);
-    free(cfg);
-    pthread_mutex_destroy(&MUTEX_SEGMENTOS_LIBRES);
-    asesinar_seglib();
+    cerrar_programa();
 }
 
 ///
 
-void test_print_seglib() {
-    segmento_t* hueco_1 = new_segmento(0, 10);
-    segmento_t* hueco_2 = new_segmento(15, 7);
-    list_add_seglib(hueco_1);
-    list_add_seglib(hueco_2);
-    
+void test_print() {
+    // Creanlo o no, este test me ayudo a encontrar un bug bastante feito
     print_seglib();
+    print_segus();
 }
 
 void test_hueco_first_fit() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -47,10 +46,13 @@ void test_hueco_first_fit() {
 }
 
 void test_hueco_first_fit_no_hay() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -61,10 +63,13 @@ void test_hueco_first_fit_no_hay() {
 }
 
 void test_hueco_best_fit1() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -77,10 +82,13 @@ void test_hueco_best_fit1() {
 }
 
 void test_hueco_best_fit2() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 8);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 8);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 8);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 8);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -93,10 +101,13 @@ void test_hueco_best_fit2() {
 }
 
 void test_hueco_best_fit_no_hay() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -107,14 +118,22 @@ void test_hueco_best_fit_no_hay() {
 }
 
 void test_compactacion() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    // Falta operar sobre void* memoria_principal
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
     list_add_seglib(hueco_4);
+    memoria_disponible -= (cfg->TAMANIO_MEMORIA-(2+5+10+4));
+    // ^ esto se iria actualizando cada vez que se mete un segmento
+    // WE LIVE IN A SIMULATION
+    // https://www.youtube.com/watch?v=tLOIBw4uzpc
 
     puts("\n\nANTES DE COMPACTAR... TRAIGAN LA PRENSA HIDRAULICA");
     print_seglib();
@@ -126,10 +145,13 @@ void test_compactacion() {
 }
 
 void test_meter_segmento_ocupa_hueco_entero_bf() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -149,10 +171,13 @@ void test_meter_segmento_ocupa_hueco_entero_bf() {
 }
 
 void test_meter_segmento_ocupa_hueco_entero_ff() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -172,10 +197,13 @@ void test_meter_segmento_ocupa_hueco_entero_ff() {
 }
 
 void test_meter_segmento_bf() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -195,10 +223,13 @@ void test_meter_segmento_bf() {
 }
 
 void test_meter_segmento_ff() {
-    segmento_t* hueco_1 = new_segmento(0, 2);
-    segmento_t* hueco_2 = new_segmento(10, 5);
-    segmento_t* hueco_3 = new_segmento(17, 10);
-    segmento_t* hueco_4 = new_segmento(50, 4);
+    asesinar_seglib();
+    segmentos_libres = list_create();
+    
+    segmento_t* hueco_1 = new_segmento(69, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -217,8 +248,62 @@ void test_meter_segmento_ff() {
     print_seglib();
 }
 
+void test_meter_segmento_en_mp_ff() {
+    free(cfg->CRITERIO_SELECCION);
+    cfg->CRITERIO_SELECCION = strdup("FF");
+    proximo_hueco = &proximo_hueco_first_fit;
+    // Segmento de tamanio 50
+    void* data1 = malloc(50);
+    memset(data1, 0x11, 50);
+    // Segmento de tamanio 10
+    void* data2 = malloc(10);
+    memset(data2, 0x88, 10);
+
+    puts("Dump primeros 65 bytes MP ANTES:");
+    mem_hexdump(memoria_principal, 65);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50));
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10));
+
+    puts("Dump primeros 65 bytes MP DESPUES:");
+    mem_hexdump(memoria_principal, 65);
+
+    print_seglib();
+    print_segus();
+
+    free(data1);
+    free(data2);
+}
+
+void test_meter_segmento_en_mp_bf() {
+    free(cfg->CRITERIO_SELECCION);
+    cfg->CRITERIO_SELECCION = strdup("BF");
+    proximo_hueco = &proximo_hueco_best_fit;
+    // Segmento de tamanio 500
+    void* data1 = malloc(50);
+    memset(data1, 0x11, 50);
+    // Segmento de tamanio 100
+    void* data2 = malloc(10);
+    memset(data2, 0x88, 10);
+
+    puts("Dump primeros 65 bytes MP ANTES:");
+    mem_hexdump(memoria_principal, 65);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50));
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10));
+
+    puts("Dump primeros 65 bytes MP DESPUES:");
+    mem_hexdump(memoria_principal, 65);
+
+    print_seglib();
+    print_segus();
+
+    free(data1);
+    free(data2);
+}
+
 CU_TestInfo tests_memoria[] = {
-    { "Test print seglib", test_print_seglib },
+    { "Test print seglib/segus", test_print },
     { "Test proximo hueco first fit", test_hueco_first_fit },
     { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
     { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
@@ -229,5 +314,7 @@ CU_TestInfo tests_memoria[] = {
     { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
     { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
     { "Test COMPACTACION", test_compactacion },
+    { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
+    { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
     CU_TEST_INFO_NULL,
 };
