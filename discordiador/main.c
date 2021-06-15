@@ -5,6 +5,7 @@
 #include "include/monitor_tripulante.h"
 #include <commons/collections/queue.h>
 #include "include/config.h"
+#include "include/sabotajes.h"
 
 #define MODULENAME "DIS"
 
@@ -31,6 +32,7 @@ int main() {
     LISTA_HILOS = list_create();
     COLA_EXIT = list_create();
     iniciar_mutex();
+    set_signal_handlers();
 
     main_log = log_create("discordiador.log", "DISCORDIADOR", true, LOG_LEVEL_INFO);
     main_log_inv = log_create("discordiador.log", "DISCORDIADOR", false, LOG_LEVEL_TRACE);

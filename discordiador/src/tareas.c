@@ -50,11 +50,12 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         if(thread_data->blocked)
             sem_wait(&(thread_data->sem_pause));
 
-        ciclo();
+        //ciclo();
+        __asm__ volatile ("call ciclo"); // Por los memes
 
-        if((t->tarea)->duracion)
+        if((t->tarea)->duracion) {
             correr_tarea(thread_data);
-        else {
+        } else {
             if(replanificar_tripulante(thread_data, t)) {
                 log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                 goto final;
@@ -83,7 +84,9 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         if(thread_data->blocked)
             sem_wait(&(thread_data->sem_pause));
 
-        ciclo();
+        //ciclo();
+        __asm__ volatile ("call ciclo"); // Por los memes
+
 
         if ((t->tarea)->duracion) {
             if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
