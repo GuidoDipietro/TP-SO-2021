@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <stdbool.h>
 #include <commons/collections/list.h>
 #include "ops_tripulante.h"
 #include "monitor_tripulante.h"
@@ -11,6 +12,8 @@
 #include "../../shared/include/utils.h"
 
 bool PLANIFICADOR_ALIVE;
+
+extern bool SABOTAJE_ACTIVO;
 
 extern void* correr_tripulante;
 

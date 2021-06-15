@@ -46,6 +46,11 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         return;
     }
 
+    if(SABOTAJE_ACTIVO) {
+        log_error(main_log, "SABOTAJE ACTIVO. No se puede crear una patota en este momento.");
+        return;
+    }
+
     // args_arr[0] -> Cantidad de tripulantes a inicializar
     // args_arr[1] -> Path al archivo de tareas
     // args_arr[2] -> String con las posiciones (se debe parsear)
@@ -205,6 +210,11 @@ pthread_t thread_planificacion;
 void iniciar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args != NULL) {
         mensaje_error_sin_args("INICIAR_PLANIFICACION");
+        return;
+    }
+
+    if(SABOTAJE_ACTIVO) {
+        log_error(main_log, "SABOTAJE ACTIVO. No se puede reanudar la planificacion.");
         return;
     }
 

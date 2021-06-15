@@ -17,7 +17,7 @@ void planificador() {
     while (1) {
         sem_wait(&ACTIVE_THREADS);
         sem_wait(&TRIPULANTES_EN_COLA);
-        if (PLANIFICACION_BLOQUEADA)
+        if (PLANIFICACION_BLOQUEADA || SABOTAJE_ACTIVO)
             sem_wait(&BLOQUEAR_PLANIFICADOR);
 
         t_running_thread* new = pop_cola_tripulante();

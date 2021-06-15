@@ -89,4 +89,9 @@ void* remover_lista_exit(uint32_t);
 void iterar_lista_exit(void (*f)(void*));
 void* remover_cola_new(uint32_t tid);
 
+// Cola BLOCKED SABOTAJE
+
+extern t_list* LISTA_SABOTAJE;
+pthread_mutex_t MUTEX_LISTA_SABOTAJE;
+
 #endif
