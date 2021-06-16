@@ -34,7 +34,7 @@ static bool seg_entra_en_hueco(void* segmento) {
 }
 static bool seg_contiene_inicio(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
-    return (inicio_static >= seg->inicio) && (inicio_static <= (seg->inicio+seg->tamanio)); //safety syntax
+    return (inicio_static >= seg->inicio) && (inicio_static < (seg->inicio+seg->tamanio)); //safety syntax
 }
 static bool seg_empieza_en(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
@@ -94,6 +94,12 @@ void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size) {
     pthread_mutex_unlock(&MUTEX_MP);
 }
 
+void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio) {
+    pthread_mutex_lock(&MUTEX_MP);
+    memset(memoria_principal+inicio, 0, tamanio);
+    pthread_mutex_unlock(&MUTEX_MP);
+}
+
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio) {
     // No es un realloc como la lib de stdlib.h, es mas bien mover un cacho de memoria a otro lado
     void* data = malloc(tamanio);
@@ -108,6 +114,13 @@ void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio)
 }
 
 ////// UTILS SEGMENTOS_LIBRES A.K.A. SEGLIB
+
+uint32_t list_size_seglib() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
+    uint32_t size = list_size(segmentos_libres);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+    return size;
+}
 
 void list_add_seglib(segmento_t* seg) {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
@@ -145,6 +158,14 @@ segmento_t* list_find_first_by_inicio_seglib(uint32_t inicio) {
     return ret;
 }
 
+segmento_t* list_get_seglib(uint32_t indice) {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
+    segmento_t* seg = list_get(segmentos_libres, indice);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+
+    return seg;
+}
+
 void list_clean_seglib() {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_clean_and_destroy_elements(segmentos_libres, (void*) free);
@@ -173,6 +194,27 @@ void list_add_segus(segmento_t* seg) {
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
 }
 
+void list_sort_segus() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    list_sort(segmentos_usados, &comp_segmento_t_indice);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+}
+
+void list_remove_by_inicio_segus(uint32_t inicio) {
+    inicio_static = inicio;
+
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    list_remove_and_destroy_by_condition(segmentos_usados, (void*) &seg_empieza_en, (void*) free);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+}
+
+uint32_t list_size_segus() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    uint32_t size = list_size(segmentos_libres);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+    return size;
+}
+
 segmento_t* list_find_by_inicio_segus(uint32_t inicio) {
     inicio_static = inicio;
 
@@ -181,6 +223,14 @@ segmento_t* list_find_by_inicio_segus(uint32_t inicio) {
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
 
     return ret;
+}
+
+segmento_t* list_get_segus(uint32_t indice) {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    segmento_t* seg = list_get(segmentos_usados, indice);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+
+    return seg;
 }
 
 void asesinar_segus() {

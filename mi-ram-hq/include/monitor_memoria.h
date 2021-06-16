@@ -19,25 +19,32 @@ void finalizar_mutex();
 // utils
 void dump_mp(int);
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, size_t size);
+void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
 
 segmento_t* new_segmento(uint8_t n, uint32_t inicio, uint32_t taman);
 segmento_t* segmento_t_duplicate(segmento_t*);
 
 /// SEGLIB
+uint32_t list_size_seglib();
 void list_add_seglib(segmento_t* seg);
 t_list* list_filter_by_min_size_seglib(uint32_t min_size);
 segmento_t* list_find_first_by_min_size_seglib(uint32_t min_size);
 segmento_t* list_find_first_by_inicio_seglib(uint32_t inicio);
 segmento_t* list_add_all_holes_seglib();
+segmento_t* list_get_seglib(uint32_t indice);
 void list_clean_seglib();
 void remove_zero_sized_gap_seglib();
 void asesinar_seglib();
 /// END SEGLIB
 
 /// SEGUS
+void list_sort_segus();
 void list_add_segus(segmento_t* seg);
+void list_remove_by_inicio_segus(uint32_t inicio);
+uint32_t list_size_segus();
 segmento_t* list_find_by_inicio_segus(uint32_t inicio);
+segmento_t* list_get_segus();
 void asesinar_segus();
 /// END SEGUS
 
