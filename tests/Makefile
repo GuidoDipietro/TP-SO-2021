@@ -42,7 +42,7 @@ makeFolder:
 debug: CFLAGS := $(CFLAGS) -g
 debug: build
 
-valgrind: build
+valgrind: debug
 	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)
 
 tests: build

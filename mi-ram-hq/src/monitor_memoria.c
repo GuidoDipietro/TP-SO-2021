@@ -94,8 +94,17 @@ void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size) {
     pthread_mutex_unlock(&MUTEX_MP);
 }
 
-void tumadre() {
+void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio) {
+    // No es un realloc como la lib de stdlib.h, es mas bien mover un cacho de memoria a otro lado
+    void* data = malloc(tamanio);
 
+    pthread_mutex_lock(&MUTEX_MP);
+    memcpy(data, memoria_principal+inicio, tamanio);
+    memset(memoria_principal+inicio, 0, tamanio);
+    memcpy(memoria_principal+destino, data, tamanio);
+    pthread_mutex_unlock(&MUTEX_MP);
+
+    free(data);
 }
 
 ////// UTILS SEGMENTOS_LIBRES A.K.A. SEGLIB

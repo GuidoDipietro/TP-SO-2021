@@ -12,8 +12,8 @@
 
 extern bool SABOTAJE_ACTIVO;
 
-void iniciar_sabotaje(uint16_t signum);
-void finalizar_sabotaje(uint16_t signum);
+void iniciar_sabotaje(int signum);
+void finalizar_sabotaje(int signum);
 void set_signal_handlers();
 
 #endif

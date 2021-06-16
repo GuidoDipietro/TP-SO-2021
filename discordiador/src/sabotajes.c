@@ -35,7 +35,7 @@ static void* comparar_cercania_a_sabotaje(void* p1, void* p2) {
 }
 
 // Esto es Haskell o C? Nadie lo sabe
-void iniciar_sabotaje(uint16_t signum) {
+void iniciar_sabotaje(int signum) {
     // Al estar todo pausado no deberiamos de preocuparnos por condiciones de carrera
     log_info(main_log, "Sabotaje detectado. Comenzando bloqueo por sabotaje.");
     SABOTAJE_ACTIVO = true; // Iniciamos todas las rutinas de sabotaje
@@ -61,7 +61,7 @@ void iniciar_sabotaje(uint16_t signum) {
     printf("\n\nSabotaje iniciado\n\n");
 }
 
-void finalizar_sabotaje(uint16_t signum) {
+void finalizar_sabotaje(int signum) {
     SABOTAJE_ACTIVO = false;
     printf("\n\nSabotaje finalizado\n\n");
 }

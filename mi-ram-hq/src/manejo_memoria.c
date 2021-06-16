@@ -39,87 +39,93 @@ bool meter_segmento_en_mp(void* data, uint32_t size) {
     return true;
 }
 
-bool realloc_segmento_en_mp(uint32_t inicio_origen, uint32_t inicio_destino) {
+// abrochense el cinturon
+bool mover_segmento_en_mp(uint32_t inicio_origen, uint32_t inicio_destino) {
+    int64_t despl = inicio_destino - inicio_origen;
+    if (despl == 0) return true; // sin efecto
+
     segmento_t* segmento = list_find_by_inicio_segus(inicio_origen);
+    if (segmento == NULL) return false; // no existe segmento con ese inicio
+
     segmento_t* hueco = list_find_first_by_inicio_seglib(inicio_destino);
-
-    // Si ponen cualquiera
-    if (segmento == NULL) return false;
-
-    // Si hueco es NULL, significa que se mueve menos que su tamanio (raro, pero bueno!)
-    if (hueco == NULL) {
-        hueco = list_find_first_by_inicio_seglib(inicio_origen+segmento->tamanio);
-        print_segmento_t(hueco);
-        if (hueco == NULL) return false; // esta trabado, no se puede mover
-        if (hueco->tamanio < inicio_destino - inicio_origen) return false; // no entra en el hueco
-
-        uint32_t delta = inicio_destino - inicio_origen;
-
-        segmento_t* posible_hueco_anterior = list_find_first_by_inicio_seglib(inicio_origen-1);
-        if (posible_hueco_anterior)
-            posible_hueco_anterior->tamanio += delta;
-        else {
-            segmento_t* nuevo_hueco_generado = new_segmento(0, inicio_origen, delta);
-            list_add_seglib(nuevo_hueco_generado);
+    // se mueve al segmento dentro de un hueco existente
+    if (hueco != NULL) {
+        // no entra en el hueco...
+        if ((hueco->inicio+hueco->tamanio - inicio_destino) < segmento->tamanio) {
+            // se mueve para ATRAS a un hueco adyacente, un poquitin, podria entrar
+            if (despl<0 && (-1*despl < segmento->tamanio)) {
+                segmento_t* nuevo_hueco = new_segmento(0, inicio_destino+segmento->tamanio, -1*despl);
+                list_add_seglib(nuevo_hueco);
+                segmento_t* hueco_adyacente = list_find_first_by_inicio_seglib(inicio_destino);
+                hueco_adyacente->tamanio -= -1*despl;
+                if (hueco_adyacente->tamanio == 0) remove_zero_sized_gap_seglib();
+            }
+            else return false; // nop, definitivamente no entraba
         }
+        // entra en hueco
+        else {
+            // Hueco despues del segmento
+            segmento_t* hueco_mitosis = new_segmento(
+                0, inicio_destino+segmento->tamanio, // inicia en el fin del segmento realocado
+                hueco->inicio+hueco->tamanio - (inicio_destino+segmento->tamanio) // tamanio: fin - inicio
+            );
+            if (hueco_mitosis->tamanio != 0) list_add_seglib(hueco_mitosis);
+            else free(hueco_mitosis);
 
-        // Movemos el segmento en MP, dejando 0s en el lugar anterior porque me gusta
-        void* data = malloc(segmento->tamanio);
-        memcpy(data, memoria_principal+segmento->inicio, segmento->tamanio);
-        memset(memoria_principal+segmento->inicio, 0, segmento->tamanio);
-        memcpy(memoria_principal+inicio_destino, data, segmento->tamanio);
-        free(data);
+            // Hueco antes del segmento
+            hueco->tamanio = inicio_destino - hueco->inicio;
 
-        segmento->inicio = inicio_destino;
-        hueco->inicio = inicio_destino+segmento->tamanio;
-        hueco->tamanio -= delta;
-        remove_zero_sized_gap_seglib();
-        return true;
+            // Hueco que deja el segmento al irse del lugar anterior (2 posibles casos de merge)
+            segmento_t* hueco_anterior = list_find_first_by_inicio_seglib(inicio_origen-1);
+                // merge anterior
+            if (hueco_anterior != NULL && inicio_origen == (hueco_anterior->inicio+hueco_anterior->tamanio)) {
+                hueco_anterior->tamanio += segmento->tamanio;
+            }
+                // merge posterior
+            if (inicio_origen+segmento->tamanio == hueco->inicio) {
+                    // posible merge con hueco_anterior, tambien
+                if (hueco_anterior != NULL && (hueco_anterior->inicio+hueco_anterior->tamanio)==hueco->inicio) {
+                    hueco_anterior->tamanio += hueco->tamanio;
+                    hueco->tamanio = 0;
+                    remove_zero_sized_gap_seglib();
+                }
+                else {
+                    hueco->inicio = inicio_origen;
+                    hueco->tamanio += segmento->tamanio;
+                }
+            }
+                // sin merge
+            else {
+                segmento_t* hueco_generado = new_segmento(0, inicio_origen, segmento->tamanio);
+                list_add_seglib(hueco_generado);
+            }
+        }
+    }
+    else {
+        // se mueve menos que lo que ocupa (inicio cae dentro suyo)
+        if (despl>0 && (despl < segmento->tamanio)) {
+            segmento_t* hueco_posterior = list_find_first_by_inicio_seglib(inicio_origen+segmento->tamanio);
+            if (hueco_posterior == NULL) return false; // estaba trabado, no se puede
+            if (hueco_posterior->inicio + hueco_posterior->tamanio < inicio_destino+segmento->tamanio)
+                return false; // pisa otro segmento
+            hueco_posterior->inicio += despl;
+            hueco_posterior->tamanio -= despl;
+            if (hueco_posterior->tamanio == 0) remove_zero_sized_gap_seglib();
+
+            segmento_t* hueco_anterior = list_find_first_by_inicio_seglib(inicio_origen-1);
+            if (hueco_anterior == NULL) { // estaba pegadito a otro segmento
+                hueco_anterior = new_segmento(0, inicio_origen, despl);
+                list_add_seglib(hueco_anterior);
+            }
+            else hueco_anterior->tamanio += despl;
+        }
+        else return false; // pisa otro segmento
     }
 
-    // Si no entra en el hueco
-    if (hueco->tamanio < segmento->tamanio) return false;
-
-    // AGREGAR SOPORTE PARA SHIFTS HACIA ARRIBA (Y REPENSAR TODA ESTA MIERDA)
-
-    /// Ahora... Si nada de eso sucedio... Agarrate:
-
-    // Cuando un amigo se va... </3
-    segmento_t* nuevo_hueco_generado = new_segmento(0, segmento->inicio, inicio_destino-inicio_origen);
-
-    // Movemos el segmento en MP, dejando 0s en el lugar anterior porque me gusta
-    void* data = malloc(segmento->tamanio);
-    memcpy(data, memoria_principal+segmento->inicio, segmento->tamanio);
-    memset(memoria_principal+segmento->inicio, 0, segmento->tamanio);
-    memcpy(memoria_principal+inicio_destino, data, segmento->tamanio);
-    free(data);
-
-    // Actualizamos las listas de registro
-    segmento->inicio = inicio_destino;                                      // trivial
-    hueco->tamanio -= (segmento->tamanio + inicio_destino-hueco->inicio);   // tamanio - segmento - hueco mitosis
-    hueco->inicio = inicio_destino + segmento->tamanio;                     // trivial
-
-    // Si hay que mergear con otro/s hueco/s... hele aqui
-    segmento_t* posible_hueco_anterior = list_find_first_by_inicio_seglib(
-        nuevo_hueco_generado->inicio-1
-    );
-    segmento_t* posible_hueco_posterior = list_find_first_by_inicio_seglib(
-        nuevo_hueco_generado->inicio+nuevo_hueco_generado->tamanio
-    );
-    if (posible_hueco_anterior != NULL) {
-        nuevo_hueco_generado->inicio = posible_hueco_anterior->inicio;
-        nuevo_hueco_generado->tamanio += posible_hueco_anterior->tamanio;
-        posible_hueco_anterior->tamanio = 0;
-    }
-    if (posible_hueco_posterior != NULL) {
-        nuevo_hueco_generado->tamanio += posible_hueco_posterior->tamanio;
-        posible_hueco_posterior->tamanio = 0;
-    }
-
-    list_add_seglib(nuevo_hueco_generado);
-
-    remove_zero_sized_gap_seglib();
-    return true;
+    // Si llegamos hasta aca, podemos hacer el realloc fisico
+    segmento->inicio = inicio_destino;
+    realloc_segmento_en_mp(inicio_origen, inicio_destino, segmento->tamanio);
+    return true; // hooray
 }
 
 ////// UTILS SEGMENTOS_LIBRES

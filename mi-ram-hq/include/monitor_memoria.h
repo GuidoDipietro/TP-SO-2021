@@ -19,6 +19,7 @@ void finalizar_mutex();
 // utils
 void dump_mp(int);
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, size_t size);
+void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
 
 segmento_t* new_segmento(uint8_t n, uint32_t inicio, uint32_t taman);
 segmento_t* segmento_t_duplicate(segmento_t*);

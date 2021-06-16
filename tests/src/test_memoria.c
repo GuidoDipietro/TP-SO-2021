@@ -311,12 +311,27 @@ void test_realloc_bf1() {
 
     CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50));
     CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10));
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(50, 60));
+    CU_ASSERT_FALSE(mover_segmento_en_mp(10, 30)); // piso un segmento! no se hace
+
+    //  0-50    : 1111 size 50
+    // 50-60    : 7777 size 10
+
+    CU_ASSERT_TRUE(mover_segmento_en_mp(50, 60));
+
+    //  0-50    : 1111 size 50
+    // 50-60    : 0000 size 10 -> bf para 5
+    // 60-70    : 7777 size 10
 
     void* data3 = malloc(5);
     memset(data3, 0x44, 5);
 
     CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 5));
+    CU_ASSERT_FALSE(mover_segmento_en_mp(50, 59)); // si bien hay hueco, estaria pisando otro seg
+
+    //  0-50    : 1111 size 50
+    // 50-55    : 4444 size  5
+    // 55-60    : 0000 size  5
+    // 60-70    : 7777 size 10
 
     print_seglib();
     print_segus();
@@ -331,11 +346,15 @@ void test_realloc_bf2() {
     memset(data1, 0x22, 20);
 
     CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 20));
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(0, 10));
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(10, 40));
+    CU_ASSERT_TRUE(mover_segmento_en_mp(0, 10));
+
+    //  0-10    : 0000 size 10
+    // 10-30    : 2222 size 20
+
+    CU_ASSERT_TRUE(mover_segmento_en_mp(10, 40));
 
     //  0-40    : 0000 size 40
-    // 40-60    : 2222 size 10
+    // 40-60    : 2222 size 20
 
     void* data2 = malloc(25);
     memset(data2, 0x33, 25);
@@ -350,13 +369,16 @@ void test_realloc_bf2() {
     memset(data3, 0x44, 20);
 
     CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 20));
+    CU_ASSERT_TRUE(mover_segmento_en_mp(40, 40)); // no hace nada
+    CU_ASSERT_FALSE(mover_segmento_en_mp(60, 25)); // no entra en hueco
 
     //  0-25    : 3333 size 25
     // 25-40    : 0000 size 15
     // 40-60    : 2222 size 20
     // 60-80    : 4444 size 20
 
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(60, 70));
+    CU_ASSERT_TRUE(mover_segmento_en_mp(60, 70));
+    CU_ASSERT_FALSE(mover_segmento_en_mp(40, 55)); // shift 2222, pero pisaria 4444
 
     //  0-25    : 3333 size 25
     // 25-40    : 0000 size 15
@@ -364,29 +386,34 @@ void test_realloc_bf2() {
     // 60-70    : 0000 size 10
     // 70-90    : 4444 size 20
 
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(70, 73));
+    CU_ASSERT_TRUE(mover_segmento_en_mp(70, 73));
+    CU_ASSERT_FALSE(mover_segmento_en_mp(40, 24)); // no hay hueco
 
     //  0-25    : 3333 size 25
     // 25-40    : 0000 size 15
     // 40-60    : 2222 size 20
     // 60-73    : 0000 size 13 -> best fit para 12
-    // 73-103   : 4444 size 20
+    // 73-93    : 4444 size 20
 
     void* data4 = malloc(12);
     memset(data4, 0x77, 12);
 
     CU_ASSERT_TRUE(meter_segmento_en_mp(data4, 12));
+    CU_ASSERT_FALSE(mover_segmento_en_mp(60, 65)); // pisa 4444
+    CU_ASSERT_FALSE(mover_segmento_en_mp(73, 25)); // no entra
+    CU_ASSERT_FALSE(mover_segmento_en_mp(73, 30)); // no entra
+    CU_ASSERT_FALSE(mover_segmento_en_mp(40, 72)); // no entra XD
 
     //  0-25    : 3333 size 25
     // 25-40    : 0000 size 15
     // 40-60    : 2222 size 20
     // 60-72    : 7777 size 12
     // 72-73    : 0000 size  1
-    // 73-103   : 4444 size 20
+    // 73-93    : 4444 size 20
 
     print_seglib();
     print_segus();
-    mem_hexdump(memoria_principal, 70);
+    mem_hexdump(memoria_principal, 100);
 
     free(data1); free(data2); free(data3); free(data4);
 }
@@ -409,16 +436,16 @@ void test_realloc_ff() {
     // 20-30    : 7777 size 10
     // 30-45    : 6666 size 15
 
-    CU_ASSERT_FALSE(realloc_segmento_en_mp(15, 25)); // ningun segmento empieza en 15!
+    CU_ASSERT_FALSE(mover_segmento_en_mp(15, 25)); // ningun segmento empieza en 15!
 
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(30, 50));
+    CU_ASSERT_TRUE(mover_segmento_en_mp(30, 50));
 
     //  0-20    : 1111 size 20
     // 20-30    : 7777 size 10
     // 30-50    : 0000 size 20
     // 50-65    : 6666 size 15
 
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(20, 31));
+    CU_ASSERT_TRUE(mover_segmento_en_mp(20, 31));
 
     //  0-20    : 1111 size 20
     // 20-31    : 0000 size 11
@@ -426,8 +453,8 @@ void test_realloc_ff() {
     // 41-50    : 0000 size  9
     // 50-65    : 6666 size 15
 
-    CU_ASSERT_TRUE(realloc_segmento_en_mp(31, 35));
-    // equivalente a realloc_segmento_en_mp(20, 35);
+    CU_ASSERT_TRUE(mover_segmento_en_mp(31, 35));
+    // equivalente a mover_segmento_en_mp(20, 35);
 
     //  0-20    : 1111 size 20
     // 20-35    : 0000 size 15 -> first fit para size 11
@@ -442,7 +469,7 @@ void test_realloc_ff() {
 
     //  0-20    : 1111 size 20
     // 20-31    : 2222 size 11
-    // 31-34    : 0000 size  3
+    // 31-35    : 0000 size  4
     // 35-45    : 7777 size 10
     // 45-50    : 0000 size  5
     // 50-65    : 6666 size 15
