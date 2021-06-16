@@ -36,6 +36,7 @@ void asesinar_seglib();
 
 /// SEGUS
 void list_add_segus(segmento_t* seg);
+segmento_t* list_find_by_inicio_segus(uint32_t inicio);
 void asesinar_segus();
 /// END SEGUS
 

@@ -34,11 +34,20 @@ static bool seg_entra_en_hueco(void* segmento) {
 }
 static bool seg_contiene_inicio(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
-    return inicio_static < (seg->inicio + seg->tamanio); //safety syntax
+    return (inicio_static >= seg->inicio) && (inicio_static <= (seg->inicio+seg->tamanio)); //safety syntax
+}
+static bool seg_empieza_en(void* segmento) {
+    segmento_t* seg = (segmento_t*) segmento;
+    return seg->inicio == inicio_static;
 }
 static bool seg_es_nulo(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
     return seg->tamanio == 0;
+}
+static bool comp_segmento_t_indice(void* s1, void* s2) {
+    segmento_t* seg1 = (segmento_t*) s1;
+    segmento_t* seg2 = (segmento_t*) s2;
+    return seg1->inicio < seg2->inicio;
 }
 
 /// cosas que serian static pero las uso en otro lado
@@ -85,11 +94,15 @@ void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size) {
     pthread_mutex_unlock(&MUTEX_MP);
 }
 
+void tumadre() {
+
+}
+
 ////// UTILS SEGMENTOS_LIBRES A.K.A. SEGLIB
 
 void list_add_seglib(segmento_t* seg) {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
-    list_add(segmentos_libres, (void*) seg);
+    list_add_sorted(segmentos_libres, (void*) seg, &comp_segmento_t_indice);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 }
 
@@ -147,8 +160,18 @@ void asesinar_seglib() {
 
 void list_add_segus(segmento_t* seg) {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
-    list_add(segmentos_usados, (void*) seg);
+    list_add_sorted(segmentos_usados, (void*) seg, &comp_segmento_t_indice);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+}
+
+segmento_t* list_find_by_inicio_segus(uint32_t inicio) {
+    inicio_static = inicio;
+
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    segmento_t* ret = list_find(segmentos_usados, (void*) &seg_empieza_en);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+
+    return ret;
 }
 
 void asesinar_segus() {

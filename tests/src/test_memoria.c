@@ -302,6 +302,159 @@ void test_meter_segmento_en_mp_bf() {
     free(data2);
 }
 
+void test_realloc_bf1() {
+    proximo_hueco = &proximo_hueco_best_fit;
+    void* data1 = malloc(50);
+    memset(data1, 0x11, 50);
+    void* data2 = malloc(10);
+    memset(data2, 0x77, 10);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50));
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10));
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(50, 60));
+
+    void* data3 = malloc(5);
+    memset(data3, 0x44, 5);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 5));
+
+    print_seglib();
+    print_segus();
+    mem_hexdump(memoria_principal, 70);
+
+    free(data1); free(data2); free(data3);
+}
+
+void test_realloc_bf2() {
+    proximo_hueco = &proximo_hueco_best_fit;
+    void* data1 = malloc(20);
+    memset(data1, 0x22, 20);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 20));
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(0, 10));
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(10, 40));
+
+    //  0-40    : 0000 size 40
+    // 40-60    : 2222 size 10
+
+    void* data2 = malloc(25);
+    memset(data2, 0x33, 25);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 25));
+
+    //  0-25    : 3333 size 25
+    // 25-40    : 0000 size 15
+    // 40-60    : 2222 size 20
+
+    void* data3 = malloc(20);
+    memset(data3, 0x44, 20);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 20));
+
+    //  0-25    : 3333 size 25
+    // 25-40    : 0000 size 15
+    // 40-60    : 2222 size 20
+    // 60-80    : 4444 size 20
+
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(60, 70));
+
+    //  0-25    : 3333 size 25
+    // 25-40    : 0000 size 15
+    // 40-60    : 2222 size 20
+    // 60-70    : 0000 size 10
+    // 70-90    : 4444 size 20
+
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(70, 73));
+
+    //  0-25    : 3333 size 25
+    // 25-40    : 0000 size 15
+    // 40-60    : 2222 size 20
+    // 60-73    : 0000 size 13 -> best fit para 12
+    // 73-103   : 4444 size 20
+
+    void* data4 = malloc(12);
+    memset(data4, 0x77, 12);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data4, 12));
+
+    //  0-25    : 3333 size 25
+    // 25-40    : 0000 size 15
+    // 40-60    : 2222 size 20
+    // 60-72    : 7777 size 12
+    // 72-73    : 0000 size  1
+    // 73-103   : 4444 size 20
+
+    print_seglib();
+    print_segus();
+    mem_hexdump(memoria_principal, 70);
+
+    free(data1); free(data2); free(data3); free(data4);
+}
+
+void test_realloc_ff() {
+    proximo_hueco = &proximo_hueco_first_fit;
+    // cachos
+    void* data1 = malloc(20);
+    memset(data1, 0x11, 20);
+    void* data2 = malloc(10);
+    memset(data2, 0x77, 10);
+    void* data3 = malloc(15);
+    memset(data3, 0x66, 15);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 20));
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10));
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 15));
+
+    //  0-20    : 1111 size 20
+    // 20-30    : 7777 size 10
+    // 30-45    : 6666 size 15
+
+    CU_ASSERT_FALSE(realloc_segmento_en_mp(15, 25)); // ningun segmento empieza en 15!
+
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(30, 50));
+
+    //  0-20    : 1111 size 20
+    // 20-30    : 7777 size 10
+    // 30-50    : 0000 size 20
+    // 50-65    : 6666 size 15
+
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(20, 31));
+
+    //  0-20    : 1111 size 20
+    // 20-31    : 0000 size 11
+    // 31-41    : 7777 size 10
+    // 41-50    : 0000 size  9
+    // 50-65    : 6666 size 15
+
+    CU_ASSERT_TRUE(realloc_segmento_en_mp(31, 35));
+    // equivalente a realloc_segmento_en_mp(20, 35);
+
+    //  0-20    : 1111 size 20
+    // 20-35    : 0000 size 15 -> first fit para size 11
+    // 35-45    : 7777 size 10
+    // 45-50    : 0000 size  5
+    // 50-65    : 6666 size 15
+
+    void* data4 = malloc(11);
+    memset(data4, 0x22, 11);
+
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data4, 11));
+
+    //  0-20    : 1111 size 20
+    // 20-31    : 2222 size 11
+    // 31-34    : 0000 size  3
+    // 35-45    : 7777 size 10
+    // 45-50    : 0000 size  5
+    // 50-65    : 6666 size 15
+
+    print_seglib();
+    print_segus();
+    mem_hexdump(memoria_principal, 70);
+
+    free(data1); free(data2); free(data3); free(data4);
+    // Y aqui el programador se quito la vida
+}
+
 CU_TestInfo tests_memoria[] = {
     { "Test print seglib/segus", test_print },
     { "Test proximo hueco first fit", test_hueco_first_fit },
@@ -316,5 +469,8 @@ CU_TestInfo tests_memoria[] = {
     { "Test COMPACTACION", test_compactacion },
     { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
     { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
+    { "Test realloc (1) (best fit)", test_realloc_bf1 },
+    { "Test realloc (2) (best fit)", test_realloc_bf2 },
+    { "Test realloc (first fit)", test_realloc_ff },
     CU_TEST_INFO_NULL,
 };
