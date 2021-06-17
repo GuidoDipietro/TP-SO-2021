@@ -374,6 +374,14 @@ PROCESO:   8 | SEGMENTO:   0 | INICIO: 0x00000309 | TAM:    15b\n\
 }
 
 void test_print_bitarray() {
+    for (int i=0; i<10; i++)
+        set_bit_pagbit(i);
+    for (int i=20; i<30; i++)
+        set_bit_pagbit(i);
+
+    clean_bit_pagbit(3);
+    clean_bit_pagbit(6);
+
     print_bitarray_paginas();
 }
 

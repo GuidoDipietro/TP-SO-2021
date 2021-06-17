@@ -13,6 +13,8 @@ extern void* memoria_principal;
 
 pthread_mutex_t MUTEX_SEGMENTOS_LIBRES;
 pthread_mutex_t MUTEX_SEGMENTOS_USADOS;
+pthread_mutex_t MUTEX_BITARRAY_PAGINAS;
+
 pthread_mutex_t MUTEX_MP;
 pthread_mutex_t MUTEX_TS_PATOTAS;
 pthread_mutex_t MUTEX_TS_TRIPULANTES;
@@ -21,6 +23,7 @@ pthread_mutex_t MUTEX_TP_PATOTAS;
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
     pthread_mutex_init(&MUTEX_SEGMENTOS_USADOS, NULL);
+    pthread_mutex_init(&MUTEX_BITARRAY_PAGINAS, NULL);
     pthread_mutex_init(&MUTEX_MP, NULL);
     pthread_mutex_init(&MUTEX_TS_PATOTAS, NULL);
     pthread_mutex_init(&MUTEX_TS_TRIPULANTES, NULL);
@@ -30,6 +33,7 @@ void iniciar_mutex() {
 void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_SEGMENTOS_LIBRES);
     pthread_mutex_destroy(&MUTEX_SEGMENTOS_USADOS);
+    pthread_mutex_destroy(&MUTEX_BITARRAY_PAGINAS);
     pthread_mutex_destroy(&MUTEX_MP);
     pthread_mutex_destroy(&MUTEX_TS_PATOTAS);
     pthread_mutex_destroy(&MUTEX_TS_TRIPULANTES);
@@ -273,7 +277,21 @@ void asesinar_segus() {
 ////// UTILS PAGINAS - A.K.A. PAGBIT
 
 // off_t == uint32_t en la VM (chequeado)
-//...
+void set_bit_pagbit(uint32_t index) {
+    pthread_mutex_lock(&MUTEX_BITARRAY_PAGINAS);
+    bitarray_set_bit(bitarray_paginas, index);
+    pthread_mutex_unlock(&MUTEX_BITARRAY_PAGINAS);
+}
+void clean_bit_pagbit(uint32_t index) {
+    pthread_mutex_lock(&MUTEX_BITARRAY_PAGINAS);
+    bitarray_clean_bit(bitarray_paginas, index);
+    pthread_mutex_unlock(&MUTEX_BITARRAY_PAGINAS);
+}
+bool test_bit_pagbit(uint32_t index) {
+    pthread_mutex_lock(&MUTEX_BITARRAY_PAGINAS);
+    bitarray_test_bit(bitarray_paginas, index);
+    pthread_mutex_unlock(&MUTEX_BITARRAY_PAGINAS);
+}
 
 ////// END PAGBIT
 

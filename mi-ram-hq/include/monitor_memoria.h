@@ -51,6 +51,12 @@ segmento_t* list_get_segus();
 void asesinar_segus();
 /// END SEGUS
 
+/// PAGBIT
+void set_bit_pagbit(uint32_t index);
+void clean_bit_pagbit(uint32_t index);
+bool test_bit_pagbit(uint32_t index);
+/// END PAGBIT
+
 // debug
 void print_bitarray_paginas();
 void print_segmento_t(void*);
