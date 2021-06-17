@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 6000 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 8000 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -912,6 +912,68 @@ void test_patota_new() {
     free(s_tareas);
 }
 
+void test_cambio_estado() {
+    uint32_t id_tripulante=14, r_id_tripulante;
+    t_status estado = EXEC, r_estado;
+
+    // Inicializacion de semaforos compartidos (wtf? y bueno.)
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_cambio_estado(cliente_fd, id_tripulante, estado)) {
+            log_error(logger, "Error enviando cambio de estado");
+        }
+        sem_post(sem_padre);
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        op_code cop;
+        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop %d", cop);
+        }
+        if (!recv_cambio_estado(conexion_fd, &r_id_tripulante, &r_estado)) {
+            log_error(logger, "Error recibiendo cambio de estado");
+        }
+
+        CU_ASSERT_EQUAL(id_tripulante, r_id_tripulante);
+        CU_ASSERT_EQUAL(estado, r_estado);
+        CU_ASSERT_EQUAL(cop, CAMBIO_ESTADO);
+    }
+}
+
 /////////
 
 CU_TestInfo tests_protocolo[] = {
@@ -926,5 +988,6 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv bitacora", test_bitacora },
     { "Test send/recv inicio/fin+tarea", test_accion_tripulante_tarea },
     { "Test send/recv generar/consumir+item", test_generar_consumir_item },
+    { "Test send/recv cambio estado", test_cambio_estado },
     CU_TEST_INFO_NULL,
 };

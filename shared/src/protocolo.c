@@ -807,6 +807,53 @@ bool send_descartar_basura(int fd) {
     return send_codigo_op(fd, DESCARTAR_BASURA);
 }
 
+// CAMBIO_ESTADO //
+// typedef enum {
+//     NEW,
+//     READY,
+//     EXEC,
+//     BLOCKED,
+//     BLOCKEDSAB,
+//     EXIT
+// } t_status;
+
+static void* serializar_cambio_estado(uint32_t id_tripulante, t_status estado) {
+    void* stream = malloc(sizeof(op_code) + sizeof(uint32_t) + sizeof(t_status));
+    op_code cop = CAMBIO_ESTADO;
+    memcpy(stream, &cop, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &id_tripulante, sizeof(uint32_t));
+    memcpy(stream+sizeof(op_code)+sizeof(uint32_t), &estado, sizeof(t_status));
+    return stream;
+}
+static void deserializar_cambio_estado(void* stream, uint32_t* id_tripulante, t_status* estado) {
+    memcpy(id_tripulante, stream, sizeof(uint32_t));
+    memcpy(estado, stream+sizeof(uint32_t), sizeof(t_status));
+}
+bool send_cambio_estado(int fd, uint32_t id_tripulante, t_status estado) {
+    size_t size = sizeof(op_code) + sizeof(uint32_t) + sizeof(t_status);
+    void* stream = serializar_cambio_estado(id_tripulante, estado);
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+
+bool recv_cambio_estado(int fd, uint32_t* id_tripulante, t_status* estado) {
+    size_t size = sizeof(uint32_t) + sizeof(t_status);
+    void* stream = malloc(size);
+    if (recv(fd, stream, size, 0) != size) {
+        free(stream);
+        return false;
+    }
+
+    deserializar_cambio_estado(stream, id_tripulante, estado);
+
+    free(stream);
+    return true;
+}
+
 // faltan
 
 /// 

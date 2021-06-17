@@ -14,6 +14,8 @@
 #include "utils.h"
 #include "frees.h"
 
+#include "../../discordiador/include/monitor_tripulante.h"
+
 ///
 
 typedef enum {
@@ -35,6 +37,7 @@ typedef enum {
     GENERAR,
     CONSUMIR,
     DESCARTAR_BASURA,
+    CAMBIO_ESTADO,
     DEBUG               = 69,
 } op_code;
 
@@ -154,6 +157,10 @@ bool recv_item_cantidad(int fd, tipo_item* item, uint16_t* cant);
 // no necesita serializar
 // DESCARTAR_BASURA //
 bool send_descartar_basura(int fd); // solo op code
+
+// CAMBIO_ESTADO
+bool send_cambio_estado(int fd, uint32_t id_tripulante, t_status estado);
+bool recv_cambio_estado(int fd, uint32_t* id_tripulante, t_status* estado);
 
 // tengo suenio
 
