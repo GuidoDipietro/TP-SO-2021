@@ -367,7 +367,7 @@ static void deserializar_iniciar_self_en_patota(void* stream, uint32_t* id_tripu
     memcpy(id_patota, stream+sizeof(uint32_t), sizeof(uint32_t));
 }
 
-bool send_iniciar_self_en_patota(int fd, uint32_t id_tripulante, uint32_t id_patota){
+bool send_iniciar_self_en_patota(int fd, uint32_t id_tripulante, uint32_t id_patota) {
     size_t size = sizeof(op_code)+2*sizeof(uint32_t);
     void* stream = serializar_iniciar_self_en_patota(id_tripulante,id_patota);
 
@@ -378,7 +378,7 @@ bool send_iniciar_self_en_patota(int fd, uint32_t id_tripulante, uint32_t id_pat
     free(stream);
     return true;
 }
-bool recv_iniciar_self_en_patota(int fd, uint32_t* id_tripulante, uint32_t* id_patota){
+bool recv_iniciar_self_en_patota(int fd, uint32_t* id_tripulante, uint32_t* id_patota) {
     size_t size = 2*sizeof(uint32_t);
     void* stream = malloc(size);
 
@@ -394,7 +394,7 @@ bool recv_iniciar_self_en_patota(int fd, uint32_t* id_tripulante, uint32_t* id_p
 
 // SABOTAJE //
 
-static void* serializar_sabotaje(t_posicion* posicion){
+static void* serializar_sabotaje(t_posicion* posicion) {
     op_code cop = SABOTAJE;
     size_t size = sizeof(op_code) + sizeof(posicion);
     void* stream = malloc(size);
@@ -405,7 +405,7 @@ static void* serializar_sabotaje(t_posicion* posicion){
 
     return stream;
 }
-static void deserializar_sabotaje(void* stream, t_posicion** posicion){
+static void deserializar_sabotaje(void* stream, t_posicion** posicion) {
     t_posicion* r_pos = malloc(sizeof(t_posicion));
 
     memcpy(&r_pos->x, stream, sizeof(uint8_t));
@@ -414,7 +414,7 @@ static void deserializar_sabotaje(void* stream, t_posicion** posicion){
     *posicion = r_pos;
 }
 
-bool send_sabotaje(int fd, t_posicion* posicion){
+bool send_sabotaje(int fd, t_posicion* posicion) {
     size_t size = sizeof(op_code) + sizeof(t_posicion);
     void* stream = serializar_sabotaje(posicion);
 
@@ -426,7 +426,7 @@ bool send_sabotaje(int fd, t_posicion* posicion){
     free(stream);
     return true;
 }
-bool recv_sabotaje(int fd, t_posicion** posicion){
+bool recv_sabotaje(int fd, t_posicion** posicion) {
     size_t size = sizeof(t_posicion);
     void* stream = malloc(size);
 

@@ -2,17 +2,11 @@
 #define TP_2021_1C_UNDEFINED_INIT_H_IMS
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include "monitor_memoria.h"
-#include "../include/graphic.h"
-#include "../include/estructuras.h"
-#include "../include/monitor_memoria.h"
-#include "../../shared/include/utils.h"
-#include "../../shared/include/sockets.h"
 #include <string.h>
-
-#define MODULENAME "MRH"
+#include <signal.h>
 
 typedef struct {
     uint16_t TAMANIO_MEMORIA;
@@ -33,6 +27,16 @@ static t_config_mrhq* initialize_cfg() {
     cfg->PATH_SWAP = NULL;
     return cfg;
 }
+
+#include "monitor_memoria.h"
+#include "monitor_tablas.h"
+#include "manejo_memoria.h"
+#include "graphic.h"
+#include "estructuras.h"
+#include "../../shared/include/utils.h"
+#include "../../shared/include/sockets.h"
+
+#define MODULENAME "MRH"
 
 uint8_t init();                 // inicializa loger, cfg, y semaforos
 uint8_t cargar_configuracion(); // carga cfg en strut cfg

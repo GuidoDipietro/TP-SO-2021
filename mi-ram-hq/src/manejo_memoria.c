@@ -1,12 +1,15 @@
 #include "../include/manejo_memoria.h"
 
 extern t_log* logger;
+extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern void* memoria_principal;
 extern uint32_t memoria_disponible;
 extern segmento_t* (*proximo_hueco)(uint32_t);
 
 extern pthread_mutex_t MUTEX_MP;
+
+#define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
 ////// MANEJO MEMORIA PRINCIPAL - SEGMENTACION
 
@@ -16,29 +19,29 @@ bool entra_en_mp(uint32_t tamanio) {
 
 // Meter chorizo de bytes en MP y actualiza listas de registro.
 // Si se llama a esta func es porque ya se sabe que entra
-bool meter_segmento_en_mp(void* data, uint32_t size) {
+uint32_t meter_segmento_en_mp(void* data, uint32_t size) {
     segmento_t* hueco_victima = (*proximo_hueco)(size);
     if (hueco_victima == NULL)
-        return false; // no hay hueco (no deberia pasar)
+        return INICIO_INVALIDO; // no hay hueco (no deberia pasar)
 
     uint32_t inicio = hueco_victima->inicio;
     memcpy_segmento_en_mp(hueco_victima->inicio, data, size);
 
     if (!meter_segmento_actualizar_hueco(hueco_victima, size)) {
         log_error(logger, "Error catastrofico metiendo segmento en MP");
-        return false;
+        return INICIO_INVALIDO;
     }
 
     memoria_disponible -= size;
     if (memoria_disponible < 0) {
         // Algo dentro de mi me dijo: pone esto por las dudas
         log_error(logger, "ROMPISTE TODO, QUE HICISTE?");
-        return false;
+        return INICIO_INVALIDO;
     }
 
     list_add_segus(new_segmento(0, inicio, size)); // Al final, por si exploto todo antes
 
-    return true;
+    return inicio;
 }
 
 bool eliminar_segmento_de_mp(uint32_t inicio) {
@@ -98,6 +101,8 @@ static bool compactar_mp_iteracion(uint32_t i) {
     return true;
 }
 bool compactar_mp() {
+    if (list_is_empty_segus()) return true;
+
     bool todo_bien = true;
     uint32_t segmentos = list_size_segus();
     for (int i=0; i<segmentos+1; i++)

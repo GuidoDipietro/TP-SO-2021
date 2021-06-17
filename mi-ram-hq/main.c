@@ -5,7 +5,8 @@ extern t_log* logger;
 extern t_list* segmentos_libres;
 
 int main() {
-    signal(SIGUSR1, dump_mp);
+    signal(SIGUSR1, sighandler);
+    signal(SIGUSR2, sighandler);
 
     if(!init() || !cargar_configuracion("mi-ram-hq.config") || !cargar_memoria()) {
         cerrar_programa();

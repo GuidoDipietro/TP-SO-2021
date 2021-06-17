@@ -10,17 +10,23 @@ extern void* memoria_principal;
 pthread_mutex_t MUTEX_SEGMENTOS_LIBRES;
 pthread_mutex_t MUTEX_SEGMENTOS_USADOS;
 pthread_mutex_t MUTEX_MP;
+pthread_mutex_t MUTEX_TS_PATOTAS;
+pthread_mutex_t MUTEX_TS_TRIPULANTES;
 
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
     pthread_mutex_init(&MUTEX_SEGMENTOS_USADOS, NULL);
     pthread_mutex_init(&MUTEX_MP, NULL);
+    pthread_mutex_init(&MUTEX_TS_PATOTAS, NULL);
+    pthread_mutex_init(&MUTEX_TS_TRIPULANTES, NULL);
 }
 
 void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_SEGMENTOS_LIBRES);
     pthread_mutex_destroy(&MUTEX_SEGMENTOS_USADOS);
     pthread_mutex_destroy(&MUTEX_MP);
+    pthread_mutex_destroy(&MUTEX_TS_PATOTAS);
+    pthread_mutex_destroy(&MUTEX_TS_TRIPULANTES);
 }
 
 /// statics
@@ -70,22 +76,31 @@ segmento_t* segmento_t_duplicate(segmento_t* s) {
 
 /// funcs
 
-void dump_mp(int x) {
+void dump_mp() {
     char* timestamp = temporal_get_string_time("%d_%m_%y--%H_%M_%S");
     char* filename = calloc(9 + strlen(timestamp) + 1, 1);
     snprintf(filename, 9 + strlen(timestamp) + 1, "Dump_%s.dmp", timestamp);
-
     FILE* dump_file = fopen(filename, "w+");
 
-    pthread_mutex_lock(&MUTEX_MP);
-    // get data
-    pthread_mutex_unlock(&MUTEX_MP);
+    char* data = malloc(13);
+    // TO DO: this
+    if (strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0) {
+        // get data segmentacion a "data"
+        snprintf(data, 13, "segmentacion");
+    }
+    else if (strcmp(cfg->ESQUEMA_MEMORIA, "PAGINACION") == 0) {
+        // get data paginacion a "data"
+        snprintf(data, 13, "paginacion!!");
+    }
+    else goto die;
 
-    fprintf(dump_file, "benbaron"); // TODO: print gotten data
+    fprintf(dump_file, "%s", data);
 
-    fclose(dump_file);
-    free(timestamp);
-    free(filename);
+    die:
+        fclose(dump_file);
+        free(data);
+        free(timestamp);
+        free(filename);
 }
 
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size) {
@@ -188,6 +203,13 @@ void asesinar_seglib() {
 
 ////// UTILS SEGMENTOS USADOS - A.K.A. SEGUS
 
+bool list_is_empty_segus() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    bool sino = list_is_empty(segmentos_usados);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+    return sino;
+}
+
 void list_add_segus(segmento_t* seg) {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
     list_add_sorted(segmentos_usados, (void*) seg, &comp_segmento_t_indice);
@@ -245,7 +267,10 @@ void asesinar_segus() {
 
 void print_segmento_t(void* s) {
     segmento_t* seg = (segmento_t*) s;
-    printf("#%d -- INICIO: %5d | TAMAN: %5d\n", seg->nro_segmento, seg->inicio, seg->tamanio);
+    printf(
+        "#%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        seg->nro_segmento, seg->inicio, seg->tamanio
+    );
 }
 void print_seglib() {
     puts("\n\n------ HUECOS LIBRES ------\n");

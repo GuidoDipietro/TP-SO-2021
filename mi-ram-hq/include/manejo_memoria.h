@@ -2,17 +2,16 @@
 #define MANEJO_MEMORIA_H_
 
 #include <inttypes.h>
+#include "init_mrhq.h"
 #include "monitor_memoria.h"
 #include "estructuras.h"
-
-extern t_config_mrhq* cfg;
 
 // Ver tests para ejemplos :) :D
 
 /// SEGMENTACION
 
 bool entra_en_mp(uint32_t tamanio);
-bool meter_segmento_en_mp(void* data, size_t size);
+uint32_t meter_segmento_en_mp(void* data, size_t size);
 bool eliminar_segmento_de_mp(uint32_t inicio);
 bool compactar_mp();
 

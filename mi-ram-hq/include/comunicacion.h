@@ -6,7 +6,10 @@
 #include <pthread.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include "../include/graphic.h"
+
+#include "init_mrhq.h"
+#include "graphic.h"
+
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolo.h"

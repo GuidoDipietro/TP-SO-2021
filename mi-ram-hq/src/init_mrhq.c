@@ -6,6 +6,9 @@ t_list* segmentos_libres;
 t_list* segmentos_usados;
 uint32_t memoria_disponible;
 
+t_list* ts_patotas;
+t_list* ts_tripulantes;
+
 void* memoria_principal;
 
 segmento_t* (*proximo_hueco)(uint32_t);
@@ -87,6 +90,8 @@ uint8_t cargar_memoria() {
     list_add(segmentos_libres, (void*) hueco);
 
     segmentos_usados = list_create();
+    ts_patotas = list_create();
+    ts_tripulantes = list_create();
 
     return 1;
 }
@@ -100,8 +105,12 @@ void cerrar_programa() {
     free(cfg->CRITERIO_SELECCION);
     free(cfg);
 
+    // masacre
     asesinar_seglib();
     asesinar_segus();
+    asesinar_tspatotas();
+    asesinar_tstripulantes();
+
     free(memoria_principal);
     finalizar_mutex();
 }

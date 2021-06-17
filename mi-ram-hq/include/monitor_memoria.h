@@ -1,6 +1,7 @@
 #ifndef MONITOR_MEMORIA_H_
 #define MONITOR_MEMORIA_H_
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -17,7 +18,7 @@ void finalizar_mutex();
 /// SEGMENTACION
 
 // utils
-void dump_mp(int);
+void dump_mp();
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, size_t size);
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
@@ -39,6 +40,7 @@ void asesinar_seglib();
 /// END SEGLIB
 
 /// SEGUS
+bool list_is_empty_segus();
 void list_sort_segus();
 void list_add_segus(segmento_t* seg);
 void list_remove_by_inicio_segus(uint32_t inicio);

@@ -1,8 +1,11 @@
 #include "../include/comunicacion.h"
 
 extern t_log* logger;
+extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern uint32_t memoria_disponible;
+
+#define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
 typedef struct {
     int fd;
@@ -34,9 +37,15 @@ static void procesar_conexion(void* void_args) {
                 char** tareas;
                 t_list* posiciones;
                 if (recv_patota(cliente_socket, &n_tripulantes, &tareas, &posiciones)) {
-                    // log_info(logger, "iniciaron a una patota de %d tripulantes", n_tripulantes);
-                    // log_info(logger, "tareas:\n%s\n", tareas);
+                    // MP
 
+                    // Tengo que guardar:
+                    // PCB          - 8 bytes
+                    // Tareas       - N bytes
+                    // Tripulantes  - 21 bytes cada uno
+
+
+                    // GUI
                     int err = crear_tripulantes(n_tripulantes, posiciones);
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);

@@ -16,6 +16,17 @@
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolo.h"
 
+void sighandler(int x) {
+    switch (x) {
+        case SIGUSR1:
+            dump_mp();
+            break;
+        case SIGUSR2:
+            compactar_mp();
+            break;
+    }
+}
+
 #define SERVERNAME "MRH_SERVER"
 #define NIVELNAME "AMONG-OS"
 
