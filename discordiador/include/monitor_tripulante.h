@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdbool.h>
+#include "../../shared/include/structures.h"
 #include "../../shared/include/protocolo.h"
 #include "logs.h"
 
@@ -14,15 +15,6 @@ sem_t ACTIVE_THREADS;
 sem_t TRIPULANTES_EN_COLA;
 
 //
-
-typedef enum {
-    NEW,
-    READY,
-    EXEC,
-    BLOCKED,
-    BLOCKEDSAB,
-    EXIT
-} t_status;
 
 typedef struct {
     uint32_t tid;

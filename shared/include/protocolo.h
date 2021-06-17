@@ -10,11 +10,10 @@
 #include <stdlib.h>
 #include <commons/collections/list.h>
 #include <commons/log.h>
+
 #include "structures.h"
 #include "utils.h"
 #include "frees.h"
-
-#include "../../discordiador/include/monitor_tripulante.h"
 
 ///
 

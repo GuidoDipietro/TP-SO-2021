@@ -11,7 +11,7 @@
 /// SEGMENTACION
 
 bool entra_en_mp(uint32_t tamanio);
-uint32_t meter_segmento_en_mp(void* data, size_t size);
+uint32_t meter_segmento_en_mp(void* data, uint32_t size);
 bool eliminar_segmento_de_mp(uint32_t inicio);
 bool compactar_mp();
 

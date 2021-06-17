@@ -1,6 +1,17 @@
 #ifndef STRUCTURES_H_
 #define STRUCTURES_H_
 
+#include <stdint.h>
+
+typedef enum {
+    NEW,
+    READY,
+    EXEC,
+    BLOCKED,
+    BLOCKEDSAB,
+    EXIT
+} t_status;
+
 typedef enum {
     GENERAR_COMIDA_T    = 14,
     CONSUMIR_COMIDA_T   = 15,

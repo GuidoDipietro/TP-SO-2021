@@ -20,7 +20,7 @@ void finalizar_mutex();
 
 // utils
 void dump_mp();
-void memcpy_segmento_en_mp(uint32_t inicio, void* data, size_t size);
+void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size);
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
 
