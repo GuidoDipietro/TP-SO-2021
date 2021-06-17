@@ -11,7 +11,7 @@ extern segmento_t* (*proximo_hueco)(uint32_t);
 
 extern t_list* tp_patotas;
 extern char* puntero_a_bits;
-extern t_bitarray* bitarray_paginas;
+extern t_bitarray* bitarray_frames;
 
 extern uint32_t memoria_disponible;
 extern void* memoria_principal;
@@ -375,14 +375,14 @@ PROCESO:   8 | SEGMENTO:   0 | INICIO: 0x00000309 | TAM:    15b\n\
 
 void test_print_bitarray() {
     for (int i=0; i<10; i++)
-        set_bit_pagbit(i);
+        ocupar_frame_frambit(i);
     for (int i=20; i<30; i++)
-        set_bit_pagbit(i);
+        ocupar_frame_frambit(i);
 
-    clean_bit_pagbit(3);
-    clean_bit_pagbit(6);
+    liberar_frame_frambit(3);
+    liberar_frame_frambit(6);
 
-    print_bitarray_paginas();
+    print_bitarray_frames();
 }
 
 CU_TestInfo tests_memoria[] = {

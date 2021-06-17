@@ -51,14 +51,14 @@ segmento_t* list_get_segus();
 void asesinar_segus();
 /// END SEGUS
 
-/// PAGBIT
-void set_bit_pagbit(uint32_t index);
-void clean_bit_pagbit(uint32_t index);
-bool test_bit_pagbit(uint32_t index);
-/// END PAGBIT
+/// FRAMBIT
+void ocupar_frame_frambit(uint32_t index);
+void liberar_frame_frambit(uint32_t index);
+bool estado_frame_frambit(uint32_t index);
+/// END FRAMBIT
 
 // debug
-void print_bitarray_paginas();
+void print_bitarray_frames();
 void print_segmento_t(void*);
 void print_seglib();
 void print_segus();

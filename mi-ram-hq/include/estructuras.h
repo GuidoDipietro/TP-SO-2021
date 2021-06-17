@@ -53,7 +53,8 @@ typedef struct {
 } entrada_tp_t;
 
 typedef struct {
-    t_list* tabla; // tipo: <entrada_tp_t>
+    uint32_t pid;   // va?
+    t_list* tabla;  // tipo: <entrada_tp_t>
 } tp_patota_t;
 
 ///////// FUNCIONES /////////

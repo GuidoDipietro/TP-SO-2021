@@ -5,7 +5,7 @@ extern t_list* segmentos_libres;
 extern t_list* segmentos_usados;
 
 extern char* puntero_a_bits;
-extern t_bitarray* bitarray_paginas;
+extern t_bitarray* bitarray_frames;
 
 extern void* memoria_principal;
 
@@ -13,7 +13,7 @@ extern void* memoria_principal;
 
 pthread_mutex_t MUTEX_SEGMENTOS_LIBRES;
 pthread_mutex_t MUTEX_SEGMENTOS_USADOS;
-pthread_mutex_t MUTEX_BITARRAY_PAGINAS;
+pthread_mutex_t MUTEX_BITARRAY_FRAMES;
 
 pthread_mutex_t MUTEX_MP;
 pthread_mutex_t MUTEX_TS_PATOTAS;
@@ -23,7 +23,7 @@ pthread_mutex_t MUTEX_TP_PATOTAS;
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
     pthread_mutex_init(&MUTEX_SEGMENTOS_USADOS, NULL);
-    pthread_mutex_init(&MUTEX_BITARRAY_PAGINAS, NULL);
+    pthread_mutex_init(&MUTEX_BITARRAY_FRAMES, NULL);
     pthread_mutex_init(&MUTEX_MP, NULL);
     pthread_mutex_init(&MUTEX_TS_PATOTAS, NULL);
     pthread_mutex_init(&MUTEX_TS_TRIPULANTES, NULL);
@@ -33,7 +33,7 @@ void iniciar_mutex() {
 void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_SEGMENTOS_LIBRES);
     pthread_mutex_destroy(&MUTEX_SEGMENTOS_USADOS);
-    pthread_mutex_destroy(&MUTEX_BITARRAY_PAGINAS);
+    pthread_mutex_destroy(&MUTEX_BITARRAY_FRAMES);
     pthread_mutex_destroy(&MUTEX_MP);
     pthread_mutex_destroy(&MUTEX_TS_PATOTAS);
     pthread_mutex_destroy(&MUTEX_TS_TRIPULANTES);
@@ -274,35 +274,35 @@ void asesinar_segus() {
 
 ////// END SEGUS
 
-////// UTILS PAGINAS - A.K.A. PAGBIT
+////// UTILS FRAMES - A.K.A. FRAMBIT
 
 // off_t == uint32_t en la VM (chequeado)
-void set_bit_pagbit(uint32_t index) {
-    pthread_mutex_lock(&MUTEX_BITARRAY_PAGINAS);
-    bitarray_set_bit(bitarray_paginas, index);
-    pthread_mutex_unlock(&MUTEX_BITARRAY_PAGINAS);
+void ocupar_frame_frambit(uint32_t index) {
+    pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
+    bitarray_set_bit(bitarray_frames, index);
+    pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
 }
-void clean_bit_pagbit(uint32_t index) {
-    pthread_mutex_lock(&MUTEX_BITARRAY_PAGINAS);
-    bitarray_clean_bit(bitarray_paginas, index);
-    pthread_mutex_unlock(&MUTEX_BITARRAY_PAGINAS);
+void liberar_frame_frambit(uint32_t index) {
+    pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
+    bitarray_clean_bit(bitarray_frames, index);
+    pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
 }
-bool test_bit_pagbit(uint32_t index) {
-    pthread_mutex_lock(&MUTEX_BITARRAY_PAGINAS);
-    bitarray_test_bit(bitarray_paginas, index);
-    pthread_mutex_unlock(&MUTEX_BITARRAY_PAGINAS);
+bool estado_frame_frambit(uint32_t index) {
+    pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
+    bitarray_test_bit(bitarray_frames, index);
+    pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
 }
 
 ////// END PAGBIT
 
 /// debug
 
-void print_bitarray_paginas() {
-    puts("\n\n--------- BITARRAY PAGINAS ---------\n");
-    for (size_t i=0; i < bitarray_get_max_bit(bitarray_paginas); i = i+1) {
+void print_bitarray_frames() {
+    puts("\n\n--------- BITARRAY FRAMES ---------\n");
+    for (size_t i=0; i < bitarray_get_max_bit(bitarray_frames); i = i+1) {
         printf("%s%d",
             i&&i%8==0?i%64?" ":"\n":"",
-            bitarray_test_bit(bitarray_paginas, i)
+            bitarray_test_bit(bitarray_frames, i)
         );
     }
     puts("\n------------------------------------\n\n");

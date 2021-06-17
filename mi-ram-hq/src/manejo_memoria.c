@@ -7,6 +7,10 @@ extern void* memoria_principal;
 extern uint32_t memoria_disponible;
 extern segmento_t* (*proximo_hueco)(uint32_t);
 
+extern t_list* tp_patotas;
+extern char* puntero_a_bits;
+extern t_bitarray* bitarray_frames;
+
 extern pthread_mutex_t MUTEX_MP;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)

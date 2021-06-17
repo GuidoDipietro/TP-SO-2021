@@ -72,6 +72,33 @@ char* stringify_ts_tripulante_t(ts_tripulante_t* tabla, char* timestamp) {
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 }
 
+char* stringify_entrada_tp_t(entrada_tp_t* entrada, bool estado) {
+    if (entrada == NULL) return NULL;
+
+    size_t size = 3;
+    char* string = malloc(size);
+    snprintf(
+        string, size,
+        "MARCO: %5" PRIu32 " | ESTADO: %d | PAGINA: %5" PRIu32,
+        entrada->nro_frame, estado, entrada->nro_pagina
+    );
+    return string;
+}
+
+// typedef struct {
+//     uint32_t nro_pagina;
+//     uint32_t nro_frame;
+// } entrada_tp_t;
+
+// typedef struct {
+//     uint32_t pid;   // va?
+//     t_list* tabla;  // tipo: <entrada_tp_t>
+// } tp_patota_t;
+
+char* stringify_tp_patota_t(tp_patota_t* tabla, char* timestamp) {
+    ;;;;;;;;;;;;;;;;;;;;;;;
+}
+
 /// Serializacion! De nuevo
 
 void* serializar_pcb(PCB_t* pcb) {
