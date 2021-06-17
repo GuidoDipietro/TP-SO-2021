@@ -89,7 +89,7 @@ uint8_t cargar_memoria() {
     memoria_disponible = cfg->TAMANIO_MEMORIA; // int
 
     // Segmentacion
-    if (strcmp(cfg->ESQUEMA_MEMORIA,"SEGMENTACION")==0) {
+    if (strcmp(cfg->ESQUEMA_MEMORIA,"SEGMENTACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
         segmentos_libres = list_create();
         segmento_t* hueco = new_segmento(0, 0, cfg->TAMANIO_MEMORIA);
         if (hueco == NULL) {
@@ -104,7 +104,7 @@ uint8_t cargar_memoria() {
         ts_tripulantes = list_create();
     }
     // Paginacion
-    else {
+    if (strcmp(cfg->ESQUEMA_MEMORIA,"PAGINACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
         tp_patotas = list_create();
         uint32_t cant_paginas = cfg->TAMANIO_MEMORIA / cfg->TAMANIO_PAGINA;
         puntero_a_bits = malloc(cant_paginas);
@@ -116,7 +116,10 @@ uint8_t cargar_memoria() {
 }
 
 void cerrar_programa() {
+    // rip lucas spigariol
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION")==0;
+    bool paginacion = strcmp(cfg->ESQUEMA_MEMORIA, "PAGINACION")==0;
+    bool debug = strcmp(cfg->ESQUEMA_MEMORIA, "DEBUG")==0;
     log_destroy(logger);
 
     free(cfg->ALGORITMO_REEMPLAZO);
@@ -125,14 +128,14 @@ void cerrar_programa() {
     free(cfg->CRITERIO_SELECCION);
     free(cfg);
 
-    // masacre
-    if (segmentacion) {
+    // masacre (quedo medio gracioso pero es para que me anden los tests)
+    if (segmentacion || debug) {
         asesinar_seglib();
         asesinar_segus();
         asesinar_tspatotas();
         asesinar_tstripulantes();
     }
-    else {
+    if (paginacion || debug) {
         asesinar_tppatotas();
         bitarray_destroy(bitarray_paginas);
         free(puntero_a_bits);
