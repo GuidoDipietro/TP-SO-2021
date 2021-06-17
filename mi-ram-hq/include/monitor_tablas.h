@@ -17,4 +17,8 @@ void asesinar_tspatotas();
 void list_add_tstripulantes(ts_tripulante_t* elem);
 void asesinar_tstripulantes();
 
+/// TP PATOTAS
+
+void asesinar_tppatotas();
+
 #endif

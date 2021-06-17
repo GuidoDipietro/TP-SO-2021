@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include <commons/bitarray.h>
 #include <commons/temporal.h>
 
 #include "init_mrhq.h"
@@ -51,6 +52,7 @@ void asesinar_segus();
 /// END SEGUS
 
 // debug
+void print_bitarray_paginas();
 void print_segmento_t(void*);
 void print_seglib();
 void print_segus();

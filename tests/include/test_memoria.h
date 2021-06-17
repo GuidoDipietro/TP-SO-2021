@@ -7,6 +7,7 @@
 #include <sysexits.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <commons/bitarray.h>
 #include <commons/memory.h>
 
 #include "../../mi-ram-hq/include/init_mrhq.h"

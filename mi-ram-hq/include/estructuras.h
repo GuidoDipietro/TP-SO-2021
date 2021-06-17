@@ -26,6 +26,7 @@ typedef struct {
 ////// SEGMENTACION //////
 
 // TS === TABLA DE SEGMENTOS
+// segmento_t se usa como entrada en lista de huecos, lista de segmentos usados, y para las tablas
 typedef struct {
     uint8_t nro_segmento;
     uint32_t inicio;
@@ -33,20 +34,37 @@ typedef struct {
 } segmento_t;
 
 typedef struct {
-    uint32_t pid;
+    uint32_t pid;   // va?
     segmento_t* pcb;
     segmento_t* tareas;
 } ts_patota_t;      // solo tiene (siempre) esas 2 entradas
 
 typedef struct {
+    uint32_t tid;   // va?
     segmento_t* tcb;
 } ts_tripulante_t;  // confeccionado como tabla pero solo tiene 1 entrada
 
+////// PAGINACION //////
+
+// TP === TABLA DE PAGINAS
+typedef struct {
+    uint32_t nro_pagina;
+    uint32_t nro_frame;
+} entrada_tp_t;
+
+typedef struct {
+    t_list* tabla; // tipo: <entrada_tp_t>
+} tp_patota_t;
+
 ///////// FUNCIONES /////////
+
+/// Creacion
+tp_patota_t* tp_patota_t_create();
 
 /// Frees
 void free_ts_patota_t(void* x);
 void free_ts_tripulante_t(void* x);
+void free_tp_patota_t(void* x);
 
 /// Stringify
 char* stringify_segmento_t(segmento_t* segmento);

@@ -164,3 +164,8 @@ void compactar_segmentos_libres() {
         )
     );
 }
+
+
+////// MANEJO MEMORIA PRINCIPAL - PAGINACION
+
+

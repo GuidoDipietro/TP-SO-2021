@@ -40,7 +40,10 @@ makeFolder:
 	fi
 
 debug: CFLAGS := $(CFLAGS) -g
-debug: build
+debug:
+	make debug -C ../shared
+	make debug -C ../mi-ram-hq
+	make build
 
 valgrind: debug
 	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)

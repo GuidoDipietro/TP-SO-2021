@@ -2,13 +2,19 @@
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
+
 extern t_list* segmentos_libres;
 extern t_list* segmentos_usados;
 extern t_list* ts_patotas;
 extern t_list* ts_tripulantes;
+extern segmento_t* (*proximo_hueco)(uint32_t);
+
+extern t_list* tp_patotas;
+extern char* puntero_a_bits;
+extern t_bitarray* bitarray_paginas;
+
 extern uint32_t memoria_disponible;
 extern void* memoria_principal;
-extern segmento_t* (*proximo_hueco)(uint32_t);
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
@@ -367,20 +373,25 @@ PROCESO:   8 | SEGMENTO:   0 | INICIO: 0x00000309 | TAM:    15b\n\
     free_ts_patota_t(tabla);
 }
 
+void test_print_bitarray() {
+    print_bitarray_paginas();
+}
+
 CU_TestInfo tests_memoria[] = {
-    { "Test print seglib/segus", test_print },
-    { "Test proximo hueco first fit", test_hueco_first_fit },
-    { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
-    { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
-    { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
-    { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
-    { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
-    { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
-    { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
-    { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
-    { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
-    { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
-    { "Test COMPACTACION", test_compactacion },
-    { "Test stringify", test_stringify },
+    // { "Test print seglib/segus", test_print },
+    // { "Test proximo hueco first fit", test_hueco_first_fit },
+    // { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
+    // { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
+    // { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
+    // { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
+    // { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
+    // { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
+    // { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
+    // { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
+    // { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
+    // { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
+    // { "Test COMPACTACION", test_compactacion },
+    // { "Test stringify", test_stringify },
+    { "Test print bitarray", test_print_bitarray },
     CU_TEST_INFO_NULL,
 };

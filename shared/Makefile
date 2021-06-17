@@ -10,7 +10,7 @@ HEADERS = $(shell find ./include/*.h)
 
 O_DIR = ./obj
 CC = gcc
-CFLAGS = -c -o
+CFLAGS = -c
 LINK = -lcommons -lpthread
 
 .PHONY: makeFolder
@@ -21,7 +21,7 @@ debug: CFLAGS := $(CFLAGS) -g
 debug: build
 
 ./obj/%.o: $(SRC_DIR)/%.c $(HEADERS)
-	$(CC) $(CFLAGS) $@ $< $(LINK) -g
+	$(CC) $(CFLAGS) -o $@ $< $(LINK)
 
 makeFolder:
 	@if [ ! -d ./obj ]; then \
