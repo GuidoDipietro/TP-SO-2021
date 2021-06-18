@@ -34,7 +34,7 @@ static void procesar_conexion(void* void_args) {
             case INICIAR_PATOTA:
             {
                 uint32_t n_tripulantes;
-                char** tareas;
+                char* tareas;
                 t_list* posiciones;
                 if (recv_patota(cliente_socket, &n_tripulantes, &tareas, &posiciones)) {
                     // MP
@@ -53,7 +53,7 @@ static void procesar_conexion(void* void_args) {
                 else
                     log_error(logger, "Error recibiendo patota en MRH");
                 list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
-                string_split_free(&tareas); // en realidad hay que guardarlo en memoria
+                free(tareas);
                 break;
             }
             case INICIAR_SELF_EN_PATOTA:

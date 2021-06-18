@@ -146,7 +146,7 @@ static t_list* deserializar_t_list_posiciones(void* stream, uint8_t n_elements) 
 }
 // flor de firma tiene esta func
 static void* serializar_iniciar_patota
-(size_t* size, uint32_t n_tripulantes, void* s_tareas, size_t sz_s_tareas, t_list* posiciones) {
+(size_t* size, uint32_t n_tripulantes, char* tareas, size_t sz_tareas, t_list* posiciones) {
     //// Stream lista posiciones
     size_t size_posiciones;
     void* stream_posiciones = serializar_t_list_posiciones(&size_posiciones, posiciones);
@@ -156,7 +156,7 @@ static void* serializar_iniciar_patota
         sizeof(op_code)+                        // COP
         sizeof(size_t)+                         // size total del stream
         sizeof(uint32_t)+                        // n_tripulantes
-        sizeof(size_t)+sz_s_tareas+             // size contenido archivo + contenido archivo
+        sizeof(size_t)+sz_tareas+             // size contenido archivo + contenido archivo
         sizeof(size_t)+size_posiciones          // size posiciones + posiciones
     ;
     void* stream = malloc(size_total);
@@ -176,22 +176,22 @@ static void* serializar_iniciar_patota
     ); //n_tripulantes
     memcpy(
         stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint32_t),
-        &sz_s_tareas,
+        &sz_tareas,
         sizeof(size_t)
     ); // size contenido archivo
     memcpy(
         stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint32_t)+sizeof(size_t),
-        s_tareas,
-        sz_s_tareas
+        tareas,
+        sz_tareas
     ); // contenido archivo
     memcpy(
-        stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint32_t)+sizeof(size_t)+sz_s_tareas,
+        stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint32_t)+sizeof(size_t)+sz_tareas,
         &size_posiciones,
         sizeof(size_t)
     ); // size posiciones
     memcpy(
         stream+sizeof(op_code)+sizeof(size_t)+sizeof(uint32_t)+
-        sizeof(size_t)+sz_s_tareas+sizeof(size_t),
+        sizeof(size_t)+sz_tareas+sizeof(size_t),
         stream_posiciones,
         size_posiciones
     ); // posiciones
@@ -277,7 +277,7 @@ void* serializar_contenido_archivo(size_t* size, char* path, t_log* logger) {
     fclose(file);
     return stream;
 }
-bool recv_patota(int fd, uint32_t* n_tripulantes, char*** tareas, t_list** posiciones) {
+bool recv_patota(int fd, uint32_t* n_tripulantes, char** tareas, t_list** posiciones) {
     // tamanio total del stream
     size_t size;
     if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
@@ -294,54 +294,18 @@ bool recv_patota(int fd, uint32_t* n_tripulantes, char*** tareas, t_list** posic
     char* r_tareas;         // el malloc lo realiza deserializar_iniciar_patota()
     t_list* r_posiciones;   // same
     deserializar_iniciar_patota(stream, n_tripulantes, &r_tareas, &r_posiciones);
-    
-    // Tareas string choclazo a char**
-    
-    char** r_tareas_split = string_split(r_tareas, "\n");
 
-    // Sacamos los \r feos
-    char** p_r_tareas_split = r_tareas_split;
-    for (; *p_r_tareas_split != NULL; p_r_tareas_split++)
-        string_trim(p_r_tareas_split);
-
-    *tareas = r_tareas_split;
+    *tareas = r_tareas;
 
     *posiciones = r_posiciones;
 
     free(stream);
-    free(r_tareas);
     return true;
 }
-bool recv_patota_old(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones) {
-    // tamanio total del stream
-    size_t size;
-    if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
-        return false;
-    }
-    // recibe TODO el stream
-    void* stream = malloc(size);
-    if (recv(fd, stream, size, 0) != size) {
-        free(stream);
-        return false;
-    }
 
-    // desarmando el chorizo de bits
-    char* r_tareas;         // el malloc lo realiza deserializar_iniciar_patota()
-    t_list* r_posiciones;   // same
-    deserializar_iniciar_patota(stream, n_tripulantes, &r_tareas, &r_posiciones);
-    
-    t_list* r_list_tareas = raw_tareas_to_list(r_tareas);
-    *tareas = r_list_tareas;
-    *posiciones = r_posiciones;
-
-    free(stream);
-    free(r_tareas);
-    return true;
-}
-bool send_patota
-(int fd, uint32_t n_tripulantes, void* s_tareas, size_t sz_s_tareas, t_list* posiciones) {
+bool send_patota(int fd, uint32_t n_tripulantes, char* tareas, size_t sz_tareas, t_list* posiciones) {
     size_t size;
-    void* stream = serializar_iniciar_patota(&size, n_tripulantes, s_tareas, sz_s_tareas, posiciones);
+    void* stream = serializar_iniciar_patota(&size, n_tripulantes, tareas, sz_tareas, posiciones);
     if (send(fd, stream, size, 0) == -1) {
         free(stream);
         return false;

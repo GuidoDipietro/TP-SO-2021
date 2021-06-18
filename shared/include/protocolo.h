@@ -94,9 +94,8 @@ void deserializar_uint32_t(void* stream, uint32_t* n);
 
 // INICIAR_PATOTA //
 // void dump_archivo(FILE* f);
-bool recv_patota(int fd, uint32_t* n_tripulantes, char*** tareas, t_list** posiciones);
-bool recv_patota_old(int fd, uint32_t* n_tripulantes, t_list** tareas, t_list** posiciones);
-bool send_patota(int, uint32_t, void*, size_t, t_list*);
+bool recv_patota(int, uint32_t*, char**, t_list**);
+bool send_patota(int, uint32_t, char*, size_t, t_list*);
 void* serializar_contenido_archivo(size_t*, char*, t_log*);
 
 ////// faltan

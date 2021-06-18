@@ -175,103 +175,6 @@ void test_iniciar_self_en_patota() {
 static bool t_posicion_equals(t_posicion* p1, t_posicion* p2) {
     return p1->x==p2->x && p1->y==p2->y;
 }
-void test_patota_old() {    
-    // A enviar
-    uint32_t n_tripulantes = 3;
-    size_t sz_s_tareas;
-    void* s_tareas = serializar_contenido_archivo(
-        &sz_s_tareas,
-        "/media/sf_tp-2021-1c-...undefined/tests/src/tareas/tareasTest.txt",
-        logger
-    );
-    if (s_tareas == NULL) {
-        log_error(logger, "Error abriendo el archivo de tareas");
-        CU_ASSERT_EQUAL(1,0);
-        return;
-    }
-    t_list* posiciones = list_create();
-    t_posicion* p1 = malloc(sizeof(t_posicion));
-    t_posicion* p2 = malloc(sizeof(t_posicion));
-    t_posicion* p3 = malloc(sizeof(t_posicion));
-    p1->x = 14; p2->x = 27; p3->x = 49;
-    p1->y = 41; p2->y = 72; p3->y = 94;
-    list_add(posiciones, p1);
-    list_add(posiciones, p2);
-    list_add(posiciones, p3);
-
-    // Inicializacion de semaforos compartidos (wtf? y bueno.)
-    sem_t* sem_padre = (sem_t*) mmap(
-        0,
-        sizeof(sem_t),
-        PROT_READ|PROT_WRITE,
-        MAP_ANONYMOUS|MAP_SHARED,
-        0,
-        0
-    );
-    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
-    sem_t* sem_hijo = (sem_t*) mmap(
-        0,
-        sizeof(sem_t),
-        PROT_READ|PROT_WRITE,
-        MAP_ANONYMOUS|MAP_SHARED,
-        0,
-        0
-    );
-    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
-
-    sem_init(sem_padre, 1, 1);
-    sem_init(sem_hijo, 1, 0);
-
-    // F O R K E A M E
-    pid_t pid = fork();
-
-    // CLIENTE
-    if (pid==0) {
-        sem_wait(sem_hijo);
-        if (!send_patota(cliente_fd, n_tripulantes, s_tareas, sz_s_tareas, posiciones)) {
-            log_error(logger, "Error enviando iniciar_patota");
-        }
-        sem_post(sem_padre);
-        free(s_tareas);
-        list_destroy_and_destroy_elements(posiciones, &free_t_posicion);
-        exit(0);
-    }
-    // SERVIDOR
-    else {
-        sem_wait(sem_padre);
-        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
-        sem_post(sem_hijo);
-        sem_wait(sem_padre);
-        if (conexion_fd == -1) {
-            log_error(logger, "Error en la conexion");
-        }
-        op_code cop;
-        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
-            log_error(logger, "Error recibiendo cop %d", cop);
-        }
-
-        // Para recibir
-        uint32_t r_n_tripulantes;
-        t_list* r_tareas, *r_posiciones;
-        if (!recv_patota_old(conexion_fd, &r_n_tripulantes, &r_tareas, &r_posiciones)) {
-            log_error(logger, "Error recibiendo iniciar_patota");
-        }
-
-        // ASSERT QUE ANDUVO BIEN
-        CU_ASSERT_EQUAL(n_tripulantes, r_n_tripulantes);
-        list_iterate(r_tareas, &print_t_tarea); puts("ME GUSTA LA MANDIOCA");
-        for (int i=0; i<list_size(posiciones); i++) {
-            t_posicion *p_orig, *p_recv;
-            p_orig = (t_posicion*) list_get(posiciones, i);
-            p_recv = (t_posicion*) list_get(r_posiciones, i);
-            CU_ASSERT_TRUE(t_posicion_equals(p_orig, p_recv));
-        }
-        list_destroy_and_destroy_elements(r_tareas, &free_t_tarea);
-        list_destroy_and_destroy_elements(r_posiciones, &free_t_posicion);
-    }
-    list_destroy_and_destroy_elements(posiciones, &free_t_posicion);
-    free(s_tareas);
-}
 
 void test_sabotaje() {
     t_posicion* posicion = malloc(sizeof(t_posicion));
@@ -882,7 +785,7 @@ void test_patota_new() {
 
         // Para recibir
         uint32_t r_n_tripulantes;
-        char** r_tareas;
+        char* r_tareas;
         t_list* r_posiciones;
         if (!recv_patota(conexion_fd, &r_n_tripulantes, &r_tareas, &r_posiciones)) {
             log_error(logger, "Error recibiendo iniciar_patota");
@@ -890,11 +793,9 @@ void test_patota_new() {
 
         // ASSERT QUE ANDUVO BIEN (y prints si es muy dificil assert-ar XD!)
         CU_ASSERT_EQUAL(n_tripulantes, r_n_tripulantes);
-        char** p_r_tareas = r_tareas;
-        for (; *p_r_tareas != NULL; p_r_tareas++)
-            printf("<<%s>>\n", *p_r_tareas);
+        CU_ASSERT_TRUE(strcmp((char*) s_tareas, r_tareas) == 0);
+        printf("\n<<%s>>\nstrlen: %d\n", r_tareas, strlen(r_tareas));
 
-        puts("ME GUSTA LA MANDIOCA");
         for (int i=0; i<list_size(posiciones); i++) {
             t_posicion *p_orig, *p_recv;
             p_orig = (t_posicion*) list_get(posiciones, i);
@@ -903,8 +804,6 @@ void test_patota_new() {
         }
 
         // Frees
-        p_r_tareas = r_tareas;
-        for (; *p_r_tareas != NULL; free(*p_r_tareas), p_r_tareas++);
         free(r_tareas);
         list_destroy_and_destroy_elements(r_posiciones, &free_t_posicion);
     }
@@ -1064,7 +963,6 @@ void test_ida_y_vuelta_tareas() {
 CU_TestInfo tests_protocolo[] = {
     { "Test send/recv tripulante", test_tripulante },
     { "Test send/recv iniciar_self_en_patota", test_iniciar_self_en_patota },
-    { "Test send/recv iniciar_patota OLD", test_patota_old },
     { "Test send/recv iniciar_patota NEW", test_patota_new },
     { "Test send/recv sabotaje", test_sabotaje },
     { "Test send/recv op_code", test_send_cop },
