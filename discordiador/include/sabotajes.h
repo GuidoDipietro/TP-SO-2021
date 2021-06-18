@@ -5,15 +5,19 @@
 #include <stdbool.h>
 #include <math.h>
 #include "monitor_tripulante.h"
+#include "ops_tripulante.h"
 #include "logs.h"
+#include "tareas.h"
+#include "../../shared/include/structures.h"
+#include "config.h"
+#include "listar_tripulantes.h"
 
 #define SIG_SABOTAJE SIGUSR1
-#define SIG_FIN_SABOTAJE SIGUSR2
 
 extern bool SABOTAJE_ACTIVO;
 
 void iniciar_sabotaje(int signum);
-void finalizar_sabotaje(int signum);
+void finalizar_sabotaje();
 void set_signal_handlers();
 
 #endif
