@@ -279,7 +279,8 @@ void test_meter_segmento_en_mp_bf() {
     mem_hexdump(memoria_principal, 65);
 
     print_seglib(false);
-    __asm__ __volatile__ ("call print_segus");
+    print_segus(false);
+    // __asm__ __volatile__ ("call print_segus");
 
     free(data1);
     free(data2);
@@ -437,22 +438,22 @@ void test_meter_choclo_paginado_en_mp() {
 }
 
 CU_TestInfo tests_memoria[] = {
-    // { "Test print seglib/segus", test_print },
-    // { "Test proximo hueco first fit", test_hueco_first_fit },
-    // { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
-    // { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
-    // { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
-    // { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
-    // { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
-    // { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
-    // { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
-    // { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
-    // { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
-    // { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
-    // { "Test COMPACTACION", test_compactacion },
-    // { "Test stringify", test_stringify },
-    // { "Test print bitarray", test_print_bitarray },
-    // { "Test primer frame libre", test_primer_frame_libre },
+    { "Test print seglib/segus", test_print },
+    { "Test proximo hueco first fit", test_hueco_first_fit },
+    { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
+    { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
+    { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
+    { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
+    { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
+    { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
+    { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
+    { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
+    { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
+    { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
+    { "Test COMPACTACION", test_compactacion },
+    { "Test stringify", test_stringify },
+    { "Test print bitarray", test_print_bitarray },
+    { "Test primer frame libre", test_primer_frame_libre },
     { "Test meter choclo paginado", test_meter_choclo_paginado_en_mp },
     CU_TEST_INFO_NULL,
 };

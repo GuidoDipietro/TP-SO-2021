@@ -356,17 +356,21 @@ void print_segmento_t(void* s) {
 }
 void print_seglib(bool ynlog) {
     log = ynlog;
-    log_info(logger, "\n\n------ HUECOS LIBRES ------\n");
+    ynlog ? log_info(logger, "\n\n------ HUECOS LIBRES ------\n")
+          : printf("\n\n------ HUECOS LIBRES ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_iterate(segmentos_libres, &print_segmento_t);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
-    log_info(logger, "---------------------------\n\n");
+    ynlog ? log_info(logger, "---------------------------\n\n")
+          : printf("---------------------------\n\n");
 }
 void print_segus(bool ynlog) {
     log = ynlog;
-    log_info(logger, "\n\n------ SEGMENTOS USADOS ------\n");
+    ynlog ? log_info(logger, "\n\n------ SEGMENTOS USADOS ------\n")
+          : printf("\n\n------ SEGMENTOS USADOS ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
     list_iterate(segmentos_usados, &print_segmento_t);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
-    log_info(logger, "------------------------------\n\n");
+    ynlog ? log_info(logger, "------------------------------\n\n")
+          : printf("------------------------------\n\n");
 }

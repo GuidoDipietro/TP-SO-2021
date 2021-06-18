@@ -82,6 +82,7 @@ static void procesar_conexion(void* void_args) {
                 break;
             }
             case INICIAR_SELF_EN_PATOTA:
+                // TODO: Cargar segmento de tripulante en MP
                 break;
             case MOVIMIENTO:
             {
@@ -111,6 +112,9 @@ static void procesar_conexion(void* void_args) {
                  }
                 break;
             }
+            case SOLICITAR_TAREA:
+                // TODO: enviar tarea al SMT
+                break;
             // Errores
             case -1:
                 log_error(logger, "Cliente desconectado de MRH...");

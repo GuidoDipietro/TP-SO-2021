@@ -204,6 +204,8 @@ bool meter_choclo_paginado_en_mp(void* data, size_t size) {
         }
     }
 
+    // actualizar tp_patotas
+
     free(padded_data);
     free(buf);
     return true;
