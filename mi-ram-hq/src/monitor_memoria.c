@@ -277,16 +277,30 @@ void asesinar_segus() {
 ////// UTILS FRAMES - A.K.A. FRAMBIT
 
 // off_t == uint32_t en la VM (chequeado)
+
+// Si no hay ninguno libre, retorna ==
+int64_t primer_frame_libre_frambit() {
+    int64_t i = 0;
+    pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
+    int64_t size = bitarray_get_max_bit(bitarray_frames);
+    for (; i<size; i++)
+        if (bitarray_test_bit(bitarray_frames, i) == false) break;
+    pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
+    return i==size? -1 : i;
+}
+
 void ocupar_frame_frambit(uint32_t index) {
     pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
     bitarray_set_bit(bitarray_frames, index);
     pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
 }
+
 void liberar_frame_frambit(uint32_t index) {
     pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
     bitarray_clean_bit(bitarray_frames, index);
     pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
 }
+
 bool estado_frame_frambit(uint32_t index) {
     pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
     bitarray_test_bit(bitarray_frames, index);

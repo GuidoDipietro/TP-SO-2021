@@ -385,6 +385,30 @@ void test_print_bitarray() {
     print_bitarray_frames();
 }
 
+void test_primer_frame_libre() {
+    print_bitarray_frames();
+    uint32_t cero = 0;
+    CU_ASSERT_TRUE(primer_frame_libre_frambit() == cero);
+
+    for (int i=0; i<10; i++)
+        ocupar_frame_frambit(i);
+    for (int i=20; i<30; i++)
+        ocupar_frame_frambit(i);
+
+    liberar_frame_frambit(3);
+    liberar_frame_frambit(6);
+
+    print_bitarray_frames();
+    uint32_t tres = 3;
+    CU_ASSERT_TRUE(primer_frame_libre_frambit() == tres);
+
+    for (int i=0; i<(cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA); ocupar_frame_frambit(i++))
+        ;
+
+    print_bitarray_frames();
+    CU_ASSERT_TRUE(primer_frame_libre_frambit() == -1);
+}
+
 CU_TestInfo tests_memoria[] = {
     { "Test print seglib/segus", test_print },
     { "Test proximo hueco first fit", test_hueco_first_fit },
@@ -401,5 +425,6 @@ CU_TestInfo tests_memoria[] = {
     { "Test COMPACTACION", test_compactacion },
     { "Test stringify", test_stringify },
     { "Test print bitarray", test_print_bitarray },
+    { "Test primer frame libre", test_primer_frame_libre },
     CU_TEST_INFO_NULL,
 };

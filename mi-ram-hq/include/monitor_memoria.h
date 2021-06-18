@@ -52,6 +52,7 @@ void asesinar_segus();
 /// END SEGUS
 
 /// FRAMBIT
+int64_t primer_frame_libre_frambit();
 void ocupar_frame_frambit(uint32_t index);
 void liberar_frame_frambit(uint32_t index);
 bool estado_frame_frambit(uint32_t index);

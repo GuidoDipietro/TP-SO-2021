@@ -107,9 +107,9 @@ uint8_t cargar_memoria() {
     if (strcmp(cfg->ESQUEMA_MEMORIA,"PAGINACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
         tp_patotas = list_create();
         uint32_t cant_paginas = cfg->TAMANIO_MEMORIA / cfg->TAMANIO_PAGINA;
-        puntero_a_bits = malloc(cant_paginas);
-        memset(puntero_a_bits, 0, cant_paginas);
-        bitarray_frames = bitarray_create_with_mode(puntero_a_bits, cant_paginas, LSB_FIRST);
+        puntero_a_bits = malloc(cant_paginas/8);
+        memset(puntero_a_bits, 0, cant_paginas/8);
+        bitarray_frames = bitarray_create_with_mode(puntero_a_bits, cant_paginas/8, LSB_FIRST);
     }
 
     return 1;
