@@ -107,11 +107,10 @@ static bool compactar_mp_iteracion(uint32_t i) {
 bool compactar_mp() {
     if (list_is_empty_segus()) return true;
 
-    bool todo_bien = true;
     uint32_t segmentos = list_size_segus();
     for (int i=0; i<segmentos+1; i++)
-        todo_bien = compactar_mp_iteracion(i) && todo_bien;
-    return todo_bien;
+        if(!compactar_mp_iteracion(i)) return false;
+    return true;
 }
 
 ////// UTILS SEGMENTOS_LIBRES
@@ -172,4 +171,35 @@ void compactar_segmentos_libres() {
 
 ////// MANEJO MEMORIA PRINCIPAL - PAGINACION
 
+static bool meter_pagina_en_mp(void* data) {
+    int64_t frame_libre = primer_frame_libre_frambit();
+    if (frame_libre == -1) return false; // posteriormente: implementar memoria virtual
 
+    uint32_t nro_frame = frame_libre; // una especie de casteo porlas
+
+    ocupar_frame_frambit(nro_frame);
+    memcpy_pagina_en_frame_mp(nro_frame, data);
+    return true;
+}
+
+bool meter_choclo_paginado_en_mp(void* data, size_t size) {
+    uint32_t t_pag = cfg->TAMANIO_PAGINA;
+    uint32_t cant_paginas = size%t_pag==0? size/t_pag : size/t_pag + 1;
+
+    void* padded_data = malloc(cant_paginas * t_pag);
+    memset(padded_data, 0, cant_paginas * t_pag);
+    memcpy(padded_data, data, size);
+
+    void* buf = malloc(t_pag);
+    for (uint32_t i=0; i<cant_paginas; i++) {
+        memcpy(buf, padded_data+i*t_pag, t_pag);
+        if (!meter_pagina_en_mp(buf)) {
+            free(buf);
+            return false;
+        }
+    }
+
+    free(padded_data);
+    free(buf);
+    return true;
+}

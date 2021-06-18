@@ -409,22 +409,50 @@ void test_primer_frame_libre() {
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == -1);
 }
 
+void test_meter_choclo_paginado_en_mp() {
+    uint32_t t_pag = cfg->TAMANIO_PAGINA;
+    void* choclo = malloc(300);
+    memset(choclo, 0x11, t_pag);
+    memset(choclo+t_pag, 0x22, t_pag);
+    memset(choclo+t_pag+t_pag, 0x33, t_pag);
+    memset(choclo+t_pag+t_pag+t_pag, 0x44, t_pag);
+    memset(choclo+t_pag+t_pag+t_pag+t_pag, 0x55, 44);
+    // como para visualizarlo, nomas
+
+    CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo, 300));
+
+    mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 5);
+    print_bitarray_frames();
+
+    void* choclo2 = malloc(100);
+    memset(choclo2, 0x11, t_pag);
+    memset(choclo2+t_pag, 0x22, 100-t_pag);
+
+    CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo2, 100));
+
+    mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 7);
+    print_bitarray_frames();
+
+    free(choclo); free(choclo2);
+}
+
 CU_TestInfo tests_memoria[] = {
-    { "Test print seglib/segus", test_print },
-    { "Test proximo hueco first fit", test_hueco_first_fit },
-    { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
-    { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
-    { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
-    { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
-    { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
-    { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
-    { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
-    { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
-    { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
-    { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
-    { "Test COMPACTACION", test_compactacion },
-    { "Test stringify", test_stringify },
-    { "Test print bitarray", test_print_bitarray },
-    { "Test primer frame libre", test_primer_frame_libre },
+    // { "Test print seglib/segus", test_print },
+    // { "Test proximo hueco first fit", test_hueco_first_fit },
+    // { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
+    // { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
+    // { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
+    // { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
+    // { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
+    // { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
+    // { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
+    // { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
+    // { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
+    // { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
+    // { "Test COMPACTACION", test_compactacion },
+    // { "Test stringify", test_stringify },
+    // { "Test print bitarray", test_print_bitarray },
+    // { "Test primer frame libre", test_primer_frame_libre },
+    { "Test meter choclo paginado", test_meter_choclo_paginado_en_mp },
     CU_TEST_INFO_NULL,
 };

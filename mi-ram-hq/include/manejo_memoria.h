@@ -22,4 +22,6 @@ void compactar_segmentos_libres(void);
 
 /// PAGINACION
 
+bool meter_choclo_paginado_en_mp(void* data, size_t size);
+
 #endif

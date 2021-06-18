@@ -120,6 +120,12 @@ void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size) {
     pthread_mutex_unlock(&MUTEX_MP);
 }
 
+void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data) {
+    pthread_mutex_lock(&MUTEX_MP);
+    memcpy(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, data, cfg->TAMANIO_PAGINA); // size_t == uint32_t en la VM (chequeado)
+    pthread_mutex_unlock(&MUTEX_MP);
+}
+
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio) {
     pthread_mutex_lock(&MUTEX_MP);
     memset(memoria_principal+inicio, 0, tamanio);
