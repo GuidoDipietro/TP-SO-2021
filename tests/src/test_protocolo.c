@@ -1,7 +1,7 @@
 #include "../include/test_protocolo.h"
 
 #define IP "127.0.0.1"
-#define PUERTO_BASE 8000 //por si tira el error de puerto abierto n stuff
+#define PUERTO_BASE 6000 //por si tira el error de puerto abierto n stuff
 //no se exactamente por que se produce pero a veces pasa
 
 // Genera puertos distintos cada vez (creditos a criszkutnik)
@@ -974,6 +974,91 @@ void test_cambio_estado() {
     }
 }
 
+void test_ida_y_vuelta_tareas() {
+    uint32_t id_tripulante=8, r_id_tripulante;
+    t_posicion* pos_tarea = malloc(sizeof(t_posicion));
+    pos_tarea->x = 6; pos_tarea->y = 9;
+    t_tarea *tarea = tarea_create("TEST", 14, pos_tarea, 99, "GENERAR_BASURA"), *r_tarea;
+
+    free(pos_tarea);
+
+    // Inicializacion de semaforos compartidos (wtf? y bueno.)
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_solicitar_tarea(cliente_fd)) {
+            log_error(logger, "Error enviando solicitar tarea");
+        }
+        sem_post(sem_padre);
+        op_code cop;
+        if (recv(cliente_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop %d", cop);
+        }
+        CU_ASSERT_EQUAL(cop, TAREA);
+        if (!recv_tarea(cliente_fd, &r_tarea)) {
+            log_error(logger, "Error recibiendo tarea");
+        }
+
+        CU_ASSERT_TRUE(strcmp(r_tarea->nombre, tarea->nombre)==0);
+        CU_ASSERT_TRUE(r_tarea->param == tarea->param);
+        CU_ASSERT_TRUE(t_posicion_equals(r_tarea->pos, tarea->pos));
+        CU_ASSERT_TRUE(r_tarea->duracion == tarea->duracion);
+        CU_ASSERT_TRUE(r_tarea->tipo == tarea->tipo);
+
+        puts("All asserts passed? Suspicious... Let's check manually:");
+        print_t_tarea(r_tarea);
+        puts("wtf!!");
+
+        free_t_tarea(tarea);
+        free_t_tarea(r_tarea);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        op_code cop;
+        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            log_error(logger, "Error recibiendo cop %d", cop);
+        }
+        CU_ASSERT_EQUAL(cop, SOLICITAR_TAREA);
+        if (!send_tarea(conexion_fd, tarea)) {
+            log_error(logger, "Error enviando tarea");
+        }
+        free_t_tarea(tarea);
+        exit(0);
+    }
+}
+
 /////////
 
 CU_TestInfo tests_protocolo[] = {
@@ -989,5 +1074,6 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv inicio/fin+tarea", test_accion_tripulante_tarea },
     { "Test send/recv generar/consumir+item", test_generar_consumir_item },
     { "Test send/recv cambio estado", test_cambio_estado },
+    { "Test ida y vuelta tareas", test_ida_y_vuelta_tareas },
     CU_TEST_INFO_NULL,
 };
