@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <stdint.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/string.h>

@@ -23,10 +23,15 @@ bool entra_en_mp(uint32_t tamanio) {
 
 // Meter chorizo de bytes en MP y actualiza listas de registro.
 // Si se llama a esta func es porque ya se sabe que entra
+// Devuelve la Dir fisica del segmento, o INICIO_INVALIDO si explota (no deberia pasar)
 uint32_t meter_segmento_en_mp(void* data, uint32_t size) {
     segmento_t* hueco_victima = (*proximo_hueco)(size);
-    if (hueco_victima == NULL)
-        return INICIO_INVALIDO; // no hay hueco (no deberia pasar)
+    if (hueco_victima == NULL) {
+        compactar_mp();
+        segmento_t* hueco_victima = (*proximo_hueco)(size);
+        if (hueco_victima == NULL)
+            return INICIO_INVALIDO; // no hay hueco (no deberia pasar)
+    }
 
     uint32_t inicio = hueco_victima->inicio;
     memcpy_segmento_en_mp(hueco_victima->inicio, data, size);

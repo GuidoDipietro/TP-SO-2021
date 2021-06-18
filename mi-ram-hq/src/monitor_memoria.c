@@ -1,5 +1,6 @@
 #include "../include/monitor_memoria.h"
 
+extern t_log* logger; // por funciones de debug
 extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern t_list* segmentos_usados;
@@ -20,6 +21,8 @@ pthread_mutex_t MUTEX_TS_PATOTAS;
 pthread_mutex_t MUTEX_TS_TRIPULANTES;
 pthread_mutex_t MUTEX_TP_PATOTAS;
 
+pthread_mutex_t MUTEX_MP_BUSY;
+
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
     pthread_mutex_init(&MUTEX_SEGMENTOS_USADOS, NULL);
@@ -28,6 +31,7 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_TS_PATOTAS, NULL);
     pthread_mutex_init(&MUTEX_TS_TRIPULANTES, NULL);
     pthread_mutex_init(&MUTEX_TP_PATOTAS, NULL);
+    pthread_mutex_init(&MUTEX_MP_BUSY, NULL);
 }
 
 void finalizar_mutex() {
@@ -38,6 +42,7 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_TS_PATOTAS);
     pthread_mutex_destroy(&MUTEX_TS_TRIPULANTES);
     pthread_mutex_destroy(&MUTEX_TP_PATOTAS);
+    pthread_mutex_destroy(&MUTEX_MP_BUSY);
 }
 
 /// statics
@@ -318,33 +323,36 @@ bool estado_frame_frambit(uint32_t index) {
 /// debug
 
 void print_bitarray_frames() {
-    puts("\n\n--------- BITARRAY FRAMES ---------\n");
+    log_info(logger, "\n\n--------- BITARRAY FRAMES ---------\n");
     for (size_t i=0; i < bitarray_get_max_bit(bitarray_frames); i = i+1) {
-        printf("%s%d",
+        log_info(
+            logger,
+            "%s%d",
             i&&i%8==0?i%64?" ":"\n":"",
             bitarray_test_bit(bitarray_frames, i)
         );
     }
-    puts("\n------------------------------------\n\n");
+    log_info(logger, "\n------------------------------------\n\n");
 }
 void print_segmento_t(void* s) {
     segmento_t* seg = (segmento_t*) s;
-    printf(
+    log_info(
+        logger,
         "#%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
         seg->nro_segmento, seg->inicio, seg->tamanio
     );
 }
 void print_seglib() {
-    puts("\n\n------ HUECOS LIBRES ------\n");
+    log_info(logger, "\n\n------ HUECOS LIBRES ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_iterate(segmentos_libres, &print_segmento_t);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
-    puts("---------------------------\n\n");
+    log_info(logger, "---------------------------\n\n");
 }
 void print_segus() {
-    puts("\n\n------ SEGMENTOS USADOS ------\n");
+    log_info(logger, "\n\n------ SEGMENTOS USADOS ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
     list_iterate(segmentos_usados, &print_segmento_t);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
-    puts("------------------------------\n\n");
+    log_info(logger, "------------------------------\n\n");
 }

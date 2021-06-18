@@ -1,9 +1,14 @@
 #include "../include/comunicacion.h"
+#include <commons/memory.h> // temp
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern uint32_t memoria_disponible;
+
+extern pthread_mutex_t MUTEX_MP_BUSY;
+
+extern void* memoria_principal; // temp
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
@@ -43,15 +48,32 @@ static void procesar_conexion(void* void_args) {
                     // PCB          - 8 bytes
                     // Tareas       - N bytes
                     // Tripulantes  - 21 bytes cada uno
+                    // Si no entra, denegar (en el futuro va a haber que compactar)
+                    if (!entra_en_mp(8+strlen(tareas)+1+21*n_tripulantes)) {
+                        log_error(logger, "No hay lugar para la patota en memoria");
+                        list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                        free(tareas);
+                        break;
+                    }
 
+                    iniciar_patota_en_mp(tareas); // Carga TAREAS, genera y carga PCB
+
+                    // debug
+                    char* dumpcito = mem_hexstring(memoria_principal, 2048);
+                    log_info(logger, "%s", dumpcito);
+                    free(dumpcito);
+                    print_seglib();
+                    print_segus();
+                    // end debug
 
                     // GUI
                     int err = crear_tripulantes(n_tripulantes, posiciones);
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);
                 }
-                else
+                else {
                     log_error(logger, "Error recibiendo patota en MRH");
+                }
                 list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
                 free(tareas);
                 break;
