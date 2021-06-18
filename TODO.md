@@ -1,3 +1,7 @@
 - [ ] Mi-RAM-HQ pueda guardar las tareas de cada patota y dar tareas cuando se le pidan (discordiador - ops_tripulante.c:88)
-- [ ] Mi-RAM-HQ sea capaz de guardar TID y PID correctamente (discordiador - ops_tripulante.c:70)
+- [ ] Mi-RAM-HQ sea capaz de guardar TID y PID correctamente (discordiador - ops_tripulante.c:70) -> a que se refiere esto?
 - [ ] Mi-RAM-HQ - get data en monitor_memoria.c:dump_mp(int)
+- [ ] Mi-RAM-HQ - implementar evento iniciar_self_en_patota SEGMENTACION
+- [ ] Mi-RAM-HQ - implementar eventos iniciar_patota e iniciar_self_en_patota PAGINACION
+- [ ] Mi-RAM-HQ - testear compactacion
+- [ ] No romper todo el TP

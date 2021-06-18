@@ -48,14 +48,17 @@ static void procesar_conexion(void* void_args) {
                     // PCB          - 8 bytes
                     // Tareas       - N bytes
                     // Tripulantes  - 21 bytes cada uno
-                    // Si no entra, denegar (en el futuro va a haber que compactar)
+
+                    // Si aunque compactemos no entra, denegar
                     if (!entra_en_mp(8+strlen(tareas)+1+21*n_tripulantes)) {
                         log_error(logger, "No hay lugar para la patota en memoria");
+                        // send_denegar() al DIS;
                         list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
                         free(tareas);
                         break;
                     }
 
+                    // La compactacion sucede aca, de ser necesaria
                     iniciar_patota_en_mp(tareas); // Carga TAREAS, genera y carga PCB
 
                     // debug
