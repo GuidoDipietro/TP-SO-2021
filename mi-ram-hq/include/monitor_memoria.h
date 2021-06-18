@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <pthread.h>
 
 #include <commons/bitarray.h>
@@ -60,9 +61,9 @@ bool estado_frame_frambit(uint32_t index);
 /// END FRAMBIT
 
 // debug
-void print_bitarray_frames();
+void print_bitarray_frames(bool);
 void print_segmento_t(void*);
-void print_seglib();
-void print_segus();
+void print_seglib(bool);
+void print_segus(bool);
 
 #endif

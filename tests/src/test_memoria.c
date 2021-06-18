@@ -32,8 +32,8 @@ void finalizar() {
 
 void test_print() {
     // Creanlo o no, este test me ayudo a encontrar un bug bastante feito
-    print_seglib();
-    print_segus();
+    print_seglib(false);
+    print_segus(false);
 }
 
 void test_hueco_first_fit() {
@@ -141,7 +141,7 @@ void test_meter_segmento_ocupa_hueco_entero_bf() {
     list_add_seglib(hueco_4);
 
     puts("\n\nANTES DE METER UN SEGMENTO DE TAMANIO 4:");
-    print_seglib();
+    print_seglib(false);
 
     uint32_t tamanio_segmento = 4;
     segmento_t* hueco_target = proximo_hueco_best_fit(tamanio_segmento);
@@ -150,7 +150,7 @@ void test_meter_segmento_ocupa_hueco_entero_bf() {
     );
 
     puts("DESPUES DE ELLO");
-    print_seglib();
+    print_seglib(false);
 }
 
 void test_meter_segmento_ocupa_hueco_entero_ff() {
@@ -167,7 +167,7 @@ void test_meter_segmento_ocupa_hueco_entero_ff() {
     list_add_seglib(hueco_4);
 
     puts("\n\nANTES DE METER UN SEGMENTO DE TAMANIO 5:");
-    print_seglib();
+    print_seglib(false);
 
     uint32_t tamanio_segmento = 5;
     segmento_t* hueco_target = proximo_hueco_first_fit(tamanio_segmento);
@@ -176,7 +176,7 @@ void test_meter_segmento_ocupa_hueco_entero_ff() {
     );
 
     puts("DESPUES DE ELLO");
-    print_seglib();
+    print_seglib(false);
 }
 
 void test_meter_segmento_bf() {
@@ -193,7 +193,7 @@ void test_meter_segmento_bf() {
     list_add_seglib(hueco_4);
 
     puts("\n\nANTES DE METER UN SEGMENTO DE TAMANIO 3:");
-    print_seglib();
+    print_seglib(false);
 
     uint32_t tamanio_segmento = 3;
     segmento_t* hueco_target = proximo_hueco_best_fit(tamanio_segmento);
@@ -202,7 +202,7 @@ void test_meter_segmento_bf() {
     );
 
     puts("DESPUES DE ELLO");
-    print_seglib();
+    print_seglib(false);
 }
 
 void test_meter_segmento_ff() {
@@ -219,7 +219,7 @@ void test_meter_segmento_ff() {
     list_add_seglib(hueco_4);
 
     puts("\n\nANTES DE METER UN SEGMENTO DE TAMANIO 3:");
-    print_seglib();
+    print_seglib(false);
 
     uint32_t tamanio_segmento = 3;
     segmento_t* hueco_target = proximo_hueco_first_fit(tamanio_segmento);
@@ -228,7 +228,7 @@ void test_meter_segmento_ff() {
     );
 
     puts("DESPUES DE ELLO");
-    print_seglib();
+    print_seglib(false);
 }
 
 void test_meter_segmento_en_mp_ff() {
@@ -251,8 +251,8 @@ void test_meter_segmento_en_mp_ff() {
     puts("Dump primeros 65 bytes MP DESPUES:");
     mem_hexdump(memoria_principal, 65);
 
-    print_seglib();
-    print_segus();
+    print_seglib(false);
+    print_segus(false);
 
     free(data1);
     free(data2);
@@ -278,7 +278,7 @@ void test_meter_segmento_en_mp_bf() {
     puts("Dump primeros 65 bytes MP DESPUES:");
     mem_hexdump(memoria_principal, 65);
 
-    print_seglib();
+    print_seglib(false);
     __asm__ __volatile__ ("call print_segus");
 
     free(data1);
@@ -332,8 +332,8 @@ void test_compactacion() {
     // 15-22    : 4444 size  7
     // 22-52    : 6666 size 30
 
-    print_seglib();
-    print_segus();
+    print_seglib(false);
+    print_segus(false);
     mem_hexdump(memoria_principal, 100);
 
     CU_ASSERT_TRUE(list_size_seglib() == 1);
@@ -382,11 +382,11 @@ void test_print_bitarray() {
     liberar_frame_frambit(3);
     liberar_frame_frambit(6);
 
-    print_bitarray_frames();
+    print_bitarray_frames(false);
 }
 
 void test_primer_frame_libre() {
-    print_bitarray_frames();
+    print_bitarray_frames(false);
     uint32_t cero = 0;
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == cero);
 
@@ -398,14 +398,14 @@ void test_primer_frame_libre() {
     liberar_frame_frambit(3);
     liberar_frame_frambit(6);
 
-    print_bitarray_frames();
+    print_bitarray_frames(false);
     uint32_t tres = 3;
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == tres);
 
     for (int i=0; i<(cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA); ocupar_frame_frambit(i++))
         ;
 
-    print_bitarray_frames();
+    print_bitarray_frames(false);
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == -1);
 }
 
@@ -422,7 +422,7 @@ void test_meter_choclo_paginado_en_mp() {
     CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo, 300));
 
     mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 5);
-    print_bitarray_frames();
+    print_bitarray_frames(false);
 
     void* choclo2 = malloc(100);
     memset(choclo2, 0x11, t_pag);
@@ -431,7 +431,7 @@ void test_meter_choclo_paginado_en_mp() {
     CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo2, 100));
 
     mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 7);
-    print_bitarray_frames();
+    print_bitarray_frames(false);
 
     free(choclo); free(choclo2);
 }

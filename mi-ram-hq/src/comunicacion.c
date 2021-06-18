@@ -65,8 +65,8 @@ static void procesar_conexion(void* void_args) {
                     char* dumpcito = mem_hexstring(memoria_principal, 2048);
                     log_info(logger, "%s", dumpcito);
                     free(dumpcito);
-                    print_seglib();
-                    print_segus();
+                    print_seglib(true);
+                    print_segus(true);
                     // end debug
 
                     // GUI

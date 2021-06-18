@@ -322,34 +322,48 @@ bool estado_frame_frambit(uint32_t index) {
 
 /// debug
 
-void print_bitarray_frames() {
-    log_info(logger, "\n\n--------- BITARRAY FRAMES ---------\n");
+static bool log = false;
+
+void print_bitarray_frames(bool ynlog) {
+    ynlog ? log_info(logger, "\n\n--------- BITARRAY FRAMES ---------\n")
+        : printf("\n\n--------- BITARRAY FRAMES ---------\n");
     for (size_t i=0; i < bitarray_get_max_bit(bitarray_frames); i = i+1) {
-        log_info(
+        ynlog ? log_info(
             logger,
+            "%s%d",
+            i&&i%8==0?i%64?" ":"\n":"",
+            bitarray_test_bit(bitarray_frames, i)
+        )   :
+            printf(
             "%s%d",
             i&&i%8==0?i%64?" ":"\n":"",
             bitarray_test_bit(bitarray_frames, i)
         );
     }
-    log_info(logger, "\n------------------------------------\n\n");
+    ynlog ? log_info(logger, "\n------------------------------------\n\n")
+        : printf("\n------------------------------------\n\n");
 }
 void print_segmento_t(void* s) {
     segmento_t* seg = (segmento_t*) s;
-    log_info(
+    log ? log_info(
         logger,
+        "#%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        seg->nro_segmento, seg->inicio, seg->tamanio
+    )   : printf(
         "#%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
         seg->nro_segmento, seg->inicio, seg->tamanio
     );
 }
-void print_seglib() {
+void print_seglib(bool ynlog) {
+    log = ynlog;
     log_info(logger, "\n\n------ HUECOS LIBRES ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_iterate(segmentos_libres, &print_segmento_t);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
     log_info(logger, "---------------------------\n\n");
 }
-void print_segus() {
+void print_segus(bool ynlog) {
+    log = ynlog;
     log_info(logger, "\n\n------ SEGMENTOS USADOS ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
     list_iterate(segmentos_usados, &print_segmento_t);
