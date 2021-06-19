@@ -19,7 +19,8 @@
 void sighandler(int x) {
     switch (x) {
         case SIGUSR1:
-            dump_mp();
+            // dump_mp();
+            eliminar_segmento_de_mp(0);
             break;
         case SIGUSR2:
             compactar_mp();

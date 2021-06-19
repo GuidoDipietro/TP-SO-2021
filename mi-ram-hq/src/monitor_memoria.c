@@ -254,7 +254,7 @@ void list_remove_by_inicio_segus(uint32_t inicio) {
 
 uint32_t list_size_segus() {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
-    uint32_t size = list_size(segmentos_libres);
+    uint32_t size = list_size(segmentos_usados);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
     return size;
 }
@@ -325,7 +325,7 @@ bool estado_frame_frambit(uint32_t index) {
 static bool log = false;
 
 void print_bitarray_frames(bool ynlog) {
-    ynlog ? log_info(logger, "\n\n--------- BITARRAY FRAMES ---------\n")
+    ynlog ? log_info(logger, "--------- BITARRAY FRAMES ---------\n")
         : printf("\n\n--------- BITARRAY FRAMES ---------\n");
     for (size_t i=0; i < bitarray_get_max_bit(bitarray_frames); i = i+1) {
         ynlog ? log_info(
@@ -356,7 +356,7 @@ void print_segmento_t(void* s) {
 }
 void print_seglib(bool ynlog) {
     log = ynlog;
-    ynlog ? log_info(logger, "\n\n------ HUECOS LIBRES ------\n")
+    ynlog ? log_info(logger, "------ HUECOS LIBRES ------\n")
           : printf("\n\n------ HUECOS LIBRES ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_iterate(segmentos_libres, &print_segmento_t);
@@ -366,7 +366,7 @@ void print_seglib(bool ynlog) {
 }
 void print_segus(bool ynlog) {
     log = ynlog;
-    ynlog ? log_info(logger, "\n\n------ SEGMENTOS USADOS ------\n")
+    ynlog ? log_info(logger, "------ SEGMENTOS USADOS ------\n")
           : printf("\n\n------ SEGMENTOS USADOS ------\n");
     pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
     list_iterate(segmentos_usados, &print_segmento_t);

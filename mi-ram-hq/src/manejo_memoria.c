@@ -112,8 +112,9 @@ static bool compactar_mp_iteracion(uint32_t i) {
 bool compactar_mp() {
     if (list_is_empty_segus()) return true;
 
+    log_info(logger, "Compactando memoria...");
     uint32_t segmentos = list_size_segus();
-    for (int i=0; i<segmentos+1; i++)
+    for (int i=0; i<segmentos; i++)
         if(!compactar_mp_iteracion(i)) return false;
     return true;
 }
