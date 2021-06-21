@@ -15,10 +15,10 @@ void planificador() {
     sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
     sem_init(&BLOQUEAR_PLANIFICADOR, 0, 0);
     while (1) {
-        sem_wait(&ACTIVE_THREADS);
-        sem_wait(&TRIPULANTES_EN_COLA);
         if (PLANIFICACION_BLOQUEADA || SABOTAJE_ACTIVO)
             sem_wait(&BLOQUEAR_PLANIFICADOR);
+        sem_wait(&ACTIVE_THREADS);
+        sem_wait(&TRIPULANTES_EN_COLA);
 
         t_running_thread* new = pop_cola_tripulante();
         // Preparamos el hilo para correr
