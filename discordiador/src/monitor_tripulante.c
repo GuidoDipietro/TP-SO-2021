@@ -37,6 +37,7 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_COLA_EXIT, NULL);
     pthread_mutex_init(&MUTEX_LISTA_SABOTAJE, NULL);
     sem_init(&TRIPULANTES_EN_COLA, 0, 0);
+    sem_init(&TRIPULANTE_LISTA_HILOS_PAUSADO, 0, 0);
 }
 
 void finalizar_mutex() {
@@ -46,6 +47,7 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_COLA_EXIT);
     pthread_mutex_destroy(&MUTEX_LISTA_SABOTAJE);
     sem_destroy(&TRIPULANTES_EN_COLA);
+    sem_destroy(&TRIPULANTE_LISTA_HILOS_PAUSADO);
 }
 
 // Lista new

@@ -36,8 +36,11 @@ void op_listar_tripulantes() {
     printf("\nEstado de la nave al %s", timestamp);
     free(timestamp);
     iterar_lista_hilos(imprimir_tripulante_exec);
+    printf("\n=========================\n");
     iterar_cola_ready(imprimir_tripulante_exec);
+    printf("\n=========================\n");
     iterar_cola_new(imprimir_tripulante_exec);
+    printf("\n=========================\n");
     iterar_lista_exit(imprimir_tripulante);
     //list_iterate(LISTA_SABOTAJE, imprimir_tripulante_exec);
     // OJITO CON LAS CONDICIONES DE CARRERA ACA!

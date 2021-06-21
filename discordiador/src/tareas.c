@@ -47,8 +47,10 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         if(PLANIFICACION_BLOQUEADA)
             sem_wait(&(thread_data->sem_pause));
 
-        if(thread_data->blocked)
+        if(thread_data->blocked) {
+            sem_post(&TRIPULANTE_LISTA_HILOS_PAUSADO);
             sem_wait(&(thread_data->sem_pause));
+        }
 
         //ciclo();
         __asm__ volatile ("call ciclo"); // Por los memes
@@ -81,8 +83,10 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         if(PLANIFICACION_BLOQUEADA)
             sem_wait(&(thread_data->sem_pause));
 
-        if(thread_data->blocked)
+        if(thread_data->blocked) {
+            sem_post(&TRIPULANTE_LISTA_HILOS_PAUSADO);
             sem_wait(&(thread_data->sem_pause));
+        }
 
         //ciclo();
         __asm__ volatile ("call ciclo"); // Por los memes

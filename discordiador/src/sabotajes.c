@@ -8,6 +8,7 @@ pthread_t HILO_PLANIFICADOR;
 static void bloquear_hilo(void* p) {
     t_running_thread* t = (t_running_thread*) p;
     t->blocked = true;
+    t->quantum = 0;
     sem_post(&ACTIVE_THREADS); // Liberamos cada tripulante corriendo
 }
 
@@ -62,7 +63,12 @@ void iniciar_sabotaje(int signum) {
     // Al estar todo pausado no deberiamos de preocuparnos por condiciones de carrera
     log_info(main_log, "Sabotaje detectado. Comenzando bloqueo por sabotaje.");
     SABOTAJE_ACTIVO = true; // Iniciamos todas las rutinas de sabotaje
+
     iterar_lista_hilos(bloquear_hilo); // Pausamos todos los hilos que esten corriendo
+
+    //for(uint8_t i = 0; i < largo_lista_hilos(); i++)
+    //    sem_wait(&TRIPULANTE_LISTA_HILOS_PAUSADO); // Esperamos a que todos los hilos avisen que ya frenaron
+    printf("\n%d\n", largo_lista_hilos());
 
     list_sort(LISTA_HILOS, sort_by_tid); // Ordenamos la lista de hilos
     list_sort(COLA_TRIPULANTES->elements, sort_by_tid); // Ordenamos la cola de tripulantes
@@ -91,6 +97,7 @@ void iniciar_sabotaje(int signum) {
 
     log_info(main_log, "El tripulante %d es el encargado de resolver el sabotaje", (encargado->t)->tid);
 
+    t_tarea* anterior = (encargado->t)->tarea;
     (encargado->t)->tarea = sabotaje_simulado();
     (encargado->t)->status = EXEC;
     monitor_add_lista_hilos(encargado);
@@ -102,10 +109,13 @@ void iniciar_sabotaje(int signum) {
 
     log_info(main_log, "Sabotaje resuelto");
 
+    //free_t_tarea((encargado->t)->tarea);
     // Volvemos a meter al encargado en la cola de bloqueados
-    remover_lista_hilos((encargado->t)->tid);
+    remover_lista_hilos(((encargado)->t)->tid);
+    (encargado->t)->tarea = anterior;
     (encargado->t)->status = BLOCKEDSAB;
     list_add(LISTA_SABOTAJE, encargado);
+
 
     finalizar_sabotaje();
 }
