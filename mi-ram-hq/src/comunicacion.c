@@ -52,7 +52,8 @@ static void procesar_conexion(void* void_args) {
                     // Si aunque compactemos no entra, denegar
                     if (!entra_en_mp(8+strlen(tareas)+1+21*n_tripulantes)) {
                         log_error(logger, "No hay lugar para la patota en memoria");
-                        // send_denegar() al DIS;
+                        send_patota_ack(cliente_socket, false);
+
                         list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
                         free(tareas);
                         break;
@@ -73,12 +74,17 @@ static void procesar_conexion(void* void_args) {
                     int err = crear_tripulantes(n_tripulantes, posiciones);
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);
+
+
+                    list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                    free(tareas);
+
+                    send_patota_ack(cliente_socket, true);
                 }
                 else {
                     log_error(logger, "Error recibiendo patota en MRH");
+                    send_patota_ack(cliente_socket, false);
                 }
-                list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
-                free(tareas);
                 break;
             }
             case INICIAR_SELF_EN_PATOTA:

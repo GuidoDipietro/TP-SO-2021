@@ -958,6 +958,62 @@ void test_ida_y_vuelta_tareas() {
     }
 }
 
+void test_patota_ack() {
+    bool ack = true;
+
+    // Inicializacion de semaforos compartidos (wtf? y bueno.)
+    sem_t* sem_padre = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_padre == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+    sem_t* sem_hijo = (sem_t*) mmap(
+        0,
+        sizeof(sem_t),
+        PROT_READ|PROT_WRITE,
+        MAP_ANONYMOUS|MAP_SHARED,
+        0,
+        0
+    );
+    if ((void*)sem_hijo == MAP_FAILED) { perror("mmap"); exit(EX_OSERR); }
+
+    sem_init(sem_padre, 1, 1);
+    sem_init(sem_hijo, 1, 0);
+
+    // F O R K E A M E
+    pid_t pid = fork();
+
+    // CLIENTE
+    if (pid==0) {
+        sem_wait(sem_hijo);
+        if (!send_patota_ack(cliente_fd, ack)) {
+            log_error(logger, "Error enviando patota ACK");
+        }
+        sem_post(sem_padre);
+        exit(0);
+    }
+    // SERVIDOR
+    else {
+        sem_wait(sem_padre);
+        int conexion_fd = esperar_cliente(logger, "TEST", server_fd);
+        sem_post(sem_hijo);
+        sem_wait(sem_padre);
+        if (conexion_fd == -1) {
+            log_error(logger, "Error en la conexion");
+        }
+        bool r_ack;
+        if (!recv_patota_ack(conexion_fd, &r_ack)) {
+            log_error(logger, "Error recibiendo patota ACK");
+        }
+
+        CU_ASSERT_EQUAL(ack, r_ack);
+    }
+}
+
 /////////
 
 CU_TestInfo tests_protocolo[] = {
@@ -973,5 +1029,6 @@ CU_TestInfo tests_protocolo[] = {
     { "Test send/recv generar/consumir+item", test_generar_consumir_item },
     { "Test send/recv cambio estado", test_cambio_estado },
     { "Test ida y vuelta tareas", test_ida_y_vuelta_tareas },
+    { "Test send/recv patota ACK", test_patota_ack },
     CU_TEST_INFO_NULL,
 };

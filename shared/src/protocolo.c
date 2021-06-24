@@ -314,6 +314,28 @@ bool send_patota(int fd, uint32_t n_tripulantes, char* tareas, size_t sz_tareas,
     return true;
 }
 
+bool send_patota_ack(int fd, bool ack) {
+    void* stream = malloc(sizeof(bool));
+    memcpy(stream, &ack, sizeof(bool));
+    if (send(fd, stream, sizeof(bool), 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
+}
+bool recv_patota_ack(int fd, bool* ack) {
+    void* stream = malloc(sizeof(bool));
+    if (recv(fd, stream, sizeof(bool), 0) != sizeof(bool)) {
+        free(stream);
+        return false;
+    }
+    memcpy(ack, stream, sizeof(bool));
+
+    free(stream);
+    return true;
+}
+
 // INICIAR_SELF_EN_PATOTA //
 
 static void* serializar_iniciar_self_en_patota(uint32_t id_tripulante, uint32_t id_patota) {
