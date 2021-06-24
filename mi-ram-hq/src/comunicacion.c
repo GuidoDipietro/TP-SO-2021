@@ -77,6 +77,8 @@ static void procesar_conexion(void* void_args) {
                     // end debug
 
                     // GUI
+                    // TODO: coordinar posiciones y TID con lo que en realidad hacemos
+                    //       posible solucion: dibujar 1 por 1 cuando me llega INICIAR_SELF_EN_PATOTA
                     int err = crear_tripulantes(n_tripulantes, posiciones);
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);
@@ -95,7 +97,7 @@ static void procesar_conexion(void* void_args) {
                 uint32_t id_tripulante;
                 uint32_t id_patota;
                 if (recv_iniciar_self_en_patota(cliente_socket, &id_tripulante, &id_patota)) {
-                    // Crea y guarda en memoria el TID
+                    // Crea y guarda en memoria el TCB
                     if (!iniciar_tripulante_en_mp(id_tripulante, id_patota)) {
                         log_error(logger,
                             "Error iniciando tripulante %" PRIu32 ", patota %" PRIu32 "\n",

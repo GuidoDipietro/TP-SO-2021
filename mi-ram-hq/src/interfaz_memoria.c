@@ -25,16 +25,12 @@ bool iniciar_patota_en_mp(char* tareas, t_list* posiciones) {
         pcb->dl_tareas = 1;
         pcb->pid = PID; PID++;
 
-        // no tengo idea por que pero si no hacia esto tiraba invalid read
-        void* s_pcb = malloc(sizeof(PCB_t));
-        memcpy(s_pcb, pcb, sizeof(PCB_t));
-
-        uint32_t inicio_pcb = meter_segmento_en_mp(s_pcb, sizeof(PCB_t));
+        uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t));
         if (inicio_pcb == INICIO_INVALIDO) {
             log_error(logger, "Error catastrofico iniciando patota en MP");
             return false;
         }
-        free(pcb); free(s_pcb);
+        free(pcb);
 
         // Creo tabla y actualizo tabla de patotas
         segmento_t* seg_pcb = new_segmento(0, inicio_pcb, 8);
