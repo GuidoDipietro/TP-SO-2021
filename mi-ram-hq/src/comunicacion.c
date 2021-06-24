@@ -45,9 +45,9 @@ static void procesar_conexion(void* void_args) {
                     // MP
 
                     // Tengo que guardar:
-                    // PCB          - 8 bytes
-                    // Tareas       - N bytes
-                    // Tripulantes  - 21 bytes cada uno
+                    // PCB          - 8 bytes           -> ahora
+                    // Tareas       - N bytes           -> ahora
+                    // Tripulantes  - 21 bytes cada uno -> cuando el tripulante avise
 
                     // Si aunque compactemos no entra, denegar
                     if (!entra_en_mp(8+strlen(tareas)+1+21*n_tripulantes)) {
@@ -59,8 +59,12 @@ static void procesar_conexion(void* void_args) {
                         break;
                     }
 
+                    send_patota_ack(cliente_socket, true);
+
                     // La compactacion sucede aca, de ser necesaria
-                    iniciar_patota_en_mp(tareas); // Carga TAREAS, genera y carga PCB
+                    // Carga TAREAS, genera y carga PCB
+                    // Carga la tabla de segmentos de la patota en la estruct. admin.
+                    iniciar_patota_en_mp(tareas, posiciones);
 
                     // debug
                     char* dumpcito = mem_hexstring(memoria_principal, 2048);
@@ -68,6 +72,8 @@ static void procesar_conexion(void* void_args) {
                     free(dumpcito);
                     print_seglib(true);
                     print_segus(true);
+                    print_tspatotas(true);      // esto genera un invalid read DIOS sabe por que
+                    print_tstripulantes(true);
                     // end debug
 
                     // GUI
@@ -75,11 +81,8 @@ static void procesar_conexion(void* void_args) {
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);
 
-
                     list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
                     free(tareas);
-
-                    send_patota_ack(cliente_socket, true);
                 }
                 else {
                     log_error(logger, "Error recibiendo patota en MRH");
@@ -88,8 +91,24 @@ static void procesar_conexion(void* void_args) {
                 break;
             }
             case INICIAR_SELF_EN_PATOTA:
-                // TODO: Cargar segmento de tripulante en MP
+            {
+                uint32_t id_tripulante;
+                uint32_t id_patota;
+                if (recv_iniciar_self_en_patota(cliente_socket, &id_tripulante, &id_patota)) {
+                    // Crea y guarda en memoria el TID
+                    if (!iniciar_tripulante_en_mp(id_tripulante, id_patota)) {
+                        log_error(logger,
+                            "Error iniciando tripulante %" PRIu32 ", patota %" PRIu32 "\n",
+                            id_tripulante, id_patota
+                        );
+                        break;
+                    }
+                }
+                else {
+                    log_error(logger, "Error recibiendo INICIAR_SELF_EN_PATOTA en MRH");
+                }
                 break;
+            }
             case MOVIMIENTO:
             {
                 uint32_t id_tripulante;
@@ -120,6 +139,9 @@ static void procesar_conexion(void* void_args) {
             }
             case SOLICITAR_TAREA:
                 // TODO: enviar tarea al SMT
+                break;
+            case CAMBIO_ESTADO:
+                // TODO: modificar estado de tripulante en MP
                 break;
             // Errores
             case -1:

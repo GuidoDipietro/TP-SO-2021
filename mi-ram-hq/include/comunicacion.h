@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <pthread.h>
+#include <inttypes.h>
 #include <commons/log.h>
 #include <commons/config.h>
 

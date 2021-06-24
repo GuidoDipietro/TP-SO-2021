@@ -13,6 +13,7 @@ tp_patota_t* tp_patota_t_create() {
 void free_ts_patota_t(void* x) {
     if (x == NULL) return;
     ts_patota_t* elem = (ts_patota_t*) x;
+    list_destroy_and_destroy_elements(elem->posiciones, (void*) free);
     free(elem->pcb);
     free(elem->tareas);
     free(elem);

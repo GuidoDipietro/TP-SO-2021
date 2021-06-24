@@ -1,5 +1,7 @@
 #include "../include/monitor_tablas.h"
 
+extern t_log* logger;
+
 extern pthread_mutex_t MUTEX_TS_PATOTAS;
 extern pthread_mutex_t MUTEX_TS_TRIPULANTES;
 extern pthread_mutex_t MUTEX_TP_PATOTAS;
@@ -9,12 +11,38 @@ extern t_list* ts_tripulantes;
 
 extern t_list* tp_patotas;
 
+static uint32_t static_pid;
+
 /// TS PATOTAS
+
+static bool ts_patota_t_has_pid(void* x) {
+    ts_patota_t* elem = (ts_patota_t*) x;
+    return elem->pid == static_pid;
+}
 
 void list_add_tspatotas(ts_patota_t* elem) {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     list_add(ts_patotas, (void*) elem);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+}
+
+// Recupera entrada de la tabla y suma 1 a tripulantes inicializados
+ts_patota_t* list_find_by_pid_plus_plus_tspatotas(uint32_t pid) {
+    static_pid = pid;
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_has_pid);
+    if (elem)
+        elem->tripulantes_inicializados = elem->tripulantes_inicializados + 1;
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+    return elem;
+}
+
+ts_patota_t* list_find_by_pid_tspatotas(uint32_t pid) {
+    static_pid = pid;
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_has_pid);
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+    return elem;
 }
 
 void asesinar_tspatotas() {
@@ -43,4 +71,68 @@ void asesinar_tppatotas() {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     list_destroy_and_destroy_elements(tp_patotas, &free_tp_patota_t);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
+}
+
+/// DEBUG
+
+static bool ynlog;
+static void print_t_posicion1(void* x) {
+    t_posicion* pos = (t_posicion*) x;
+    ynlog   ? log_info(logger, "%" PRIu32 "::%" PRIu32 "\n", pos->x, pos->y)
+            : printf("%" PRIu32 "::%" PRIu32 "\n", pos->x, pos->y);
+}
+static void print_tspatota(void* x) {
+    ts_patota_t* elem = (ts_patota_t*) x;
+    if (ynlog) {
+        log_info(
+            logger,
+            "PID: %" PRIu32 " | PCB: %" PRIu32 ":%" PRIu32 " | TAREAS: %" PRIu32 ":%" PRIu32 "\n",
+            elem->pid, elem->pcb->inicio, elem->pcb->tamanio, elem->tareas->inicio, elem->tareas->tamanio
+        );
+        list_iterate(elem->posiciones, &print_t_posicion1);
+    }
+    else {
+        printf(
+            "PID: %" PRIu32 " | PCB: %" PRIu32 ":%" PRIu32 " | TAREAS: %" PRIu32 ":%" PRIu32 "\n",
+            elem->pid, elem->pcb->inicio, elem->pcb->tamanio, elem->tareas->inicio, elem->tareas->tamanio
+        );
+        list_iterate(elem->posiciones, &print_t_posicion1);
+    }
+}
+void print_tspatotas(bool log) {
+    ynlog = log;
+    log ? log_info(logger, "\n\n------ TS PATOTAS ------")
+        : printf("\n\n------ TS PATOTAS ------\n");
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    list_iterate(ts_patotas, &print_tspatota);
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+    log ? log_info(logger, "\n\n------------------------\n\n")
+        :   printf("\n\n------------------------\n\n");
+}
+
+static void print_tstripulante(void* x) {
+    ts_tripulante_t* elem = (ts_tripulante_t*) x;
+    if (ynlog) {
+        log_info(
+            logger,
+            "TID: %" PRIu32 " | INICIO: %" PRIu32 " | TAMANIO: %" PRIu32 "\n",
+            elem->tid, elem->tcb->inicio, elem->tcb->tamanio
+        );
+    }
+    else {
+        printf(
+            "TID: %" PRIu32 " | INICIO: %" PRIu32 " | TAMANIO: %" PRIu32 "\n",
+            elem->tid, elem->tcb->inicio, elem->tcb->tamanio
+        );
+    }
+}
+void print_tstripulantes(bool log) {
+    ynlog = log;
+    log ? log_info(logger, "\n\n------ TS TRIPULANTES ------")
+        : printf("\n\n------ TS TRIPULANTES ------\n");
+    pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    list_iterate(ts_tripulantes, &print_tstripulante);
+    pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
+    log ? log_info(logger, "\n\n------------------------\n\n")
+        :   printf("\n\n------------------------\n\n");
 }

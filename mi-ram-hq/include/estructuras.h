@@ -34,15 +34,17 @@ typedef struct {
 } segmento_t;
 
 typedef struct {
-    uint32_t pid;   // va?
+    uint32_t pid;
+    uint32_t tripulantes_inicializados;
+    t_list* posiciones;
     segmento_t* pcb;
     segmento_t* tareas;
-} ts_patota_t;      // solo tiene (siempre) esas 2 entradas
+} ts_patota_t;
 
 typedef struct {
-    uint32_t tid;   // va?
+    uint32_t tid;
     segmento_t* tcb;
-} ts_tripulante_t;  // confeccionado como tabla pero solo tiene 1 entrada
+} ts_tripulante_t;
 
 ////// PAGINACION //////
 
