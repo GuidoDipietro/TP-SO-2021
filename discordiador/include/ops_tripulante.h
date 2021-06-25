@@ -8,7 +8,6 @@
 
 #include "logs.h"
 #include "config.h"
-#include "config.h"
 #include "monitor_tripulante.h"
 
 #include "../../shared/include/protocolo.h"
