@@ -374,10 +374,7 @@ void test_tarea() {
         if (conexion_fd == -1) {
             log_error(logger, "Error en la conexion");
         }
-        op_code cop;
-        if (recv(conexion_fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
-            log_error(logger, "Error recibiendo cop %d", cop);
-        }
+
         t_tarea* r_tarea;
         if (!recv_tarea(conexion_fd, &r_tarea)) {
             log_error(logger, "Error recibiendo tarea");
@@ -910,7 +907,7 @@ void test_ida_y_vuelta_tareas() {
     // CLIENTE
     if (pid==0) {
         sem_wait(sem_hijo);
-        if (!send_solicitar_tarea(cliente_fd)) {
+        if (!send_solicitar_tarea(cliente_fd, id_tripulante)) {
             log_error(logger, "Error enviando solicitar tarea");
         }
         sem_post(sem_padre);
@@ -950,6 +947,12 @@ void test_ida_y_vuelta_tareas() {
             log_error(logger, "Error recibiendo cop %d", cop);
         }
         CU_ASSERT_EQUAL(cop, SOLICITAR_TAREA);
+
+        if (!recv_uint32_t(conexion_fd, &r_id_tripulante)) {
+            log_error(logger, "Error recibiendo tid");
+        }
+        CU_ASSERT_EQUAL(id_tripulante, r_id_tripulante);
+
         if (!send_tarea(conexion_fd, tarea)) {
             log_error(logger, "Error enviando tarea");
         }

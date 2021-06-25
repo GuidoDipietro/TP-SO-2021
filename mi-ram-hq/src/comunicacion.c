@@ -139,14 +139,16 @@ static void procesar_conexion(void* void_args) {
             }
             case SOLICITAR_TAREA:
             {
-                uint32_t pid;
-                if (!recv_uint32_t(cliente_socket, &pid)) {
-                    log_error(logger, "Error recibiendo PID en tarea solicitada");
+                uint32_t tid;
+                if (!recv_uint32_t(cliente_socket, &tid)) {
+                    log_error(logger, "Error recibiendo TID en tarea solicitada");
                 }
                 else {
-                    log_info(logger, "Tripulante en PID#%" PRIu32 " pide tarea.", pid);
+                    log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
 
                     // Fetch tarea
+                    // t_tarea* tarea = fetch_tarea(tid);
+
                     t_posicion* pos = malloc(sizeof(t_posicion));
                     pos->x = 0; pos->y = 0;
                     t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");

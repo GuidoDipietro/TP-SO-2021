@@ -184,7 +184,7 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
 }*/
 
 uint8_t solicitar_tarea(t_tripulante* t) {
-    if(!send_solicitar_tarea(t->fd_mi_ram_hq, t->pid))
+    if(!send_solicitar_tarea(t->fd_mi_ram_hq, t->tid))
         return 1;
 
     if(!recv_tarea(t->fd_mi_ram_hq, &(t->tarea)))
@@ -193,5 +193,5 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     printf("Tarea de TID#%" PRIu32 "\n", t->tid);
     print_t_tarea(t->tarea);
 
-    return 0;
+    return!! 0;
 }
