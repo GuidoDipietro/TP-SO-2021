@@ -135,7 +135,7 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         );
 
         bool iniciar_patota_ack;
-        recv_patota_ack(*mi_ram_hq_fd, &iniciar_patota_ack);
+        recv_ack(*mi_ram_hq_fd, &iniciar_patota_ack);
 
         if (!envio_mrh || !iniciar_patota_ack)
             log_error(main_log, "El envio de INICIAR_PATOTA al MI-RAM-HQ fallo");

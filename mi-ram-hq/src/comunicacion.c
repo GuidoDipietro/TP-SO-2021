@@ -52,19 +52,19 @@ static void procesar_conexion(void* void_args) {
                     // Si aunque compactemos no entra, denegar
                     if (!entra_en_mp(8+strlen(tareas)+1+21*n_tripulantes)) {
                         log_error(logger, "No hay lugar para la patota en memoria");
-                        send_patota_ack(cliente_socket, false);
+                        send_ack(cliente_socket, false);
 
                         list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
                         free(tareas);
                         break;
                     }
 
-                    send_patota_ack(cliente_socket, true);
+                    send_ack(cliente_socket, true);
 
                     // La compactacion sucede aca, de ser necesaria
                     // Carga TAREAS, genera y carga PCB
                     // Carga la tabla de segmentos de la patota en la estruct. admin.
-                    iniciar_patota_en_mp(tareas, posiciones);
+                    iniciar_patota_en_mp(n_tripulantes, tareas, posiciones);
 
                     // debug
                     char* dumpcito = mem_hexstring(memoria_principal, 2048);
@@ -77,8 +77,6 @@ static void procesar_conexion(void* void_args) {
                     // end debug
 
                     // GUI
-                    // TODO: coordinar posiciones y TID con lo que en realidad hacemos
-                    //       posible solucion: dibujar 1 por 1 cuando me llega INICIAR_SELF_EN_PATOTA
                     int err = crear_tripulantes(n_tripulantes, posiciones);
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);
@@ -88,7 +86,7 @@ static void procesar_conexion(void* void_args) {
                 }
                 else {
                     log_error(logger, "Error recibiendo patota en MRH");
-                    send_patota_ack(cliente_socket, false);
+                    send_ack(cliente_socket, false);
                 }
                 break;
             }

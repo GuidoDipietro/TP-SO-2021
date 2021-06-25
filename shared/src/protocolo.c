@@ -314,7 +314,7 @@ bool send_patota(int fd, uint32_t n_tripulantes, char* tareas, size_t sz_tareas,
     return true;
 }
 
-bool send_patota_ack(int fd, bool ack) {
+bool send_ack(int fd, bool ack) {
     void* stream = malloc(sizeof(bool));
     memcpy(stream, &ack, sizeof(bool));
     if (send(fd, stream, sizeof(bool), 0) == -1) {
@@ -324,7 +324,7 @@ bool send_patota_ack(int fd, bool ack) {
     free(stream);
     return true;
 }
-bool recv_patota_ack(int fd, bool* ack) {
+bool recv_ack(int fd, bool* ack) {
     void* stream = malloc(sizeof(bool));
     if (recv(fd, stream, sizeof(bool), 0) != sizeof(bool)) {
         free(stream);

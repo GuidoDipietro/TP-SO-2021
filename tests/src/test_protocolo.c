@@ -990,7 +990,7 @@ void test_patota_ack() {
     // CLIENTE
     if (pid==0) {
         sem_wait(sem_hijo);
-        if (!send_patota_ack(cliente_fd, ack)) {
+        if (!send_ack(cliente_fd, ack)) {
             log_error(logger, "Error enviando patota ACK");
         }
         sem_post(sem_padre);
@@ -1006,7 +1006,7 @@ void test_patota_ack() {
             log_error(logger, "Error en la conexion");
         }
         bool r_ack;
-        if (!recv_patota_ack(conexion_fd, &r_ack)) {
+        if (!recv_ack(conexion_fd, &r_ack)) {
             log_error(logger, "Error recibiendo patota ACK");
         }
 

@@ -84,6 +84,9 @@ void print_t_tarea(void* t);
 
 bool send_debug(int fd);
 
+bool send_ack(int fd, bool ack);
+bool recv_ack(int fd, bool* ack);
+
 // EXPULSAR_TRIPULANTE
 // ATENCION_SABOTAJE
 // RESOLUCION_SABOTAJE
@@ -97,8 +100,6 @@ void deserializar_uint32_t(void* stream, uint32_t* n);
 bool recv_patota(int, uint32_t*, char**, t_list**);
 bool send_patota(int, uint32_t, char*, size_t, t_list*);
 void* serializar_contenido_archivo(size_t*, char*, t_log*);
-bool send_patota_ack(int fd, bool ack);     // Se pudo inicializar la patota?
-bool recv_patota_ack(int fd, bool* ack);    // Se pudo inicializar la patota?
 
 ////// faltan
 

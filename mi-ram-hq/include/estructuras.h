@@ -35,6 +35,7 @@ typedef struct {
 
 typedef struct {
     uint32_t pid;
+    uint32_t tripulantes_totales;
     uint32_t tripulantes_inicializados;
     t_list* posiciones;
     segmento_t* pcb;

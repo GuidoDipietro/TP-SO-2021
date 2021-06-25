@@ -1,6 +1,5 @@
 - [ ] Mi-RAM-HQ pueda guardar las tareas de cada patota y dar tareas cuando se le pidan (discordiador - ops_tripulante.c:88)
 - [ ] Mi-RAM-HQ - get data en monitor_memoria.c:dump_mp(int)
-- [ ] Mi-RAM-HQ - implementar dibujo GUI con iniciar_self_en_patota para sincronizar TID::posicion
 - [ ] Mi-RAM-HQ - implementar eventos iniciar_patota e iniciar_self_en_patota PAGINACION
 - [ ] Mi-RAM-HQ - actualizar tp_patotas en utils de paginacion
 - [ ] No romper todo el TP

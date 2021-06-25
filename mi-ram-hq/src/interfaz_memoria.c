@@ -5,7 +5,9 @@ extern t_config_mrhq* cfg;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
-bool iniciar_patota_en_mp(char* tareas, t_list* posiciones) {
+static uint32_t tid_base = 0;
+
+bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     // TODO: Contemplar paginacion
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
 
@@ -38,6 +40,7 @@ bool iniciar_patota_en_mp(char* tareas, t_list* posiciones) {
 
         ts_patota_t* tabla = malloc(sizeof(ts_patota_t));
         tabla->pcb = seg_pcb;
+        tabla->tripulantes_totales = n_tripulantes;
         tabla->tripulantes_inicializados = 0;
         tabla->posiciones = list_duplicate(posiciones);
         tabla->tareas = seg_tareas;
@@ -61,7 +64,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     ts_patota_t* tabla = list_find_by_pid_plus_plus_tspatotas(pid);
     if (tabla == NULL) return false;
 
-    t_posicion* pos = (t_posicion*) list_get(tabla->posiciones, tabla->tripulantes_inicializados-1);
+    t_posicion* pos = (t_posicion*) list_get(tabla->posiciones, tid-tid_base-1);
 
     TCB_t* tcb           = malloc(sizeof(TCB_t));
 
@@ -97,6 +100,10 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
         tabla->tcb = seg_tcb;
 
         list_add_tstripulantes(tabla);
+
+        // Si es el ultimo de la patota, actualizar tid_base
+        if (tabla->tripulantes_inicializados == tabla->tripulantes_totales)
+            tid_base += tabla->tripulantes_totales;
     }
     else {
         // TODO: Contemplar paginacion (posiblemente cambiar para que no haya un if-else enorme)
