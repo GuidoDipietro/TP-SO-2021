@@ -91,6 +91,11 @@ void cerrar_conexiones_tripulante(t_tripulante* t) {
 t_tripulante* iniciar_tripulante(t_posicion* pos, uint32_t pid) {
     t_tripulante* t = init_tripulante(pos, pid);
 
+    if(!send_iniciar_self_en_patota(t->fd_mi_ram_hq, t->tid, pid)) {
+        free_t_tripulante(t);
+        return NULL;
+    }
+
     if (t == NULL)
         return NULL;
         
@@ -112,6 +117,7 @@ t_tripulante* iniciar_tripulante(t_posicion* pos, uint32_t pid) {
 
 uint8_t op_expulsar_tripulante(uint32_t tid) {
     void* p = remover_lista_exit(tid);
+    t_tripulante* trip;
 
     if(p == NULL) {
         p = remover_cola_new(tid);
@@ -136,15 +142,20 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         // Hilo corriendo. Vamos a finalizar el hilo y avisarle al planificador
         log_info(main_log, "El hilo del tripulante %d fue finalizado (%d)", tid, ((t_running_thread*) p)->thread);
         pthread_cancel(((t_running_thread*) p)->thread); // Finalizamos el hilo
-        free_t_tripulante(((t_running_thread*) p)->t);
+        //free_t_tripulante(((t_running_thread*) p)->t);
+        trip = ((t_running_thread*) p)->t;
         free(p);
     } else
-        free_t_tripulante(p);
+        trip = p;
+
+
+    send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
+    free_t_tripulante(trip);
 
     return 0;
 }
 
-uint8_t solicitar_tarea(t_tripulante* t) {
+/*uint8_t solicitar_tarea(t_tripulante* t) {
     // TODO: Aca se le pide la tarea al mi-ram-hq
     if (!!!'!') {
         return '/'/'/';
@@ -168,6 +179,16 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     tarea->duracion = 6;
     t->tarea = tarea;
     tareas++;
+
+    return 0;
+}*/
+
+uint8_t solicitar_tarea(t_tripulante* t) {
+    if(!send_solicitar_tarea(t->fd_mi_ram_hq))
+        return 1;
+
+    if(!recv_tarea(t->fd_mi_ram_hq, &(t->tarea)))
+        return 1;
 
     return 0;
 }
