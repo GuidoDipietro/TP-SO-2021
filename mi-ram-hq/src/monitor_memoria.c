@@ -10,7 +10,7 @@ extern t_bitarray* bitarray_frames;
 
 extern void* memoria_principal;
 
-/// mutex
+/// mutex y semaforos
 
 pthread_mutex_t MUTEX_SEGMENTOS_LIBRES;
 pthread_mutex_t MUTEX_SEGMENTOS_USADOS;
@@ -23,6 +23,8 @@ pthread_mutex_t MUTEX_TP_PATOTAS;
 
 pthread_mutex_t MUTEX_MP_BUSY;
 
+sem_t SEM_INICIAR_SELF_EN_PATOTA;
+
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
     pthread_mutex_init(&MUTEX_SEGMENTOS_USADOS, NULL);
@@ -32,6 +34,8 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_TS_TRIPULANTES, NULL);
     pthread_mutex_init(&MUTEX_TP_PATOTAS, NULL);
     pthread_mutex_init(&MUTEX_MP_BUSY, NULL);
+
+    sem_init(&SEM_INICIAR_SELF_EN_PATOTA, 0, 0);
 }
 
 void finalizar_mutex() {
@@ -43,6 +47,8 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_TS_TRIPULANTES);
     pthread_mutex_destroy(&MUTEX_TP_PATOTAS);
     pthread_mutex_destroy(&MUTEX_MP_BUSY);
+    
+    sem_destroy(&SEM_INICIAR_SELF_EN_PATOTA);
 }
 
 /// statics

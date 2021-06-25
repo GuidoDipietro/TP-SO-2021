@@ -1,11 +1,20 @@
 #include "../include/interfaz_memoria.h"
+#define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
 
-#define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
+extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
+
+////// Funcs
 
 static uint32_t tid_base = 0;
+
+//debug
+static void log_t_posicion(void* x) {
+    t_posicion* pos = (t_posicion*) x;
+    log_warning(logger, "%" PRIu32 "|%" PRIu32, pos->x, pos->y);
+}
 
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     // TODO: Contemplar paginacion
@@ -14,6 +23,8 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
     static uint32_t PID = 1;
 
     if (segmentacion) {
+
+        list_iterate(posiciones, &log_t_posicion); // debug
 
         // Meto el segmento TAREAS
         uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1);
@@ -47,6 +58,10 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
         tabla->pid = PID-1;
 
         list_add_tspatotas(tabla);
+
+        // Para que no se inicialicen antes que el PAPURRI
+        for (uint32_t i = 0; i<n_tripulantes; i++)
+            sem_post(&SEM_INICIAR_SELF_EN_PATOTA);
     }
 
     else {
@@ -57,14 +72,16 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
 }
 
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
+    sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
+
     // TODO: Contemplar paginacion
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
 
     // Creacion de TCB
-    ts_patota_t* tabla = list_find_by_pid_plus_plus_tspatotas(pid);
-    if (tabla == NULL) return false;
+    ts_patota_t* tabla_patota = list_find_by_pid_plus_plus_tspatotas(pid);
+    if (tabla_patota == NULL) return false;
 
-    t_posicion* pos = (t_posicion*) list_get(tabla->posiciones, tid-tid_base-1);
+    t_posicion* pos = (t_posicion*) list_get(tabla_patota->posiciones, tid-tid_base-1);
 
     TCB_t* tcb           = malloc(sizeof(TCB_t));
 
@@ -73,7 +90,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     tcb->pos_x          = pos->x;
     tcb->pos_y          = pos->y;
     tcb->id_sig_tarea   = 0;
-    tcb->dl_pcb         = tabla->pcb->inicio;
+    tcb->dl_pcb         = tabla_patota->pcb->inicio;
 
     void* s_tcb = serializar_tcb(tcb);
     if (s_tcb == NULL) {
@@ -84,26 +101,27 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
 
     // meter en MP
     if (segmentacion) {
-        uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, sizeof(TCB_t));
+        uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, 21);
         if (inicio_tcb == INICIO_INVALIDO) {
             log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
             free(tcb);
             return false;
         }
         free(tcb);
+        free(s_tcb);
 
         // Creo tabla y actualizo ts tripulantes
         segmento_t* seg_tcb = new_segmento(0, inicio_tcb, 21);
 
-        ts_tripulante_t* tabla = malloc(sizeof(ts_tripulante_t));
-        tabla->tid = tid;
-        tabla->tcb = seg_tcb;
+        ts_tripulante_t* tabla_tripulante = malloc(sizeof(ts_tripulante_t));
+        tabla_tripulante->tid = tid;
+        tabla_tripulante->tcb = seg_tcb;
 
-        list_add_tstripulantes(tabla);
+        list_add_tstripulantes(tabla_tripulante);
 
         // Si es el ultimo de la patota, actualizar tid_base
-        if (tabla->tripulantes_inicializados == tabla->tripulantes_totales)
-            tid_base += tabla->tripulantes_totales;
+        if (tabla_patota->tripulantes_inicializados == tabla_patota->tripulantes_totales)
+            tid_base += tabla_patota->tripulantes_totales;
     }
     else {
         // TODO: Contemplar paginacion (posiblemente cambiar para que no haya un if-else enorme)

@@ -190,5 +190,8 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     if(!recv_tarea(t->fd_mi_ram_hq, &(t->tarea)))
         return 1;
 
+    printf("Tarea de TID#%" PRIu32 "\n", t->tid);
+    print_t_tarea(t->tarea);
+
     return 0;
 }

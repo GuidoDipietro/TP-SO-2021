@@ -81,7 +81,7 @@ static void procesar_conexion(void* void_args) {
                     chequear_errores(err);
                     nivel_gui_dibujar(among_nivel);
 
-                    list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                    list_destroy(posiciones);
                     free(tareas);
                 }
                 else {
@@ -138,8 +138,19 @@ static void procesar_conexion(void* void_args) {
                 break;
             }
             case SOLICITAR_TAREA:
-                // TODO: enviar tarea al SMT
+            {
+                // TODO: enviar tarea de verdad al SMT
+                t_posicion* pos = malloc(sizeof(t_posicion));
+                pos->x = 0; pos->y = 0;
+                t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");
+
+                if (!send_tarea(cliente_socket, tarea_prueba)) {
+                    log_error(logger, "Error enviando la tarea inventada Ejemplito");
+                }
+                free(pos);
+                free_t_tarea(tarea_prueba);
                 break;
+            }
             case CAMBIO_ESTADO:
                 // TODO: modificar estado de tripulante en MP
                 break;

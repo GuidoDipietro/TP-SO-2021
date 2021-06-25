@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include <commons/bitarray.h>
 #include <commons/temporal.h>

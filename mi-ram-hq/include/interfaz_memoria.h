@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <semaphore.h>
 
 #include "init_mrhq.h"
 #include "estructuras.h"

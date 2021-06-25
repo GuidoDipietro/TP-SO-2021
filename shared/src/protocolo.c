@@ -29,9 +29,10 @@ t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t du
 
     return tarea;
 }
+
 void print_t_tarea(void* t) {
     t_tarea* tarea = (t_tarea*) t;
-    printf("%s %d;%d;%d;%d;%d\n",
+    printf("%s %" PRIu16 ";%" PRIu32 ";%" PRIu32 ";%" PRIu16 ";%d\n",
         tarea->nombre,
         tarea->param,
         tarea->pos->x,
@@ -551,6 +552,12 @@ bool send_tarea(int fd, t_tarea* tarea) {
     return true;
 }
 bool recv_tarea(int fd, t_tarea** tarea) {
+    // COP innecesario, era mas facil hacer esto que cambiar toda la funcion, perdon
+    op_code cop;
+    if (recv(fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+        return false;
+    }
+
     size_t size;
     if (recv(fd, &size, sizeof(size_t), 0) != sizeof(size_t)) {
         return false;

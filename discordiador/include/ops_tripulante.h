@@ -1,16 +1,20 @@
 #ifndef TP_2021_1C_UNDEFINED_TRIPULANTE_H
 #define TP_2021_1C_UNDEFINED_TRIPULANTE_H
 
-#include "../../shared/include/protocolo.h"
-#include "logs.h"
-#include "config.h"
-#include "../include/config.h"
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <inttypes.h>
+
+#include "logs.h"
+#include "config.h"
+#include "config.h"
+#include "monitor_tripulante.h"
+
+#include "../../shared/include/protocolo.h"
 #include "../../shared/include/frees.h"
 #include "../../shared/include/sockets.h"
-#include "monitor_tripulante.h"
+
 
 bool PLANIFICACION_BLOQUEADA;
 sem_t BLOQUEAR_PLANIFICADOR;
