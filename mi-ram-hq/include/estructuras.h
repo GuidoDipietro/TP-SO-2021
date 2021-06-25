@@ -21,7 +21,7 @@ typedef struct {
     uint32_t pos_y;
     uint32_t id_sig_tarea;
     uint32_t dl_pcb;
-} TCB_t; // 21 bytes
+} TCB_t; // 21 bytes (sin padding)
 
 ////// SEGMENTACION //////
 
@@ -77,7 +77,11 @@ char* stringify_ts_tripulante_t(ts_tripulante_t* tabla, char* timestamp);
 
 /// Serializacion! De nuevo
 void* serializar_pcb(PCB_t* pcb);
+PCB_t* deserializar_pcb(void* stream);
+
 void* serializar_tcb(TCB_t* tcb);
+TCB_t* deserializar_tcb(void* stream);
+
 void* serializar_string_tareas(char* string);
 
 #endif

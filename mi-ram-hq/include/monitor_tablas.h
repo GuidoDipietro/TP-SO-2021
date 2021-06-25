@@ -16,6 +16,8 @@ void asesinar_tspatotas();
 
 
 /// TS TRIPULANTES
+ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t pid);
+
 void list_add_tstripulantes(ts_tripulante_t* elem);
 void asesinar_tstripulantes();
 

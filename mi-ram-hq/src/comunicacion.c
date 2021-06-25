@@ -147,18 +147,13 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
 
                     // Fetch tarea
-                    // t_tarea* tarea = fetch_tarea(tid);
-
-                    t_posicion* pos = malloc(sizeof(t_posicion));
-                    pos->x = 0; pos->y = 0;
-                    t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");
+                    t_tarea* tarea = fetch_tarea(tid);
                     // endfetch
 
-                    if (!send_tarea(cliente_socket, tarea_prueba)) {
+                    if (!send_tarea(cliente_socket, tarea)) {
                         log_error(logger, "Error enviando la tarea inventada Ejemplito");
                     }
-                    free(pos);
-                    free_t_tarea(tarea_prueba);
+                    free_t_tarea(tarea);
                 }
                 break;
             }

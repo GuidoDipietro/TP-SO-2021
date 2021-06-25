@@ -12,6 +12,7 @@ extern t_list* ts_tripulantes;
 extern t_list* tp_patotas;
 
 static uint32_t static_pid;
+static uint32_t static_tid;
 
 /// TS PATOTAS
 
@@ -52,6 +53,19 @@ void asesinar_tspatotas() {
 }
 
 /// TS TRIPULANTES
+
+static bool ts_tripulante_t_has_tid(void* x) {
+    ts_tripulante_t* elem = (ts_tripulante_t*) x;
+    return elem->tid == static_tid;
+}
+
+ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t tid) {
+    static_tid = tid;
+    pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    ts_tripulante_t* elem = list_find(ts_tripulantes, &ts_tripulante_t_has_tid);
+    pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
+    return elem;
+}
 
 void list_add_tstripulantes(ts_tripulante_t* elem) {
     pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);

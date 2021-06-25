@@ -35,7 +35,7 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
 
         // Genero PCB y meto el segmento PCB
         PCB_t* pcb = malloc(sizeof(PCB_t));
-        pcb->dl_tareas = 1;
+        pcb->dl_tareas = inicio_tareas;
         pcb->pid = PID; PID++;
 
         uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t));
@@ -128,4 +128,37 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     }
 
     return true;
+}
+
+t_tarea* fetch_tarea(uint32_t tid) {
+    ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
+    if (tabla_tripulante == NULL) return NULL;
+
+    void* s_tcb = get_segmento_data(
+        tabla_tripulante->tcb->inicio,
+        tabla_tripulante->tcb->tamanio
+    );
+    TCB_t* tcb = deserializar_tcb(s_tcb);
+
+    log_info(
+        logger, "TID #%" PRIu32 " pide t[%" PRIu32 "], PCB en %" PRIu32 "",
+        tid, tcb->id_sig_tarea, tcb->dl_pcb
+    );
+
+    void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
+    PCB_t* pcb = deserializar_pcb(s_pcb);
+    log_info(
+        logger, "PID #%" PRIu32 ", tareas en %" PRIu32,
+        pcb->pid, pcb->dl_tareas
+    );
+
+    t_posicion* pos = malloc(sizeof(t_posicion));
+    pos->x = 0; pos->y = 0;
+    t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");
+    free(pos);
+
+    free(pcb); free(s_pcb);
+    free(tcb); free(s_tcb);
+
+    return tarea_prueba;
 }

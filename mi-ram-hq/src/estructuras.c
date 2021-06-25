@@ -112,6 +112,16 @@ void* serializar_pcb(PCB_t* pcb) {
     return choclo;
 }
 
+PCB_t* deserializar_pcb(void* stream) {
+    PCB_t* pcb = malloc(sizeof(PCB_t));
+    if (pcb == NULL) return NULL;
+
+    memcpy(&pcb->pid, stream, sizeof(uint32_t));
+    memcpy(&pcb->dl_tareas, stream+sizeof(uint32_t), sizeof(uint32_t));
+
+    return pcb;
+}
+
 void* serializar_tcb(TCB_t* tcb) {
     void* choclo = malloc(21);
     if (choclo == NULL) return NULL;
@@ -124,6 +134,20 @@ void* serializar_tcb(TCB_t* tcb) {
     memcpy(choclo+sizeof(uint32_t)+sizeof(char)+sizeof(uint32_t)+sizeof(uint32_t)+sizeof(uint32_t), &tcb->dl_pcb, sizeof(uint32_t));
 
     return choclo;
+}
+
+TCB_t* deserializar_tcb(void* stream) {
+    TCB_t* tcb = malloc(sizeof(TCB_t));
+    if (tcb == NULL) return NULL;
+
+    memcpy(&tcb->tid, stream, sizeof(uint32_t));
+    memcpy(&tcb->estado, stream+sizeof(uint32_t), sizeof(char));
+    memcpy(&tcb->pos_x, stream+sizeof(uint32_t)+sizeof(char), sizeof(uint32_t));
+    memcpy(&tcb->pos_y, stream+sizeof(uint32_t)+sizeof(char)+sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&tcb->id_sig_tarea, stream+sizeof(uint32_t)+sizeof(char)+2*sizeof(uint32_t), sizeof(uint32_t));
+    memcpy(&tcb->dl_pcb, stream+sizeof(uint32_t)+sizeof(char)+3*sizeof(uint32_t), sizeof(uint32_t));
+
+    return tcb;
 }
 
 void* serializar_string_tareas(char* string) {
