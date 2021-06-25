@@ -94,6 +94,8 @@ bool recv_ack(int fd, bool* ack);
 bool recv_tripulante(int fd, uint32_t* id_tripulante);
 bool send_tripulante(int fd, uint32_t id_tripulante, op_code cop);
 void* serializar_tripulante(uint32_t id_tripulante, op_code cop);
+
+bool recv_uint32_t(int fd, uint32_t* num);
 void deserializar_uint32_t(void* stream, uint32_t* n);
 
 // INICIAR_PATOTA //
@@ -107,11 +109,6 @@ void* serializar_contenido_archivo(size_t*, char*, t_log*);
 // INICIAR_SELF_EN_PATOTA
 bool send_iniciar_self_en_patota(int fd, uint32_t id_tripulante, uint32_t id_patota);
 bool recv_iniciar_self_en_patota(int fd, uint32_t* id_tripulante, uint32_t* id_patota);
-
-// SOLICITAR_TAREA //
-bool send_solicitar_tarea(int fd);          //Tripulante: hey! quiero una tarea!
-bool send_tarea(int fd, t_tarea* tarea);    //MRH: toma tu tarea
-bool recv_tarea(int fd, t_tarea** tarea);   //Tripulante: yuhu me llego tu tarea
 
 // MOVIMIENTO //
 bool send_movimiento(int fd, uint32_t id_t, t_posicion* origen, t_posicion* destino);
@@ -143,7 +140,7 @@ bool send_iniciar_fsck(int fd); // solo op code
 
 // INICIO_TAREA //
 // FIN_TAREA //
-bool send_solicitar_tarea(int fd);
+bool send_solicitar_tarea(int fd, uint32_t pid);
 bool send_tarea(int fd, t_tarea* t);
 bool recv_tarea(int fd, t_tarea** t);
 

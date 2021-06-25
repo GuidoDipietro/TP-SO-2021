@@ -139,16 +139,25 @@ static void procesar_conexion(void* void_args) {
             }
             case SOLICITAR_TAREA:
             {
-                // TODO: enviar tarea de verdad al SMT
-                t_posicion* pos = malloc(sizeof(t_posicion));
-                pos->x = 0; pos->y = 0;
-                t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");
-
-                if (!send_tarea(cliente_socket, tarea_prueba)) {
-                    log_error(logger, "Error enviando la tarea inventada Ejemplito");
+                uint32_t pid;
+                if (!recv_uint32_t(cliente_socket, &pid)) {
+                    log_error(logger, "Error recibiendo PID en tarea solicitada");
                 }
-                free(pos);
-                free_t_tarea(tarea_prueba);
+                else {
+                    log_info(logger, "Tripulante en PID#%" PRIu32 " pide tarea.", pid);
+
+                    // Fetch tarea
+                    t_posicion* pos = malloc(sizeof(t_posicion));
+                    pos->x = 0; pos->y = 0;
+                    t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");
+                    // endfetch
+
+                    if (!send_tarea(cliente_socket, tarea_prueba)) {
+                        log_error(logger, "Error enviando la tarea inventada Ejemplito");
+                    }
+                    free(pos);
+                    free_t_tarea(tarea_prueba);
+                }
                 break;
             }
             case CAMBIO_ESTADO:

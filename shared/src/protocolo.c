@@ -72,6 +72,10 @@ bool send_debug(int fd) {
 // ATENCION_SABOTAJE //
 // RESOLUCION_SABOTAJE //
 
+bool recv_uint32_t(int fd, uint32_t* num) {
+    return recv_tripulante(fd, num);
+}
+
 bool recv_tripulante(int fd, uint32_t* id_tripulante) {
     void* stream = malloc(sizeof(uint32_t));
     if (recv(fd, stream, sizeof(uint32_t), 0) != sizeof(uint32_t)) {
@@ -538,8 +542,19 @@ static void deserializar_tarea(void* stream, t_tarea** tarea) {
     *tarea = r_tarea;
 }
 
-bool send_solicitar_tarea(int fd) {
-    return send_codigo_op(fd, SOLICITAR_TAREA);
+bool send_solicitar_tarea(int fd, uint32_t pid) {
+    op_code cop = SOLICITAR_TAREA;
+    size_t size = sizeof(op_code) + sizeof(uint32_t);
+    void* stream = malloc(size);
+    memcpy(stream, &cop, sizeof(op_code));
+    memcpy(stream+sizeof(op_code), &pid, sizeof(uint32_t));
+
+    if (send(fd, stream, size, 0) == -1) {
+        free(stream);
+        return false;
+    }
+    free(stream);
+    return true;
 }
 bool send_tarea(int fd, t_tarea* tarea) {
     size_t size;

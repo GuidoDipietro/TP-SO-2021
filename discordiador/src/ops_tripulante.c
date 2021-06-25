@@ -184,7 +184,7 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
 }*/
 
 uint8_t solicitar_tarea(t_tripulante* t) {
-    if(!send_solicitar_tarea(t->fd_mi_ram_hq))
+    if(!send_solicitar_tarea(t->fd_mi_ram_hq, t->pid))
         return 1;
 
     if(!recv_tarea(t->fd_mi_ram_hq, &(t->tarea)))
