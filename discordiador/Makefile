@@ -45,3 +45,7 @@ clean:
 	rm -rf obj
 	rm -rf *.out
 	make clean -C ../shared
+
+remake:
+	make recontra -C ..
+	make -C ..

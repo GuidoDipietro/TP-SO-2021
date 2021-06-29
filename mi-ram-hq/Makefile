@@ -46,3 +46,7 @@ clean:
 	rm -rf *.out
 	rm -rf *.dmp
 	make clean -C ../shared
+
+remake:
+	make recontra -C ..
+	make -C ..
