@@ -6,6 +6,32 @@ extern t_config_mrhq* cfg;
 
 extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
 
+////// static
+
+static bool get_structures_from_tid
+(uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb) {
+    ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
+    if (tabla_tripulante == NULL) return false;
+    *p_tabla_tripulante = tabla_tripulante;
+
+    // Leemos TCB
+    void* s_tcb = get_segmento_data(
+        tabla_tripulante->tcb->inicio,
+        tabla_tripulante->tcb->tamanio
+    );
+    TCB_t* tcb = deserializar_tcb(s_tcb);
+    *p_tcb = tcb;
+
+    // Leemos PCB
+    void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
+    PCB_t* pcb = deserializar_pcb(s_pcb);
+    *p_pcb = pcb;
+
+    free(s_tcb); free(s_pcb);
+
+    return true;
+}
+
 ////// Funcs
 
 static uint32_t tid_base = 0;
@@ -130,29 +156,33 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     return true;
 }
 
+bool borrar_tripulante_de_mp(uint32_t tid) {
+    // Leemos TCB y PCB
+    ts_tripulante_t* tabla_tripulante;
+    TCB_t* tcb;
+    PCB_t* pcb;
+    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+        return false;
+
+    if (!eliminar_segmento_de_mp(tabla_tripulante->tcb->inicio)) {
+        log_error(logger, "Fallo eliminando segmento de TID#%" PRIu32, tcb->tid);
+        free(tcb); free(pcb);
+        return false;
+    }
+
+    // TODO if patota vacia, borrar patota
+
+    free(tcb); free(pcb);
+    return true;
+}
+
 t_tarea* fetch_tarea(uint32_t tid) {
-    ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
-    if (tabla_tripulante == NULL) return NULL;
-
-    // Leemos TCB
-    void* s_tcb = get_segmento_data(
-        tabla_tripulante->tcb->inicio,
-        tabla_tripulante->tcb->tamanio
-    );
-    TCB_t* tcb = deserializar_tcb(s_tcb);
-
-    /*log_info(
-        logger, "TID #%" PRIu32 " pide t[%" PRIu32 "], PCB en %" PRIu32 "",
-        tid, tcb->id_sig_tarea, tcb->dl_pcb
-    );*/
-
-    // Leemos PCB
-    void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
-    PCB_t* pcb = deserializar_pcb(s_pcb);
-    /*log_info(
-        logger, "PID #%" PRIu32 ", tareas en %" PRIu32,
-        pcb->pid, pcb->dl_tareas
-    );*/
+    // Recuperamos tabla tripulante, TCB y PCB
+    ts_tripulante_t* tabla_tripulante;
+    TCB_t* tcb;
+    PCB_t* pcb;
+    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+        return NULL;
 
     // Leemos tareas
     segmento_t* seg_tareas = list_find_by_inicio_segus(pcb->dl_tareas);
@@ -164,7 +194,6 @@ t_tarea* fetch_tarea(uint32_t tid) {
     uint32_t cant_tareas = 0;
     for (; *p_a_tareas != NULL; p_a_tareas++, cant_tareas++)
         ;
-    //log_info(logger, "Tenemos %" PRIu32 " tareas en patota %" PRIu32 "!", cant_tareas, pcb->pid);
 
     t_tarea* tarea;
     if (tcb->id_sig_tarea < cant_tareas)
@@ -178,15 +207,16 @@ t_tarea* fetch_tarea(uint32_t tid) {
 
     // Actualizamos TCB (id sig tarea + 1 'persistido' en RAM)
     tcb->id_sig_tarea = tcb->id_sig_tarea + 1;
-    free(s_tcb);
-    s_tcb = serializar_tcb(tcb);
+    void* s_tcb = serializar_tcb(tcb);
     memcpy_segmento_en_mp(tabla_tripulante->tcb->inicio, s_tcb, tabla_tripulante->tcb->tamanio);
 
     // Murders
-    free(pcb); free(s_pcb);
+    free(pcb);
     free(tcb); free(s_tcb);
     free(tareas);
     string_split_free(&a_tareas);
 
     return tarea;
 }
+
+//////

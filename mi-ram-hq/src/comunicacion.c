@@ -72,7 +72,7 @@ static void procesar_conexion(void* void_args) {
                     free(dumpcito);
                     print_seglib(true);
                     print_segus(true);
-                    print_tspatotas(true);      // esto genera un invalid read DIOS sabe por que
+                    print_tspatotas(true);
                     print_tstripulantes(true);
                     // end debug
 
@@ -90,6 +90,7 @@ static void procesar_conexion(void* void_args) {
                 }
                 break;
             }
+
             case INICIAR_SELF_EN_PATOTA:
             {
                 uint32_t id_tripulante;
@@ -109,32 +110,51 @@ static void procesar_conexion(void* void_args) {
                 }
                 break;
             }
+
             case MOVIMIENTO:
             {
                 uint32_t id_tripulante;
                 t_posicion *origen, *destino;
-                if (!recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
+                if (recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
+                    // MP
+                    // TODO
+
+                    // GUI
+                    int err = mover_tripulante(id_tripulante, destino);
+                    chequear_errores(err);
+
+                    log_info(logger, "Se movio al %d de %d|%d a %d|%d",
+                        id_tripulante, origen->x, origen->y, destino->x, destino->y
+                    );
+                    free_t_posicion(origen);
+                    free_t_posicion(destino);
+                }
+                else {
                     log_error(logger, "Error recibiendo movimiento");
                 }
-
-                int err = mover_tripulante(id_tripulante, destino);
-                chequear_errores(err);
-
-                log_info(logger, "Se movio al %d de %d|%d a %d|%d",
-                    id_tripulante, origen->x, origen->y, destino->x, destino->y
-                );
-                free_t_posicion(origen);
-                free_t_posicion(destino);
                 break;
             }
+
             case EXPULSAR_TRIPULANTE:
             {
                 uint32_t id_tripulante;
-                 if (recv_tripulante(cliente_socket, &id_tripulante)) {
+                if (recv_tripulante(cliente_socket, &id_tripulante)) {
+                    // MP
+                    if (!borrar_tripulante_de_mp(id_tripulante)) {
+                        log_error(logger,
+                            "Error borrando tripulante %" PRIu32 "\n",
+                            id_tripulante
+                        );
+                        break;
+                    }
+
+                    // GUI
                     int err = expulsar_tripulante(id_tripulante);
                     chequear_errores(err);
-                    // TODO: borrar tripulante de memoria
-                 }
+                }
+                else {
+                    log_error(logger, "Error recibiendo EXPULSAR_TRIPULANTE");
+                }
                 break;
             }
             case SOLICITAR_TAREA:
@@ -146,12 +166,10 @@ static void procesar_conexion(void* void_args) {
                 else {
                     log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
 
-                    // Fetch tarea
                     t_tarea* tarea = fetch_tarea(tid);
-                    // endfetch
 
                     if (!send_tarea(cliente_socket, tarea)) {
-                        log_error(logger, "Error enviando la tarea inventada Ejemplito");
+                        log_error(logger, "Error enviando la tarea a TID#%" PRIu32, tid);
                     }
                     free_t_tarea(tarea);
                 }
