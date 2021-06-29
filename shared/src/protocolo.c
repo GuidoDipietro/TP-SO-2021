@@ -24,6 +24,7 @@ t_tarea* tarea_create(char* nombre, uint16_t param, t_posicion* pos, uint16_t du
     else if (!strcmp(tipo, "CONSUMIR_OXIGENO")) t = CONSUMIR_OXIGENO_T;
     else if (!strcmp(tipo, "GENERAR_BASURA")) t = GENERAR_BASURA_T;
     else if (!strcmp(tipo, "DESCARTAR_BASURA")) t = DESCARTAR_BASURA_T;
+    else if (!strcmp(tipo, "NULL")) t = NULL_T;
     else t = OTRO_T;
     tarea->tipo = t;
 

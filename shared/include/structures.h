@@ -9,7 +9,7 @@ typedef enum {
     EXEC,
     BLOCKED,
     BLOCKEDSAB,
-    EXIT
+    EXIT,
 } t_status;
 
 typedef enum {
@@ -20,6 +20,7 @@ typedef enum {
     GENERAR_BASURA_T    = 18,
     DESCARTAR_BASURA_T  = 19,
     OTRO_T              = 20,
+    NULL_T              = 69,
 } tipo_tarea;
 
 typedef enum {

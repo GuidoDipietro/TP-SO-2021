@@ -13,6 +13,7 @@
 #include "../../shared/include/protocolo.h"
 #include "../../shared/include/frees.h"
 #include "../../shared/include/sockets.h"
+#include "../../shared/include/structures.h"
 
 
 bool PLANIFICACION_BLOQUEADA;

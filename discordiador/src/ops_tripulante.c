@@ -190,8 +190,15 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     if(!recv_tarea(t->fd_mi_ram_hq, &(t->tarea)))
         return 1;
 
-    printf("Tarea de TID#%" PRIu32 "\n", t->tid);
-    print_t_tarea(t->tarea);
+    // Si le llega la tarea NULL, no hay mas
+    if (t->tarea->tipo == NULL_T) {
+        printf("No hay mas tareas para TID#%" PRIu32 "\n", t->tid);
+        return 1;
+    }
+    else {
+        printf("Tarea de TID#%" PRIu32 "\n", t->tid);
+        print_t_tarea(t->tarea);
+    }
 
     return!! 0;
 }

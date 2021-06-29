@@ -134,31 +134,59 @@ t_tarea* fetch_tarea(uint32_t tid) {
     ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
     if (tabla_tripulante == NULL) return NULL;
 
+    // Leemos TCB
     void* s_tcb = get_segmento_data(
         tabla_tripulante->tcb->inicio,
         tabla_tripulante->tcb->tamanio
     );
     TCB_t* tcb = deserializar_tcb(s_tcb);
 
-    log_info(
+    /*log_info(
         logger, "TID #%" PRIu32 " pide t[%" PRIu32 "], PCB en %" PRIu32 "",
         tid, tcb->id_sig_tarea, tcb->dl_pcb
-    );
+    );*/
 
+    // Leemos PCB
     void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
     PCB_t* pcb = deserializar_pcb(s_pcb);
-    log_info(
+    /*log_info(
         logger, "PID #%" PRIu32 ", tareas en %" PRIu32,
         pcb->pid, pcb->dl_tareas
-    );
+    );*/
 
-    t_posicion* pos = malloc(sizeof(t_posicion));
-    pos->x = 0; pos->y = 0;
-    t_tarea* tarea_prueba = tarea_create("Ejemplito",3,pos,5,"TAOYU");
-    free(pos);
+    // Leemos tareas
+    segmento_t* seg_tareas = list_find_by_inicio_segus(pcb->dl_tareas);
+    char* tareas = (char*) get_segmento_data(seg_tareas->inicio, seg_tareas->tamanio);
 
+    // Obtenemos la tarea numero N si existe
+    char** a_tareas = string_split(tareas, "\n");
+    char** p_a_tareas = a_tareas;
+    uint32_t cant_tareas = 0;
+    for (; *p_a_tareas != NULL; p_a_tareas++, cant_tareas++)
+        ;
+    //log_info(logger, "Tenemos %" PRIu32 " tareas en patota %" PRIu32 "!", cant_tareas, pcb->pid);
+
+    t_tarea* tarea;
+    if (tcb->id_sig_tarea < cant_tareas)
+        tarea = tarea_string_to_t_tarea(*(a_tareas+tcb->id_sig_tarea));
+    else {
+        t_posicion* pos = malloc(sizeof(t_posicion));
+        pos->x = 0; pos->y = 0;
+        tarea = tarea_create("NULL", 0, pos, 0, "NULL");
+        free(pos);
+    }
+
+    // Actualizamos TCB (id sig tarea + 1 'persistido' en RAM)
+    tcb->id_sig_tarea = tcb->id_sig_tarea + 1;
+    free(s_tcb);
+    s_tcb = serializar_tcb(tcb);
+    memcpy_segmento_en_mp(tabla_tripulante->tcb->inicio, s_tcb, tabla_tripulante->tcb->tamanio);
+
+    // Murders
     free(pcb); free(s_pcb);
     free(tcb); free(s_tcb);
+    free(tareas);
+    string_split_free(&a_tareas);
 
-    return tarea_prueba;
+    return tarea;
 }

@@ -51,7 +51,7 @@ void list_add_segus(segmento_t* seg);
 void list_remove_by_inicio_segus(uint32_t inicio);
 uint32_t list_size_segus();
 segmento_t* list_find_by_inicio_segus(uint32_t inicio);
-segmento_t* list_get_segus();
+segmento_t* list_get_segus(uint32_t indice);
 void asesinar_segus();
 /// END SEGUS
 
