@@ -8,6 +8,7 @@
 #include "../../shared/include/structures.h"
 #include "../../shared/include/protocolo.h"
 #include "logs.h"
+//#include "ops_tripulante.h"
 
 // Semaforo del planificador
 
@@ -34,6 +35,10 @@ typedef struct {
     sem_t sem_pause;
     bool blocked;
 } t_running_thread;
+
+// Alguna util
+
+void cambiar_estado(t_tripulante* p, t_status nuevo);
 
 // Cola NEW
 

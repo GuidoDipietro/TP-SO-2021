@@ -34,7 +34,7 @@ void reanudar_planificacion() {
 
     while(largo_cola_new()) { // Movemos todos los hilos de NEW a READY
         t_running_thread* r_t = pop_cola_new();
-        (r_t->t)->status = READY;
+        //(r_t->t)->status = READY;
         push_cola_tripulante(r_t);
     }
     log_info(main_log, "Planificacion desbloqueada");

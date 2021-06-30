@@ -22,7 +22,8 @@ void planificador() {
 
         t_running_thread* new = pop_cola_tripulante();
         // Preparamos el hilo para correr
-        (new->t)->status = EXEC;
+        //(new->t)->status = EXEC;
+        cambiar_estado(new->t, EXEC);
         new->blocked = false;
         monitor_add_lista_hilos((void*) new);
         sem_post(&(new->sem_pause)); // Para arrancar el loop
@@ -141,7 +142,7 @@ uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) 
 
     thread_data->quantum = 0;
     push_cola_tripulante(thread_data);
-    t->status = READY;
+    //t->status = READY;
     return 0;
 }
 

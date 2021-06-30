@@ -182,6 +182,7 @@ static void procesar_conexion(void* void_args) {
             }
             case CAMBIO_ESTADO:
                 // TODO: modificar estado de tripulante en MP
+                log_info(logger, "Cambio de estado");
                 break;
             // Errores
             case -1:
