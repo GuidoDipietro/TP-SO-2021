@@ -79,6 +79,32 @@ ts_patota_t* list_find_by_inicio_tareas_tspatotas(uint32_t inicio) {
     return elem;
 }
 
+char* stringify_tspatotas() {
+    size_t size_line = 55*2; // sin el \0
+
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    size_t size_str = list_size(ts_patotas) * size_line + 1; // rows * size_row + \0
+    char* str = malloc(size_str);
+    memset(str, 0, size_str);
+    
+    t_list_iterator* i_ts_patotas = list_iterator_create(ts_patotas);
+    for (int i = 0; list_iterator_has_next(i_ts_patotas); i++) {
+        ts_patota_t* row = list_iterator_next(i_ts_patotas);
+        char* line = string_from_format(
+            "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n"
+            "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
+            row->pid, row->tareas->tipo , row->tareas->inicio   , row->tareas->tamanio,
+            row->pid, row->pcb->tipo    , row->pcb->inicio      , row->pcb->tamanio
+        );
+        memcpy(str+size_line*i, line, strlen(line)); // sin el \0
+        free(line);
+    }
+    list_iterator_destroy(i_ts_patotas);
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+
+    return str;
+}
+
 void asesinar_tspatotas() {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     list_destroy_and_destroy_elements(ts_patotas, &free_ts_patota_t);

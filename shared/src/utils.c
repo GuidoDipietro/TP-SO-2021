@@ -147,3 +147,8 @@ t_tarea* tarea_string_to_t_tarea(char* str_tarea) {
 void ciclo() {
     usleep(CICLO_SEGS);
 }
+
+char F() {
+    return 'F';
+}
+

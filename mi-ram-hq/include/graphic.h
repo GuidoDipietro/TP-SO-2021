@@ -10,11 +10,10 @@
 #include <curses.h>
 
 void iniciar_gui(char*);
+void finalizar_gui();
 int crear_tripulantes(uint32_t, t_list*);
 int expulsar_tripulante(uint32_t);
 void chequear_errores(int);
 int mover_tripulante(uint32_t, t_posicion*);
-
-NIVEL* among_nivel;
 
 #endif

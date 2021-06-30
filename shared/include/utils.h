@@ -26,4 +26,6 @@ char* leer_archivo_completo(char*);
 
 void ciclo();
 
+char F(); // por si hay que poner F en el chat
+
 #endif

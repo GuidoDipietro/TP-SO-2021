@@ -1,6 +1,8 @@
 #include "../include/comunicacion.h"
 #include <commons/memory.h> // temp
 
+extern NIVEL* among_nivel;
+
 extern t_log* logger;
 extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
@@ -207,7 +209,7 @@ static void procesar_conexion(void* void_args) {
     return;
 }
 
-int server_escuchar(char* server_name, int server_socket){
+int server_escuchar(char* server_name, int server_socket) {
     int cliente_socket = esperar_cliente(logger, server_name, server_socket);
 
     if (cliente_socket != -1) {

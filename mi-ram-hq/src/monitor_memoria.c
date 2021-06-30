@@ -114,19 +114,20 @@ segmento_t* segmento_t_duplicate(segmento_t* s) {
 
 void dump_mp() {
     char* timestamp = temporal_get_string_time("%d_%m_%y--%H_%M_%S");
-    char* filename = calloc(9 + strlen(timestamp) + 1, 1);
-    snprintf(filename, 9 + strlen(timestamp) + 1, "Dump_%s.dmp", timestamp);
+    char* filename = string_from_format("Dump_%s.dmp", timestamp);
     FILE* dump_file = fopen(filename, "w+");
 
-    char* data = malloc(13);
-    // TO DO: this
+    char* hr = string_repeat('-', 50);
+    char* data = NULL;
     if (strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0) {
-        // get data segmentacion a "data"
-        snprintf(data, 13, "segmentacion");
+        char* str_tspatotas = stringify_tspatotas();
+        log_warning(logger, "Lol?\n%s", str_tspatotas);
+        data = string_from_format("\n%s\nDump: %s\n%s\n%s\n\n", hr, timestamp, str_tspatotas, hr);
+        free(str_tspatotas);
     }
     else if (strcmp(cfg->ESQUEMA_MEMORIA, "PAGINACION") == 0) {
-        // get data paginacion a "data"
-        snprintf(data, 13, "paginacion!!");
+        // TODO: get data paginacion a "data"
+        data = strdup("paginacion!!");
     }
     else goto die;
 
@@ -134,6 +135,7 @@ void dump_mp() {
 
     die:
         fclose(dump_file);
+        free(hr);
         free(data);
         free(timestamp);
         free(filename);

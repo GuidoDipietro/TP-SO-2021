@@ -20,4 +20,6 @@
 #define SERVERNAME "MRH_SERVER"
 #define NIVELNAME "AMONG-OS"
 
+void sighandler(int x);
+
 #endif

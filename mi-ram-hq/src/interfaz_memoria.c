@@ -24,7 +24,7 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
 
     if (segmentacion) {
 
-        list_iterate(posiciones, &log_t_posicion); // debug
+        // list_iterate(posiciones, &log_t_posicion); // debug
 
         // Meto el segmento TAREAS
         uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1, TAREAS_SEG);
@@ -76,7 +76,7 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
 
-    log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
+    // log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
 
     // TODO: Contemplar paginacion
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;

@@ -1,12 +1,19 @@
 #include "../include/graphic.h"
 
+NIVEL* among_nivel;
+
 extern t_log* logger;
 
 void iniciar_gui(char* name) {
-    nivel_gui_inicializar();
-    // log_info(logger, "Se inicializo correctamente la ventana de MRH");
+    int err = nivel_gui_inicializar();
+    if (err) return;
     among_nivel = nivel_crear(name);
     nivel_gui_dibujar(among_nivel);
+}
+
+void finalizar_gui() {
+    nivel_destruir(among_nivel);
+    nivel_gui_terminar();
 }
 
 int crear_tripulantes(uint32_t c_tripulantes, t_list* posiciones) {
@@ -24,7 +31,7 @@ int crear_tripulantes(uint32_t c_tripulantes, t_list* posiciones) {
 
 int mover_tripulante(uint32_t id_tripulante, t_posicion* posicion) {
     int err;
-    // para funcion chequear_errores()
+
     err = item_mover(among_nivel, (char) id_tripulante+48, posicion->x, posicion->y);
 
     nivel_gui_dibujar(among_nivel);
@@ -35,7 +42,6 @@ int mover_tripulante(uint32_t id_tripulante, t_posicion* posicion) {
 int expulsar_tripulante(uint32_t id_tripulante) {
     int err;
 
-    // para funcion chequear_errores()
     err = item_borrar(among_nivel, (char) id_tripulante+48);
 
     nivel_gui_dibujar(among_nivel);
@@ -44,5 +50,9 @@ int expulsar_tripulante(uint32_t id_tripulante) {
 }
 
 void chequear_errores(int err) {
-    if (err) log_error(logger, "NIVEL_GUI_STRING_ERROR: %s", nivel_gui_string_error(err));
+    if (err) {
+        char* err_str = nivel_gui_string_error(err);
+        log_error(logger, "NIVEL_GUI_STRING_ERROR: %s", err_str);
+        free(err_str);
+    }
 }
