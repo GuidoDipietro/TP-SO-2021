@@ -145,11 +145,11 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         //free_t_tripulante(((t_running_thread*) p)->t);
         trip = ((t_running_thread*) p)->t;
         free(p);
+        send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
+        // si el tripulante esta en exit, el mi-ram-alta-calidad ya borro el TCB, por lo que no hace falta avisarle
     } else
         trip = p;
 
-
-    send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
     free_t_tripulante(trip);
 
     return 0;

@@ -67,6 +67,8 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
     }
 
     final:
+        // Avisamos al mi-ram-alta-calidad para que borre el TCB
+        send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
         cerrar_conexiones_tripulante(t);
         agregar_lista_exit(t);
         sem_destroy(&(thread_data->sem_pause));
@@ -110,6 +112,8 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
     }
 
     final:
+        // Avisamos al mi-ram-alta-calidad para que borre el TCB
+        send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
         cerrar_conexiones_tripulante(t);
         agregar_lista_exit(t);
         sem_destroy(&(thread_data->sem_pause));
