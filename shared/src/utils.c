@@ -55,7 +55,6 @@ t_list* extraer_posiciones(char** str_posiciones) {
                 string_split_len(pos_arr) != 2 ||
                 !(solo_numeros(pos_arr[0]) && solo_numeros(pos_arr[1]))
         ) {
-            list_destroy(lista);
             string_split_free(&pos_arr);
             list_destroy_and_destroy_elements(lista, free_t_posicion);
             return NULL;

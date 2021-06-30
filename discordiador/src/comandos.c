@@ -26,12 +26,12 @@ static char* argumento_unico(char* args) {
 }
 
 static void mensaje_error_con_args(char* cmd, char* formato) {
-    printf("\nEl formato del comando es incorrecto. El formato correcto es\n");
+    log_error(main_log, "El formato del comando es incorrecto. El formato correcto es");
     printf("\n%s %s\n", cmd, formato);
 }
 
 static void mensaje_error_sin_args(char* cmd) {
-    printf("\nEl comando %s no acepta argumentos\n", cmd);
+    log_error(main_log, "El comando %s no acepta argumentos", cmd);
 }
 
 //
@@ -75,11 +75,11 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         if(cant_args == 0) {
             // cantidad no puede ser 0 / esta mal inicializado
             error = true;
-            printf("\nFormato invalido o cantidad debe ser mayor que 0.\n");
+            log_error(main_log, "Formato invalido o cantidad debe ser mayor que 0.");
         } else if (cant_args > cantidad_tripulantes) {
             // hay mas posiciones que tripulantes inicializados
             error = true;
-            printf("\nHay mas posiciones que tripulantes inicializados.\n");
+            log_error(main_log, "Hay mas posiciones que tripulantes inicializados.");
         }
 
         if (error) {
@@ -90,6 +90,11 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
 
         lista_posiciones = extraer_posiciones(init_pos);
         string_split_free(&init_pos);
+
+        if(lista_posiciones == NULL) { // Error parseando
+            log_error(main_log, "Posicion de tripulante ingresada no es valida.");
+            return;
+        }
     } else
         lista_posiciones = list_create();
 
