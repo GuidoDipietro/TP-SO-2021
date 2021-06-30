@@ -24,6 +24,8 @@ pthread_mutex_t MUTEX_TP_PATOTAS;
 pthread_mutex_t MUTEX_MP_BUSY;
 
 sem_t SEM_INICIAR_SELF_EN_PATOTA;
+sem_t SEM_COMPACTACION_START;
+sem_t SEM_COMPACTACION_DONE;
 
 void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_SEGMENTOS_LIBRES, NULL);
@@ -36,6 +38,8 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_MP_BUSY, NULL);
 
     sem_init(&SEM_INICIAR_SELF_EN_PATOTA, 0, 0);
+    sem_init(&SEM_COMPACTACION_START, 0, 0);
+    sem_init(&SEM_COMPACTACION_DONE, 0, 0);
 }
 
 void finalizar_mutex() {
@@ -49,6 +53,8 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_MP_BUSY);
     
     sem_destroy(&SEM_INICIAR_SELF_EN_PATOTA);
+    sem_destroy(&SEM_COMPACTACION_DONE);
+    sem_destroy(&SEM_COMPACTACION_START);
 }
 
 /// statics
@@ -80,9 +86,9 @@ static bool comp_segmento_t_indice(void* s1, void* s2) {
 
 /// cosas que serian static pero las uso en otro lado
 
-segmento_t* new_segmento(uint8_t n, uint32_t inicio, uint32_t taman) {
+segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t inicio, uint32_t taman) {
     segmento_t* seg = malloc(sizeof(segmento_t));
-    seg->nro_segmento = n;
+    seg->tipo = tipo;
     seg->tamanio = taman;
     seg->inicio = inicio;
     return seg;
@@ -90,7 +96,7 @@ segmento_t* new_segmento(uint8_t n, uint32_t inicio, uint32_t taman) {
 segmento_t* segmento_t_duplicate(segmento_t* s) {
     if (s==NULL) return NULL;
     segmento_t* seg = malloc(sizeof(segmento_t));
-    seg->nro_segmento = s->nro_segmento;
+    seg->tipo = s->tipo;
     seg->inicio = s->inicio;
     seg->tamanio = s->tamanio;
     return seg;
@@ -361,11 +367,11 @@ void print_segmento_t(void* s) {
     segmento_t* seg = (segmento_t*) s;
     log ? log_info(
         logger,
-        "#%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
-        seg->nro_segmento, seg->inicio, seg->tamanio
+        "#%d -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        seg->tipo, seg->inicio, seg->tamanio
     )   : printf(
-        "#%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
-        seg->nro_segmento, seg->inicio, seg->tamanio
+        "#%d -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        seg->tipo, seg->inicio, seg->tamanio
     );
 }
 void print_seglib(bool ynlog) {

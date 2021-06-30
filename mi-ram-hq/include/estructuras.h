@@ -27,8 +27,14 @@ typedef struct {
 
 // TS === TABLA DE SEGMENTOS
 // segmento_t se usa como entrada en lista de huecos, lista de segmentos usados, y para las tablas
+typedef enum {
+    PCB_SEG,
+    TCB_SEG,
+    TAREAS_SEG,
+} tipo_segmento_t;
+
 typedef struct {
-    uint8_t nro_segmento;
+    tipo_segmento_t tipo;
     uint32_t inicio;
     uint32_t tamanio;
 } segmento_t;

@@ -13,6 +13,7 @@ extern t_list* tp_patotas;
 
 static uint32_t static_pid;
 static uint32_t static_tid;
+static uint32_t static_inicio;
 
 /// TS PATOTAS
 
@@ -21,9 +22,20 @@ static bool ts_patota_t_has_pid(void* x) {
     return elem->pid == static_pid;
 }
 
+static bool ts_patota_t_pcb_has_inicio(void* x) {
+    ts_patota_t* elem = (ts_patota_t*) x;
+    return elem->pcb->inicio == static_inicio;
+}
+
 void list_add_tspatotas(ts_patota_t* elem) {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     list_add(ts_patotas, (void*) elem);
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+}
+
+void list_delete_by_pid_tspatotas(uint32_t pid) {
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    list_remove_and_destroy_by_condition(ts_patotas, &ts_patota_t_has_pid, &free_ts_patota_t);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
 }
 
@@ -46,6 +58,14 @@ ts_patota_t* list_find_by_pid_tspatotas(uint32_t pid) {
     return elem;
 }
 
+ts_patota_t* list_find_by_inicio_pcb_tspatotas(uint32_t inicio) {
+    static_inicio = inicio;
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_pcb_has_inicio);
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+    return elem;
+}
+
 void asesinar_tspatotas() {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     list_destroy_and_destroy_elements(ts_patotas, &free_ts_patota_t);
@@ -58,6 +78,10 @@ static bool ts_tripulante_t_has_tid(void* x) {
     ts_tripulante_t* elem = (ts_tripulante_t*) x;
     return elem->tid == static_tid;
 }
+static bool ts_tripulante_t_tcb_has_inicio(void* x) {
+    ts_tripulante_t* elem = (ts_tripulante_t*) x;
+    return elem->tcb->inicio == static_inicio;
+}
 
 ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t tid) {
     static_tid = tid;
@@ -65,6 +89,20 @@ ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t tid) {
     ts_tripulante_t* elem = list_find(ts_tripulantes, &ts_tripulante_t_has_tid);
     pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
     return elem;
+}
+
+ts_tripulante_t* list_find_by_inicio_tcb_tstripulantes(uint32_t inicio) {
+    static_inicio = inicio;
+    pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    ts_tripulante_t* elem = list_find(ts_tripulantes, &ts_tripulante_t_tcb_has_inicio);
+    pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
+    return elem;
+}
+
+void list_delete_by_tid_tstripulantes(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    list_remove_and_destroy_by_condition(ts_tripulantes, &ts_tripulante_t_has_tid, &free_ts_tripulante_t);
+    pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
 }
 
 void list_add_tstripulantes(ts_tripulante_t* elem) {

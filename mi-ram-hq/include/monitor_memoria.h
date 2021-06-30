@@ -28,7 +28,7 @@ void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data);
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
 
-segmento_t* new_segmento(uint8_t n, uint32_t inicio, uint32_t taman);
+segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t inicio, uint32_t taman);
 segmento_t* segmento_t_duplicate(segmento_t*);
 
 /// SEGLIB

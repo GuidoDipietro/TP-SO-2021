@@ -12,6 +12,8 @@ extern char* puntero_a_bits;
 extern t_bitarray* bitarray_frames;
 
 extern pthread_mutex_t MUTEX_MP;
+extern sem_t SEM_COMPACTACION_DONE;
+extern sem_t SEM_COMPACTACION_START;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
@@ -21,13 +23,40 @@ bool entra_en_mp(uint32_t tamanio) {
     return memoria_disponible >= tamanio;
 }
 
+bool get_structures_from_tid
+(uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb) {
+    ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
+    if (tabla_tripulante == NULL) return false;
+    *p_tabla_tripulante = tabla_tripulante;
+
+    // Leemos TCB
+    void* s_tcb = get_segmento_data(
+        tabla_tripulante->tcb->inicio,
+        tabla_tripulante->tcb->tamanio
+    );
+    TCB_t* tcb = deserializar_tcb(s_tcb);
+    *p_tcb = tcb;
+
+    // Leemos PCB
+    void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
+    PCB_t* pcb = deserializar_pcb(s_pcb);
+    *p_pcb = pcb;
+
+    free(s_tcb); free(s_pcb);
+
+    return true;
+}
+
 // Meter chorizo de bytes en MP y actualiza listas de registro.
 // Si se llama a esta func es porque ya se sabe que entra
 // Devuelve la Dir fisica del segmento, o INICIO_INVALIDO si explota (no deberia pasar)
-uint32_t meter_segmento_en_mp(void* data, uint32_t size) {
+uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo) {
     segmento_t* hueco_victima = (*proximo_hueco)(size);
     if (hueco_victima == NULL) {
+        sem_post(&SEM_COMPACTACION_START);
         compactar_mp();
+        sem_wait(&SEM_COMPACTACION_DONE);
+
         segmento_t* hueco_victima = (*proximo_hueco)(size);
         if (hueco_victima == NULL)
             return INICIO_INVALIDO; // no hay hueco (no deberia pasar)
@@ -48,7 +77,7 @@ uint32_t meter_segmento_en_mp(void* data, uint32_t size) {
         return INICIO_INVALIDO;
     }
 
-    list_add_segus(new_segmento(0, inicio, size)); // Al final, por si exploto todo antes
+    list_add_segus(new_segmento(tipo, inicio, size)); // Al final, por si exploto todo antes
 
     return inicio;
 }
@@ -74,12 +103,36 @@ bool eliminar_segmento_de_mp(uint32_t inicio) {
     }
     list_add_seglib(hueco_generado);
 
+    // Importante
+    memoria_disponible += segmento->tamanio;
+
     // Memset fisico
     memset_0_segmento_en_mp(segmento->inicio, segmento->tamanio);
     list_remove_by_inicio_segus(segmento->inicio);
     return true;
 }
 
+static void fix_inicio_seg_en_mp(segmento_t* seg, uint32_t inicio_destino) {
+    switch (seg->tipo) {
+        case TCB_SEG:
+        {
+            ts_tripulante_t* tabla_trip = list_find_by_inicio_tcb_tstripulantes(seg->inicio);
+            tabla_trip->tcb->inicio = inicio_destino;
+            break;
+        }
+        case PCB_SEG:
+        {
+            ts_patota_t* tabla_patota = list_find_by_inicio_pcb_tspatotas(seg->inicio);
+            // !!! THIS SHIT DOESN'T WORK !! WHY? HAS I EVER?
+            break;
+        }
+        case TAREAS_SEG:
+        {
+            // no.
+            break;
+        }
+    }
+}
 static bool compactar_mp_iteracion(uint32_t i) {
     segmento_t* segmento = list_get_segus(i);
     if (segmento == NULL) return false;     // no existe!!
@@ -90,6 +143,9 @@ static bool compactar_mp_iteracion(uint32_t i) {
 
     uint32_t inicio_original = segmento->inicio;
     uint32_t inicio_destino = hueco->inicio;
+
+    // Guardamos varias DLs en memoria... hay que actualizarlas
+    fix_inicio_seg_en_mp(segmento, inicio_destino);
 
     // Muevo segmento y muevo hueco
     segmento->inicio = hueco->inicio;
@@ -110,12 +166,22 @@ static bool compactar_mp_iteracion(uint32_t i) {
     return true;
 }
 bool compactar_mp() {
-    if (list_is_empty_segus()) return true;
+    sem_wait(&SEM_COMPACTACION_START);
+
+    if (list_is_empty_segus()) {
+        sem_post(&SEM_COMPACTACION_DONE);
+        return true;
+    }
 
     log_info(logger, "Compactando memoria...");
     uint32_t segmentos = list_size_segus();
     for (int i=0; i<segmentos; i++)
-        if(!compactar_mp_iteracion(i)) return false;
+        if(!compactar_mp_iteracion(i)) {
+            sem_post(&SEM_COMPACTACION_DONE);
+            return false;
+        }
+
+    sem_post(&SEM_COMPACTACION_DONE);
     return true;
 }
 

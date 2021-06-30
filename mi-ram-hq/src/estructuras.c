@@ -42,8 +42,8 @@ char* stringify_segmento_t(segmento_t* segmento) {
     char* string = malloc(size);
     snprintf(
         string, size,
-        "SEGMENTO: %3" PRIu32 " | INICIO: 0x%08" PRIx32 " | TAM: %5" PRIu32 "b",
-        segmento->nro_segmento, segmento->inicio, segmento->tamanio
+        "SEGMENTO: %3d | INICIO: 0x%08" PRIx32 " | TAM: %5" PRIu32 "b",
+        segmento->tipo, segmento->inicio, segmento->tamanio
     );
     return string;
 }

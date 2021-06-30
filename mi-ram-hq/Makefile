@@ -39,7 +39,7 @@ debug: CFLAGS := $(CFLAGS) -g
 debug: build
 
 valgrind: debug build
-	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)
 
 clean:
 	rm -rf obj

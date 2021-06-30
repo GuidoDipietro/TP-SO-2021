@@ -4,33 +4,9 @@
 extern t_log* logger;
 extern t_config_mrhq* cfg;
 
+extern pthread_mutex_t MUTEX_MP_BUSY;
+
 extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
-
-////// static
-
-static bool get_structures_from_tid
-(uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb) {
-    ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
-    if (tabla_tripulante == NULL) return false;
-    *p_tabla_tripulante = tabla_tripulante;
-
-    // Leemos TCB
-    void* s_tcb = get_segmento_data(
-        tabla_tripulante->tcb->inicio,
-        tabla_tripulante->tcb->tamanio
-    );
-    TCB_t* tcb = deserializar_tcb(s_tcb);
-    *p_tcb = tcb;
-
-    // Leemos PCB
-    void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
-    PCB_t* pcb = deserializar_pcb(s_pcb);
-    *p_pcb = pcb;
-
-    free(s_tcb); free(s_pcb);
-
-    return true;
-}
 
 ////// Funcs
 
@@ -53,7 +29,10 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
         list_iterate(posiciones, &log_t_posicion); // debug
 
         // Meto el segmento TAREAS
-        uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1);
+        pthread_mutex_lock(&MUTEX_MP_BUSY);
+        uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1, TAREAS_SEG);
+        pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
         if (inicio_tareas == INICIO_INVALIDO) {
             log_error(logger, "Error catastrofico iniciando patota en MP");
             return false;
@@ -64,7 +43,10 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
         pcb->dl_tareas = inicio_tareas;
         pcb->pid = PID; PID++;
 
-        uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t));
+        pthread_mutex_lock(&MUTEX_MP_BUSY);
+        uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t), PCB_SEG);
+        pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
         if (inicio_pcb == INICIO_INVALIDO) {
             log_error(logger, "Error catastrofico iniciando patota en MP");
             return false;
@@ -72,8 +54,8 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
         free(pcb);
 
         // Creo tabla y actualizo tabla de patotas
-        segmento_t* seg_pcb = new_segmento(0, inicio_pcb, 8);
-        segmento_t* seg_tareas = new_segmento(1, inicio_tareas, strlen(tareas)+1);
+        segmento_t* seg_pcb = new_segmento(PCB_SEG, inicio_pcb, 8);
+        segmento_t* seg_tareas = new_segmento(TAREAS_SEG, inicio_tareas, strlen(tareas)+1);
 
         ts_patota_t* tabla = malloc(sizeof(ts_patota_t));
         tabla->pcb = seg_pcb;
@@ -105,7 +87,9 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
 
     // Creacion de TCB
     ts_patota_t* tabla_patota = list_find_by_pid_plus_plus_tspatotas(pid);
-    if (tabla_patota == NULL) return false;
+    if (tabla_patota == NULL) {
+        return false;
+    }
 
     t_posicion* pos = (t_posicion*) list_get(tabla_patota->posiciones, tid-tid_base-1);
 
@@ -127,7 +111,10 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
 
     // meter en MP
     if (segmentacion) {
-        uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, 21);
+        pthread_mutex_lock(&MUTEX_MP_BUSY);
+        uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, 21, TCB_SEG);
+        pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
         if (inicio_tcb == INICIO_INVALIDO) {
             log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
             free(tcb);
@@ -137,7 +124,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
         free(s_tcb);
 
         // Creo tabla y actualizo ts tripulantes
-        segmento_t* seg_tcb = new_segmento(0, inicio_tcb, 21);
+        segmento_t* seg_tcb = new_segmento(TCB_SEG, inicio_tcb, 21);
 
         ts_tripulante_t* tabla_tripulante = malloc(sizeof(ts_tripulante_t));
         tabla_tripulante->tid = tid;
@@ -153,6 +140,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
         // TODO: Contemplar paginacion (posiblemente cambiar para que no haya un if-else enorme)
     }
 
+    pthread_mutex_unlock(&MUTEX_MP_BUSY);
     return true;
 }
 
@@ -170,7 +158,25 @@ bool borrar_tripulante_de_mp(uint32_t tid) {
         return false;
     }
 
-    // TODO if patota vacia, borrar patota
+    list_delete_by_tid_tstripulantes(tid);
+
+    // if patota vacia, borrar patota
+    ts_patota_t* tabla_patota = list_find_by_pid_tspatotas(pcb->pid);
+    tabla_patota->tripulantes_inicializados -= 1;
+    if (tabla_patota->tripulantes_inicializados == 0) {
+        if (!eliminar_segmento_de_mp(tabla_patota->pcb->inicio)) {
+            log_error(logger, "Fallo eliminando PCB de PID#%" PRIu32, pcb->pid);
+            free(tcb); free(pcb);
+            return false;
+        }
+        if (!eliminar_segmento_de_mp(tabla_patota->tareas->inicio)) {
+            log_error(logger, "Fallo eliminando tareas de PID#%" PRIu32, pcb->pid);
+            free(tcb); free(pcb);
+            return false;
+        }
+
+        list_delete_by_pid_tspatotas(pcb->pid);
+    }
 
     free(tcb); free(pcb);
     return true;

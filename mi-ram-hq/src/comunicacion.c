@@ -6,10 +6,6 @@ extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern uint32_t memoria_disponible;
 
-extern pthread_mutex_t MUTEX_MP_BUSY;
-
-extern void* memoria_principal; // temp
-
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
 typedef struct {
@@ -65,16 +61,6 @@ static void procesar_conexion(void* void_args) {
                     // Carga TAREAS, genera y carga PCB
                     // Carga la tabla de segmentos de la patota en la estruct. admin.
                     iniciar_patota_en_mp(n_tripulantes, tareas, posiciones);
-
-                    // debug
-                    char* dumpcito = mem_hexstring(memoria_principal, 2048);
-                    log_info(logger, "%s", dumpcito);
-                    free(dumpcito);
-                    print_seglib(true);
-                    print_segus(true);
-                    print_tspatotas(true);
-                    print_tstripulantes(true);
-                    // end debug
 
                     // GUI
                     int err = crear_tripulantes(n_tripulantes, posiciones);
