@@ -34,7 +34,7 @@ void reanudar_planificacion() {
 
     while(largo_cola_new()) { // Movemos todos los hilos de NEW a READY
         t_running_thread* r_t = pop_cola_new();
-        (r_t->t)->status = READY;
+        //(r_t->t)->status = READY;
         push_cola_tripulante(r_t);
     }
     log_info(main_log, "Planificacion desbloqueada");
@@ -145,11 +145,11 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         //free_t_tripulante(((t_running_thread*) p)->t);
         trip = ((t_running_thread*) p)->t;
         free(p);
+        send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
+        // si el tripulante esta en exit, el mi-ram-alta-calidad ya borro el TCB, por lo que no hace falta avisarle
     } else
         trip = p;
 
-
-    send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
     free_t_tripulante(trip);
 
     return 0;

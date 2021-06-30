@@ -18,11 +18,13 @@ static bool sort_by_tid(void* p1, void* p2) {
 }
 
 static void cambiar_status(void* p) {
-    (((t_running_thread*) p)->t)->status = BLOCKEDSAB;
+    //(((t_running_thread*) p)->t)->status = BLOCKEDSAB;
+    cambiar_estado(((t_running_thread*) p)->t, BLOCKEDSAB);
 }
 
 static void cambiar_status_ready(void* p) {
-    (((t_running_thread*) p)->t)->status = READY;
+    //(((t_running_thread*) p)->t)->status = READY;
+    cambiar_estado(((t_running_thread*) p)->t, READY);
 }
 
 static t_posicion pos_sabotaje = {6, 2}; // Temporal. Hasta que este implementado el i-Mongo-Store
@@ -101,7 +103,8 @@ void iniciar_sabotaje(int signum) {
 
     t_tarea* anterior = (encargado->t)->tarea;
     (encargado->t)->tarea = sabotaje_simulado();
-    (encargado->t)->status = EXEC;
+    //(encargado->t)->status = EXEC;
+    cambiar_estado(encargado->t, EXEC);
     monitor_add_lista_hilos(encargado);
 
     while(((encargado->t)->tarea)->duracion) {
@@ -115,7 +118,8 @@ void iniciar_sabotaje(int signum) {
     // Volvemos a meter al encargado en la cola de bloqueados
     remover_lista_hilos(((encargado)->t)->tid);
     (encargado->t)->tarea = anterior;
-    (encargado->t)->status = BLOCKEDSAB;
+    //(encargado->t)->status = BLOCKEDSAB;
+    cambiar_estado(encargado->t, BLOCKEDSAB);
     list_add(LISTA_SABOTAJE, encargado);
 
 

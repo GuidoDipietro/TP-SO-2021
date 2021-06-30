@@ -14,6 +14,13 @@ bool filter_t_running_thread_by_tid(void* item) {
     return t_r->t->tid == obj_tid;
 }
 
+// Utils
+
+void cambiar_estado(t_tripulante* p, t_status nuevo) {
+    send_cambio_estado(p->fd_mi_ram_hq, p->tid, nuevo);
+    p->status = nuevo;
+}
+
 // Funciones publicas
 
 pthread_mutex_t MUTEX_COLA;
@@ -93,7 +100,8 @@ void push_cola_tripulante(t_running_thread* t) {
     queue_push(COLA_TRIPULANTES, (void*) t);
     sem_post(&TRIPULANTES_EN_COLA);
     pthread_mutex_unlock(&MUTEX_COLA);
-    (t->t)->status = READY;
+    //(t->t)->status = READY;
+    cambiar_estado(t->t, READY);
 }
 
 t_running_thread* pop_cola_tripulante() {
@@ -182,6 +190,7 @@ uint16_t largo_lista_hilos() {
 
 void agregar_lista_exit(void* p) {
     ((t_tripulante*) p)->status = EXIT;
+    cambiar_estado(p, EXIT);
     pthread_mutex_lock(&MUTEX_COLA_EXIT);
     list_add(COLA_EXIT, p);
     pthread_mutex_unlock(&MUTEX_COLA_EXIT);

@@ -143,7 +143,8 @@ void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
                 if(PLANIFICACION_BLOQUEADA)
                     push_cola_new(thread_data);
                 else {
-                    (thread_data->t)->status = READY;
+                    //(thread_data->t)->status = READY;
+                    //cambiar_estado(thread_data->t, READY);
                     push_cola_tripulante(thread_data);
                 }
 
