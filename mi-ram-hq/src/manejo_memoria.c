@@ -53,11 +53,14 @@ bool get_structures_from_tid
 uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo) {
     segmento_t* hueco_victima = (*proximo_hueco)(size);
     if (hueco_victima == NULL) {
-        sem_post(&SEM_COMPACTACION_START);
-        compactar_mp();
-        sem_wait(&SEM_COMPACTACION_DONE);
+        if (!compactar_mp()) {
+            log_error(logger, "Fallo la compactacion. QEPD.");
+            return INICIO_INVALIDO;
+        }
 
-        segmento_t* hueco_victima = (*proximo_hueco)(size);
+        log_warning(logger, "Compacte todos!");
+
+        hueco_victima = (*proximo_hueco)(size);
         if (hueco_victima == NULL)
             return INICIO_INVALIDO; // no hay hueco (no deberia pasar)
     }
@@ -122,13 +125,53 @@ static void fix_inicio_seg_en_mp(segmento_t* seg, uint32_t inicio_destino) {
         }
         case PCB_SEG:
         {
+            // "Nosotros no buscamos eficiencia en el TP"
             ts_patota_t* tabla_patota = list_find_by_inicio_pcb_tspatotas(seg->inicio);
-            // !!! THIS SHIT DOESN'T WORK !! WHY? HAS I EVER?
+            tabla_patota->pcb->inicio = inicio_destino;
+
+            t_list* tcbs = list_get_tcb_segments_segus();
+            t_list_iterator* i_tcbs = list_iterator_create(tcbs);
+            while (list_iterator_has_next(i_tcbs)) {
+                segmento_t* seg_tcb = list_iterator_next(i_tcbs);
+                void* s_tcb = get_segmento_data(seg_tcb->inicio, seg_tcb->tamanio);
+                TCB_t* tcb = deserializar_tcb(s_tcb);
+                free(s_tcb);
+
+                if (tcb->dl_pcb == seg->inicio) {
+                    tcb->dl_pcb = inicio_destino;
+                    s_tcb = serializar_tcb(tcb);
+                    memcpy_segmento_en_mp(seg_tcb->inicio, s_tcb, seg_tcb->tamanio);
+                    free(s_tcb);
+                }
+                free(tcb);
+            }
+            list_iterator_destroy(i_tcbs);
+            list_destroy(tcbs);
             break;
         }
         case TAREAS_SEG:
         {
-            // no.
+            ts_patota_t* tabla_patota = list_find_by_inicio_tareas_tspatotas(seg->inicio);
+            tabla_patota->tareas->inicio = inicio_destino;
+
+            t_list* pcbs = list_get_pcb_segments_segus();
+            t_list_iterator* i_pcbs = list_iterator_create(pcbs);
+            while (list_iterator_has_next(i_pcbs)) {
+                segmento_t* seg_pcb = list_iterator_next(i_pcbs);
+                void* s_pcb = get_segmento_data(seg_pcb->inicio, seg_pcb->tamanio);
+                PCB_t* pcb = deserializar_pcb(s_pcb);
+                free(s_pcb);
+
+                if (pcb->dl_tareas == seg->inicio) {
+                    pcb->dl_tareas = inicio_destino;
+                    s_pcb = serializar_pcb(pcb);
+                    memcpy_segmento_en_mp(seg_pcb->inicio, s_pcb, seg_pcb->tamanio);
+                    free(s_pcb);
+                }
+                free(pcb);
+            }
+            list_iterator_destroy(i_pcbs);
+            list_destroy(pcbs);
             break;
         }
     }
@@ -166,22 +209,18 @@ static bool compactar_mp_iteracion(uint32_t i) {
     return true;
 }
 bool compactar_mp() {
-    sem_wait(&SEM_COMPACTACION_START);
-
     if (list_is_empty_segus()) {
-        sem_post(&SEM_COMPACTACION_DONE);
         return true;
     }
 
     log_info(logger, "Compactando memoria...");
     uint32_t segmentos = list_size_segus();
-    for (int i=0; i<segmentos; i++)
+    for (int i=0; i<segmentos; i++) {
+        // log_warning(logger, "Compactando segmento [%d] de %d...", i, segmentos);
         if(!compactar_mp_iteracion(i)) {
-            sem_post(&SEM_COMPACTACION_DONE);
             return false;
         }
-
-    sem_post(&SEM_COMPACTACION_DONE);
+    }
     return true;
 }
 

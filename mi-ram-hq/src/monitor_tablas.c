@@ -27,6 +27,11 @@ static bool ts_patota_t_pcb_has_inicio(void* x) {
     return elem->pcb->inicio == static_inicio;
 }
 
+static bool ts_patota_t_tareas_has_inicio(void* x) {
+    ts_patota_t* elem = (ts_patota_t*) x;
+    return elem->tareas->inicio == static_inicio;
+}
+
 void list_add_tspatotas(ts_patota_t* elem) {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     list_add(ts_patotas, (void*) elem);
@@ -62,6 +67,14 @@ ts_patota_t* list_find_by_inicio_pcb_tspatotas(uint32_t inicio) {
     static_inicio = inicio;
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_pcb_has_inicio);
+    pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
+    return elem;
+}
+
+ts_patota_t* list_find_by_inicio_tareas_tspatotas(uint32_t inicio) {
+    static_inicio = inicio;
+    pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_tareas_has_inicio);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
     return elem;
 }

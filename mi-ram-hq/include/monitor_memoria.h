@@ -52,6 +52,8 @@ void list_remove_by_inicio_segus(uint32_t inicio);
 uint32_t list_size_segus();
 segmento_t* list_find_by_inicio_segus(uint32_t inicio);
 segmento_t* list_get_segus(uint32_t indice);
+t_list* list_get_tcb_segments_segus();
+t_list* list_get_pcb_segments_segus();
 void asesinar_segus();
 /// END SEGUS
 

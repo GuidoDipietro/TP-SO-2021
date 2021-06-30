@@ -78,6 +78,14 @@ static bool seg_es_nulo(void* segmento) {
     segmento_t* seg = (segmento_t*) segmento;
     return seg->tamanio == 0;
 }
+static bool seg_es_tcb(void* segmento) {
+    segmento_t* seg = (segmento_t*) segmento;
+    return seg->tipo == TCB_SEG;
+}
+static bool seg_es_pcb(void* segmento) {
+    segmento_t* seg = (segmento_t*) segmento;
+    return seg->tipo == PCB_SEG;
+}
 static bool comp_segmento_t_indice(void* s1, void* s2) {
     segmento_t* seg1 = (segmento_t*) s1;
     segmento_t* seg2 = (segmento_t*) s2;
@@ -295,6 +303,20 @@ segmento_t* list_get_segus(uint32_t indice) {
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
 
     return seg;
+}
+
+t_list* list_get_tcb_segments_segus() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    t_list* lista_ret = list_filter(segmentos_usados, &seg_es_tcb);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+    return lista_ret;
+}
+
+t_list* list_get_pcb_segments_segus() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    t_list* lista_ret = list_filter(segmentos_usados, &seg_es_pcb);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+    return lista_ret;
 }
 
 void asesinar_segus() {

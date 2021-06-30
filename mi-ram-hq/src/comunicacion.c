@@ -6,6 +6,8 @@ extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern uint32_t memoria_disponible;
 
+extern pthread_mutex_t MUTEX_MP_BUSY;
+
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
 typedef struct {
@@ -60,7 +62,16 @@ static void procesar_conexion(void* void_args) {
                     // La compactacion sucede aca, de ser necesaria
                     // Carga TAREAS, genera y carga PCB
                     // Carga la tabla de segmentos de la patota en la estruct. admin.
-                    iniciar_patota_en_mp(n_tripulantes, tareas, posiciones);
+                    pthread_mutex_lock(&MUTEX_MP_BUSY);
+                    bool ret_code = iniciar_patota_en_mp(n_tripulantes, tareas, posiciones);
+                    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
+                    if (!ret_code) {
+                        log_error(logger, "Error terrible iniciando patota en MRH");
+                        list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                        free(tareas);
+                        break;
+                    }
 
                     // GUI
                     int err = crear_tripulantes(n_tripulantes, posiciones);
@@ -83,7 +94,11 @@ static void procesar_conexion(void* void_args) {
                 uint32_t id_patota;
                 if (recv_iniciar_self_en_patota(cliente_socket, &id_tripulante, &id_patota)) {
                     // Crea y guarda en memoria el TCB
-                    if (!iniciar_tripulante_en_mp(id_tripulante, id_patota)) {
+                    pthread_mutex_lock(&MUTEX_MP_BUSY);
+                    bool ret_code = iniciar_tripulante_en_mp(id_tripulante, id_patota);
+                    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
+                    if (!ret_code) {
                         log_error(logger,
                             "Error iniciando tripulante %" PRIu32 ", patota %" PRIu32 "\n",
                             id_tripulante, id_patota
@@ -126,7 +141,11 @@ static void procesar_conexion(void* void_args) {
                 uint32_t id_tripulante;
                 if (recv_tripulante(cliente_socket, &id_tripulante)) {
                     // MP
-                    if (!borrar_tripulante_de_mp(id_tripulante)) {
+                    pthread_mutex_lock(&MUTEX_MP_BUSY);
+                    bool ret_code = borrar_tripulante_de_mp(id_tripulante);
+                    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
+                    if (!ret_code) {
                         log_error(logger,
                             "Error borrando tripulante %" PRIu32 "\n",
                             id_tripulante

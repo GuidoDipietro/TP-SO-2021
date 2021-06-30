@@ -4,8 +4,6 @@
 extern t_log* logger;
 extern t_config_mrhq* cfg;
 
-extern pthread_mutex_t MUTEX_MP_BUSY;
-
 extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
 
 ////// Funcs
@@ -29,9 +27,7 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
         list_iterate(posiciones, &log_t_posicion); // debug
 
         // Meto el segmento TAREAS
-        pthread_mutex_lock(&MUTEX_MP_BUSY);
         uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1, TAREAS_SEG);
-        pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
         if (inicio_tareas == INICIO_INVALIDO) {
             log_error(logger, "Error catastrofico iniciando patota en MP");
@@ -43,9 +39,7 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
         pcb->dl_tareas = inicio_tareas;
         pcb->pid = PID; PID++;
 
-        pthread_mutex_lock(&MUTEX_MP_BUSY);
         uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t), PCB_SEG);
-        pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
         if (inicio_pcb == INICIO_INVALIDO) {
             log_error(logger, "Error catastrofico iniciando patota en MP");
@@ -82,6 +76,8 @@ bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posicion
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
 
+    log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
+
     // TODO: Contemplar paginacion
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
 
@@ -111,9 +107,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
 
     // meter en MP
     if (segmentacion) {
-        pthread_mutex_lock(&MUTEX_MP_BUSY);
         uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, 21, TCB_SEG);
-        pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
         if (inicio_tcb == INICIO_INVALIDO) {
             log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
@@ -139,8 +133,6 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     else {
         // TODO: Contemplar paginacion (posiblemente cambiar para que no haya un if-else enorme)
     }
-
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
     return true;
 }
 
