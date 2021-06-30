@@ -169,7 +169,7 @@ static void procesar_conexion(void* void_args) {
                     log_error(logger, "Error recibiendo TID en tarea solicitada");
                 }
                 else {
-                    log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
+                    // log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
 
                     t_tarea* tarea = fetch_tarea(tid);
 
@@ -181,8 +181,18 @@ static void procesar_conexion(void* void_args) {
                 break;
             }
             case CAMBIO_ESTADO:
+            {
                 // TODO: modificar estado de tripulante en MP
+                uint32_t id_tripulante;
+                t_status estado;
+                if (recv_cambio_estado(cliente_socket, &id_tripulante, &estado)) {
+                    // juan
+                }
+                else {
+                    log_error(logger, "Error recibiendo cambio de estado");
+                }
                 break;
+            }
             // Errores
             case -1:
                 log_error(logger, "Cliente desconectado de MRH...");
