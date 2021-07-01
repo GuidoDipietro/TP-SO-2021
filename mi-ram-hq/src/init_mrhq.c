@@ -3,6 +3,7 @@
 // varios
 t_log* logger;
 t_config_mrhq* cfg;
+bool seg;
 
 // segmentacion
 t_list* segmentos_libres;
@@ -59,6 +60,7 @@ uint8_t cargar_configuracion(char* path) {
 
     cfg->TAMANIO_MEMORIA = config_get_int_value(cfg_file, "TAMANIO_MEMORIA");
     cfg->ESQUEMA_MEMORIA = strdup(config_get_string_value(cfg_file, "ESQUEMA_MEMORIA"));
+    seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
     cfg->TAMANIO_PAGINA = config_get_int_value(cfg_file, "TAMANIO_PAGINA");
     cfg->TAMANIO_SWAP = config_get_int_value(cfg_file, "TAMANIO_SWAP");
     cfg->PATH_SWAP = strdup(config_get_string_value(cfg_file, "PATH_SWAP"));

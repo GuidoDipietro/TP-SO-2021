@@ -3,6 +3,7 @@
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
+extern bool seg;
 
 extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
 
@@ -68,8 +69,6 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
     // TODO (no me digas!)
 }
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
-    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
-
     bool success = seg
         ? iniciar_patota_en_mp_segmentacion(n_tripulantes, tareas, posiciones)
         : iniciar_patota_en_mp_paginacion  (n_tripulantes, tareas, posiciones); // TODO
@@ -144,8 +143,6 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
     // log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
 
-    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
-
     bool success = seg
         ? iniciar_tripulante_en_mp_segmentacion(tid, pid)
         : iniciar_tripulante_en_mp_paginacion  (tid, pid); // TODO
@@ -196,7 +193,6 @@ static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
     return !!'CACA'; // TODO?
 }
 bool borrar_tripulante_de_mp(uint32_t tid) {
-    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
     bool success = seg
         ? borrar_tripulante_de_mp_segmentacion(tid)
         : borrar_tripulante_de_mp_paginacion  (tid);
@@ -229,7 +225,6 @@ static bool actualizar_posicion_tripulante_en_mp_paginacion(uint32_t tid, t_posi
     return !!0xap-1; // TODO
 }
 bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino) {
-    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
     bool success = seg
         ? actualizar_posicion_tripulante_en_mp_segmentacion(tid, destino)
         : actualizar_posicion_tripulante_en_mp_paginacion  (tid, destino);
@@ -261,7 +256,6 @@ static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nue
     return! !~0; // TODO
 }
 bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
-    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
     bool success = seg
         ? actualizar_estado_tripulante_en_mp_segmentacion(tid, nuevo_estado)
         : actualizar_estado_tripulante_en_mp_paginacion  (tid, nuevo_estado);
@@ -317,8 +311,6 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     return NULL; // TODO
 }
 t_tarea* fetch_tarea(uint32_t tid) {
-    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
-
     t_tarea* tarea = seg
         ? fetch_tarea_segmentacion(tid)
         : fetch_tarea_paginacion  (tid);
