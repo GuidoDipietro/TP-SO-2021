@@ -1,6 +1,7 @@
 #include "../include/monitor_tablas.h"
 
 extern t_log* logger;
+extern t_config_mrhq* cfg;
 
 extern pthread_mutex_t MUTEX_TS_PATOTAS;
 extern pthread_mutex_t MUTEX_TS_TRIPULANTES;
@@ -232,12 +233,12 @@ void print_tstripulantes(bool log) {
 
 void log_structures(uint8_t options) {
     if (options & PRI_MP) {
-        char* dumpcito = mem_hexstring(memoria_principal, 2048);
+        char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
         log_info(logger, "%s", dumpcito);
         free(dumpcito);
     }
-    if (options & PRI_SEGLIB)         print_seglib(true);
-    if (options & PRI_SEGUS)          print_segus(true);
-    if (options & PRI_TSPATOTAS)      print_tspatotas(true);
-    if (options & PRI_TSTRIPULANTES)  print_tstripulantes(true);
+    if (options & PRI_SEGLIB)         LOGPRINT         (seglib);
+    if (options & PRI_SEGUS)          LOGPRINT          (segus);
+    if (options & PRI_TSPATOTAS)      LOGPRINT      (tspatotas);
+    if (options & PRI_TSTRIPULANTES)  LOGPRINT  (tstripulantes);
 }
