@@ -11,6 +11,28 @@ extern sem_t SEM_COMPACTACION_START;
 
 int mrh_server;
 
+////// SIGNAL HANDLING //////
+void sighandler(int x) {
+    switch (x) {
+        case SIGUSR1:
+            dump_mp();
+            log_structures(PRI_MP | PRI_SEGLIB);
+            break;
+        case SIGUSR2:
+            sem_post(&SEM_COMPACTACION_START);
+            compactar_mp();
+            sem_wait(&SEM_COMPACTACION_DONE);
+            break;
+        case SIGINT:
+            liberar_conexion(&mrh_server);
+            finalizar_gui();
+            cerrar_programa();
+            exit(EXIT_SUCCESS);
+    }
+}
+
+////// MAIN //////
+
 int main() {
     signal(SIGUSR1, sighandler);
     signal(SIGUSR2, sighandler);
@@ -36,31 +58,4 @@ int main() {
     cerrar_programa();
 
     return EXIT_SUCCESS;
-}
-
-void sighandler(int x) {
-    switch (x) {
-        case SIGUSR1:
-        {
-            dump_mp();
-            // char* dumpcito = mem_hexstring(memoria_principal, 2048);
-            // log_info(logger, "%s", dumpcito);
-            // free(dumpcito);
-            // print_seglib(true);
-            // print_segus(true);
-            print_tspatotas(true);
-            // print_tstripulantes(true);
-            break;
-        }
-        case SIGUSR2:
-            sem_post(&SEM_COMPACTACION_START);
-            compactar_mp();
-            sem_wait(&SEM_COMPACTACION_DONE);
-            break;
-        case SIGINT:
-            liberar_conexion(&mrh_server);
-            finalizar_gui();
-            cerrar_programa();
-            exit(EXIT_SUCCESS);
-    }
 }

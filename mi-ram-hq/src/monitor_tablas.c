@@ -227,3 +227,17 @@ void print_tstripulantes(bool log) {
     log ? log_info(logger, "\n\n------------------------\n\n")
         :   printf("\n\n------------------------\n\n");
 }
+
+////// prints (logs)
+
+void log_structures(uint8_t options) {
+    if (options & PRI_MP) {
+        char* dumpcito = mem_hexstring(memoria_principal, 2048);
+        log_info(logger, "%s", dumpcito);
+        free(dumpcito);
+    }
+    if (options & PRI_SEGLIB)         print_seglib(true);
+    if (options & PRI_SEGUS)          print_segus(true);
+    if (options & PRI_TSPATOTAS)      print_tspatotas(true);
+    if (options & PRI_TSTRIPULANTES)  print_tstripulantes(true);
+}

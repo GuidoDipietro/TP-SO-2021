@@ -121,7 +121,6 @@ void dump_mp() {
     char* data = NULL;
     if (strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0) {
         char* str_tspatotas = stringify_tspatotas();
-        log_warning(logger, "Lol?\n%s", str_tspatotas);
         data = string_from_format("\n%s\nDump: %s\n%s\n%s\n\n", hr, timestamp, str_tspatotas, hr);
         free(str_tspatotas);
     }
