@@ -17,6 +17,7 @@ extern uint32_t memoria_disponible;
 extern void* memoria_principal;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
+#define TEST_SEG 14
 
 void iniciar() {
     init();
@@ -245,8 +246,8 @@ void test_meter_segmento_en_mp_ff() {
     puts("Dump primeros 65 bytes MP ANTES:");
     mem_hexdump(memoria_principal, 65);
 
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10, TEST_SEG) != INICIO_INVALIDO);
 
     puts("Dump primeros 65 bytes MP DESPUES:");
     mem_hexdump(memoria_principal, 65);
@@ -272,8 +273,8 @@ void test_meter_segmento_en_mp_bf() {
     puts("Dump primeros 65 bytes MP ANTES:");
     mem_hexdump(memoria_principal, 65);
 
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 50, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2, 10, TEST_SEG) != INICIO_INVALIDO);
 
     puts("Dump primeros 65 bytes MP DESPUES:");
     mem_hexdump(memoria_principal, 65);
@@ -301,12 +302,12 @@ void test_compactacion() {
     memset(data5, 0x55, 16);
     memset(data6, 0x66, 30);
 
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 10) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data2,  5) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 20) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data4,  7) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data5, 16) != INICIO_INVALIDO);
-    CU_ASSERT_TRUE(meter_segmento_en_mp(data6, 30) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data1, 10, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data2,  5, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data3, 20, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data4,  7, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data5, 16, TEST_SEG) != INICIO_INVALIDO);
+    CU_ASSERT_TRUE(meter_segmento_en_mp(data6, 30, TEST_SEG) != INICIO_INVALIDO);
 
     //  0-10    : 1111 size 10
     // 10-15    : 2222 size  5
@@ -340,38 +341,6 @@ void test_compactacion() {
     CU_ASSERT_TRUE(list_size_seglib() == 1);
 
     free(data1); free(data2); free(data3); free(data4); free(data5); free(data6);
-}
-
-void test_stringify() {
-    segmento_t* test = new_segmento(2, 51914, 27);
-    char* str = stringify_segmento_t(test);
-
-    print_segmento_t(test);
-    printf("\n<<%s>>\n", str);
-
-    CU_ASSERT_TRUE(strcmp("SEGMENTO:   2 | INICIO: 0x0000caca | TAM:    27b", str) == 0);
-
-    free(str);
-    free(test);
-
-    ts_patota_t* tabla = malloc(sizeof(ts_patota_t));
-    segmento_t* seg_pcb = new_segmento(3, 69, 44);
-    segmento_t* seg_tareas = new_segmento(0, 777, 15);
-    tabla->pcb = seg_pcb;
-    tabla->tareas = seg_tareas;
-    tabla->pid = 8;
-
-    char* str2 = stringify_ts_patota_t(tabla, "14/27/2049 06:09:69 A.M.");
-    printf("\n<<%s>>\n", str2);
-
-    CU_ASSERT_TRUE(strcmp("------------------------------\n\
-Dump: 14/27/2049 06:09:69 A.M.\n\
-PROCESO:   8 | SEGMENTO:   3 | INICIO: 0x00000045 | TAM:    44b\n\
-PROCESO:   8 | SEGMENTO:   0 | INICIO: 0x00000309 | TAM:    15b\n\
--------------------------", str2) == 0);
-
-    free(str2);
-    free_ts_patota_t(tabla);
 }
 
 void test_print_bitarray() {
@@ -451,7 +420,6 @@ CU_TestInfo tests_memoria[] = {
     { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
     { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
     { "Test COMPACTACION", test_compactacion },
-    { "Test stringify", test_stringify },
     { "Test print bitarray", test_print_bitarray },
     { "Test primer frame libre", test_primer_frame_libre },
     { "Test meter choclo paginado", test_meter_choclo_paginado_en_mp },

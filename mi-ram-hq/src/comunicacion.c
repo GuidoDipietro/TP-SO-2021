@@ -1,5 +1,4 @@
 #include "../include/comunicacion.h"
-#include <commons/memory.h> // temp
 
 extern NIVEL* among_nivel;
 
@@ -33,7 +32,7 @@ static void procesar_conexion(void* void_args) {
         }
 
         switch (cop) {
-            case DEBUG:;
+            case DEBUG:
                 log_info(logger, "Me llego el debug!");
                 break;
 
@@ -55,23 +54,23 @@ static void procesar_conexion(void* void_args) {
                         log_error(logger, "No hay lugar para la patota en memoria");
                         send_ack(cliente_socket, false);
 
-                        list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                        list_destroy_and_destroy_elements(posiciones, (void*) free);
                         free(tareas);
                         break;
                     }
 
                     send_ack(cliente_socket, true);
 
-                    // La compactacion sucede aca, de ser necesaria
                     // Carga TAREAS, genera y carga PCB
                     // Carga la tabla de segmentos de la patota en la estruct. admin.
                     pthread_mutex_lock(&MUTEX_MP_BUSY);
+                    // La compactacion sucede aca, de ser necesaria
                     bool ret_code = iniciar_patota_en_mp(n_tripulantes, tareas, posiciones);
                     pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
                     if (!ret_code) {
                         log_error(logger, "Error terrible iniciando patota en MRH");
-                        list_destroy_and_destroy_elements(posiciones, *free_t_posicion);
+                        list_destroy_and_destroy_elements(posiciones, (void*) free);
                         free(tareas);
                         break;
                     }

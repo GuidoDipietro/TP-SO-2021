@@ -174,6 +174,7 @@ static void fix_inicio_seg_en_mp(segmento_t* seg, uint32_t inicio_destino) {
             list_destroy(pcbs);
             break;
         }
+        default: break; // para tests
     }
 }
 static bool compactar_mp_iteracion(uint32_t i) {

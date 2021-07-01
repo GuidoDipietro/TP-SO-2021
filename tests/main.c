@@ -10,10 +10,10 @@ extern CU_TestInfo tests_utils[];
 extern CU_TestInfo tests_memoria[];
 
 CU_SuiteInfo suites[] = {
-    { "suite_protocolo", NULL, NULL, crear_conexiones, cerrar_conexiones, tests_protocolo },
+    // { "suite_protocolo", NULL, NULL, crear_conexiones, cerrar_conexiones, tests_protocolo },
     // { "suite_ejemplo", NULL, NULL, NULL, NULL, tests_ejemplo },
     // { "suite_utils", NULL, NULL, NULL, NULL, tests_utils },
-    // { "suite_memoria", NULL, NULL, iniciar, finalizar, tests_memoria },
+    { "suite_memoria", NULL, NULL, iniciar, finalizar, tests_memoria },
     CU_SUITE_INFO_NULL
 };
 

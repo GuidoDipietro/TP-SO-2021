@@ -48,7 +48,7 @@ void print_tstripulantes(bool log);
 #define PRI_ALL             (uint8_t) 0b11111111
 #define PRI_ALL_NO_MP       (uint8_t) 0b11111110
 #define PRI_NONE            (uint8_t) 0b00000000
-#define LOGPRINT(_)			print_ ## _ (true)
+#define LOGPRINT(_)         print_ ## _ (true)
 void log_structures(uint8_t options);
 
 #endif
