@@ -11,6 +11,7 @@ extern uint32_t memoria_disponible;
 extern pthread_mutex_t MUTEX_MP_BUSY;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
+#define STR(_) #_
 
 typedef struct {
     int fd;
@@ -27,7 +28,7 @@ static void procesar_conexion(void* void_args) {
     while (cliente_socket != -1) {
 
         if (recv(cliente_socket, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
-            log_info(logger, "DISCONNECT!");
+            log_info(logger, STR(DISCONNECT!));
             return;
         }
 
@@ -120,7 +121,12 @@ static void procesar_conexion(void* void_args) {
                 t_posicion *origen, *destino;
                 if (recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
                     // MP
-                    // TODO
+                    if (!actualizar_posicion_tripulante_en_mp(id_tripulante, destino)) {
+                        log_error(logger, "Fallo actualizando posicion de tripulante en mp");
+                        free(origen);
+                        free(destino);
+                        break;
+                    }
 
                     // GUI
                     int err = mover_tripulante(id_tripulante, destino);
@@ -188,7 +194,12 @@ static void procesar_conexion(void* void_args) {
                 uint32_t id_tripulante;
                 t_status estado;
                 if (recv_cambio_estado(cliente_socket, &id_tripulante, &estado)) {
-                    // juan
+                    if (!actualizar_estado_tripulante_en_mp(id_tripulante, estado)) {
+                        log_error(logger,
+                            "Error actualizando estado de tripulante TID#%" PRIu32 "en MP a %c",
+                            id_tripulante, estado
+                        );
+                    }
                 }
                 else {
                     log_error(logger, "Error recibiendo cambio de estado");

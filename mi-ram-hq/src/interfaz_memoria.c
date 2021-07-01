@@ -16,6 +16,8 @@ static void log_t_posicion(void* x) {
     log_warning(logger, "%" PRIu32 "|%" PRIu32, pos->x, pos->y);
 }
 
+////// FUNCIONES
+
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     // TODO: Contemplar paginacion
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
@@ -171,6 +173,45 @@ bool borrar_tripulante_de_mp(uint32_t tid) {
     }
 
     free(tcb); free(pcb);
+    return true;
+}
+
+bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino) {
+    // Recuperamos tabla tripulante, TCB y PCB
+    ts_tripulante_t* tabla_tripulante;
+    TCB_t* tcb;
+    PCB_t* pcb;
+    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+        return false;
+    free(pcb); // no lo queria igualmente
+
+    // Actualizando TCB y memcpy en MP
+    tcb->pos_x = destino->x;
+    tcb->pos_y = destino->y;
+    void* s_tcb = serializar_tcb(tcb);
+    memcpy_segmento_en_mp(tabla_tripulante->tcb->inicio, s_tcb, tabla_tripulante->tcb->tamanio);
+    free(s_tcb);
+
+    free(tcb);
+    return true;
+}
+
+bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
+    // Recuperamos tabla tripulante, TCB y PCB
+    ts_tripulante_t* tabla_tripulante;
+    TCB_t* tcb;
+    PCB_t* pcb;
+    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+        return false;
+    free(pcb); // no lo queria igualmente
+
+    // Actualizando estado y memcpy en MP
+    tcb->estado = nuevo_estado;
+    void* s_tcb = serializar_tcb(tcb);
+    memcpy_segmento_en_mp(tabla_tripulante->tcb->inicio, s_tcb, tabla_tripulante->tcb->tamanio);
+    free(s_tcb);
+
+    free(tcb);
     return true;
 }
 

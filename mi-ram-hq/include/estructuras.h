@@ -56,7 +56,7 @@ typedef struct {
 ////// PAGINACION //////
 
 // TP === TABLA DE PAGINAS
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint32_t nro_pagina;
     uint32_t nro_frame;
 } entrada_tp_t;

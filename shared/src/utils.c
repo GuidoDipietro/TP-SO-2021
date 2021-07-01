@@ -142,12 +142,11 @@ t_tarea* tarea_string_to_t_tarea(char* str_tarea) {
     return tarea;
 }
 
-#define CICLO_SEGS 100000
+#define CICLO 100000
 void ciclo() {
-    usleep(CICLO_SEGS);
+    usleep(CICLO);
 }
 
-char F() {
+inline char F() {
     return 'F';
 }
-

@@ -4,12 +4,12 @@
 #include <stdint.h>
 
 typedef enum {
-    NEW,
-    READY,
-    EXEC,
-    BLOCKED,
-    BLOCKEDSAB,
-    EXIT,
+    NEW                 = 'N',
+    READY               = 'R',
+    EXEC                = 'X',
+    BLOCKED             = 'B',
+    BLOCKEDSAB          = 'S',
+    EXIT                = 'E',
 } t_status;
 
 typedef enum {

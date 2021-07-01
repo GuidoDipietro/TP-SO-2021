@@ -19,6 +19,8 @@
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones);
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid);
 bool borrar_tripulante_de_mp(uint32_t id_tripulante);
+bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino);
+bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado);
 t_tarea* fetch_tarea(uint32_t tid);
 
 #endif
