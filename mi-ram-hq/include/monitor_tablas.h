@@ -40,14 +40,14 @@ void print_tspatotas(bool log);
 void print_tstripulantes(bool log);
 
 /// Prints (logs)
-#define PRI_MP              0x00000001
-#define PRI_SEGLIB          0x00000010
-#define PRI_SEGUS           0x00000100
-#define PRI_TSTRIPULANTES   0x00001000
-#define PRI_TSPATOTAS       0x00010000
-#define PRI_ALL             0x11111111
-#define PRI_ALL_NO_MP       0x11111110
-#define PRI_NONE            0x00000000
+#define PRI_MP              (uint8_t) 0b00000001
+#define PRI_SEGLIB          (uint8_t) 0b00000010
+#define PRI_SEGUS           (uint8_t) 0b00000100
+#define PRI_TSTRIPULANTES   (uint8_t) 0b00001000
+#define PRI_TSPATOTAS       (uint8_t) 0b00010000
+#define PRI_ALL             (uint8_t) 0b11111111
+#define PRI_ALL_NO_MP       (uint8_t) 0b11111110
+#define PRI_NONE            (uint8_t) 0b00000000
 void log_structures(uint8_t options);
 
 #endif
