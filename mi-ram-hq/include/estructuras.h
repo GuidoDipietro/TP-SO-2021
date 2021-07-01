@@ -62,7 +62,10 @@ typedef struct __attribute__((packed)) {
 } entrada_tp_t;
 
 typedef struct {
-    uint32_t pid;   // va?
+    uint32_t pid;
+    uint32_t tripulantes_totales;
+    uint32_t tripulantes_inicializados;
+    t_list* posiciones;
     t_list* tabla;  // tipo: <entrada_tp_t>
 } tp_patota_t;
 

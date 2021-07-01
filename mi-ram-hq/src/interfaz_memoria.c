@@ -6,7 +6,7 @@ extern t_config_mrhq* cfg;
 
 extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
 
-////// Funcs
+//////
 
 static uint32_t tid_base = 0;
 
@@ -16,73 +16,76 @@ static void log_t_posicion(void* x) {
     log_warning(logger, "%" PRIu32 "|%" PRIu32, pos->x, pos->y);
 }
 
-////// FUNCIONES
+            ///////////////////////////////////
+            //////////// FUNCIONES ////////////
+            ///////////////////////////////////
 
-bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
-    // TODO: Contemplar paginacion
-    bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+////// INICIAR PATOTA
 
+static bool iniciar_patota_en_mp_segmentacion(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     static uint32_t PID = 1;
+    // list_iterate(posiciones, &log_t_posicion); // debug
 
-    if (segmentacion) {
+    // Meto el segmento TAREAS
+    uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1, TAREAS_SEG);
 
-        // list_iterate(posiciones, &log_t_posicion); // debug
+    if (inicio_tareas == INICIO_INVALIDO) {
+        log_error(logger, "Error catastrofico iniciando patota en MP");
+        return false;
+    }
 
-        // Meto el segmento TAREAS
-        uint32_t inicio_tareas = meter_segmento_en_mp((void*) tareas, strlen(tareas)+1, TAREAS_SEG);
+    // Genero PCB y meto el segmento PCB
+    PCB_t* pcb = malloc(sizeof(PCB_t));
+    pcb->dl_tareas = inicio_tareas;
+    pcb->pid = PID; PID++;
 
-        if (inicio_tareas == INICIO_INVALIDO) {
-            log_error(logger, "Error catastrofico iniciando patota en MP");
-            return false;
-        }
+    uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t), PCB_SEG);
 
-        // Genero PCB y meto el segmento PCB
-        PCB_t* pcb = malloc(sizeof(PCB_t));
-        pcb->dl_tareas = inicio_tareas;
-        pcb->pid = PID; PID++;
+    if (inicio_pcb == INICIO_INVALIDO) {
+        log_error(logger, "Error catastrofico iniciando patota en MP");
+        return false;
+    }
+    free(pcb);
 
-        uint32_t inicio_pcb = meter_segmento_en_mp((void*) pcb, sizeof(PCB_t), PCB_SEG);
+    // Creo tabla y actualizo tabla de patotas
+    segmento_t* seg_pcb = new_segmento(PCB_SEG, inicio_pcb, 8);
+    segmento_t* seg_tareas = new_segmento(TAREAS_SEG, inicio_tareas, strlen(tareas)+1);
 
-        if (inicio_pcb == INICIO_INVALIDO) {
-            log_error(logger, "Error catastrofico iniciando patota en MP");
-            return false;
-        }
-        free(pcb);
+    ts_patota_t* tabla = malloc(sizeof(ts_patota_t));
+    tabla->pcb = seg_pcb;
+    tabla->tripulantes_totales = n_tripulantes;
+    tabla->tripulantes_inicializados = 0;
+    tabla->posiciones = list_duplicate(posiciones);
+    tabla->tareas = seg_tareas;
+    tabla->pid = PID-1;
 
-        // Creo tabla y actualizo tabla de patotas
-        segmento_t* seg_pcb = new_segmento(PCB_SEG, inicio_pcb, 8);
-        segmento_t* seg_tareas = new_segmento(TAREAS_SEG, inicio_tareas, strlen(tareas)+1);
+    list_add_tspatotas(tabla);
+    return true;
+}
+static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
+    static uint32_t PID = 1;
+    return!! '/'/'/';;;;;;;
+    // TODO (no me digas!)
+}
+bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
+    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
 
-        ts_patota_t* tabla = malloc(sizeof(ts_patota_t));
-        tabla->pcb = seg_pcb;
-        tabla->tripulantes_totales = n_tripulantes;
-        tabla->tripulantes_inicializados = 0;
-        tabla->posiciones = list_duplicate(posiciones);
-        tabla->tareas = seg_tareas;
-        tabla->pid = PID-1;
+    bool success = seg
+        ? iniciar_patota_en_mp_segmentacion(n_tripulantes, tareas, posiciones)
+        : iniciar_patota_en_mp_paginacion  (n_tripulantes, tareas, posiciones); // TODO
 
-        list_add_tspatotas(tabla);
-
+    if (success) {
         // Para que no se inicialicen antes que el PAPURRI
         for (uint32_t i = 0; i<n_tripulantes; i++)
             sem_post(&SEM_INICIAR_SELF_EN_PATOTA);
     }
 
-    else {
-        // TODO: Contemplar paginacion (posiblemente cambiar para que no haya un if-else enorme)
-    }
-
-    return true;
+    return success;
 }
 
-bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
-    sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
+////// INICIAR TRIPULANTE
 
-    // log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
-
-    // TODO: Contemplar paginacion
-    bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
-
+static bool iniciar_tripulante_en_mp_segmentacion(uint32_t tid, uint32_t pid) {
     // Creacion de TCB
     ts_patota_t* tabla_patota = list_find_by_pid_plus_plus_tspatotas(pid);
     if (tabla_patota == NULL) {
@@ -91,7 +94,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
 
     t_posicion* pos = (t_posicion*) list_get(tabla_patota->posiciones, tid-tid_base-1);
 
-    TCB_t* tcb           = malloc(sizeof(TCB_t));
+    TCB_t* tcb          = malloc(sizeof(TCB_t));
 
     tcb->tid            = tid;
     tcb->estado         = 'N';
@@ -107,38 +110,52 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
         return false;
     }
 
-    // meter en MP
-    if (segmentacion) {
-        uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, 21, TCB_SEG);
+    uint32_t inicio_tcb = meter_segmento_en_mp(s_tcb, 21, TCB_SEG);
 
-        if (inicio_tcb == INICIO_INVALIDO) {
-            log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
-            free(tcb);
-            return false;
-        }
+    if (inicio_tcb == INICIO_INVALIDO) {
+        log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
         free(tcb);
-        free(s_tcb);
-
-        // Creo tabla y actualizo ts tripulantes
-        segmento_t* seg_tcb = new_segmento(TCB_SEG, inicio_tcb, 21);
-
-        ts_tripulante_t* tabla_tripulante = malloc(sizeof(ts_tripulante_t));
-        tabla_tripulante->tid = tid;
-        tabla_tripulante->tcb = seg_tcb;
-
-        list_add_tstripulantes(tabla_tripulante);
-
-        // Si es el ultimo de la patota, actualizar tid_base
-        if (tabla_patota->tripulantes_inicializados == tabla_patota->tripulantes_totales)
-            tid_base += tabla_patota->tripulantes_totales;
+        return false;
     }
-    else {
-        // TODO: Contemplar paginacion (posiblemente cambiar para que no haya un if-else enorme)
-    }
+    free(tcb);
+    free(s_tcb);
+
+    // Creo tabla y actualizo ts tripulantes
+    segmento_t* seg_tcb = new_segmento(TCB_SEG, inicio_tcb, 21);
+
+    ts_tripulante_t* tabla_tripulante = malloc(sizeof(ts_tripulante_t));
+    tabla_tripulante->tid = tid;
+    tabla_tripulante->tcb = seg_tcb;
+
+    list_add_tstripulantes(tabla_tripulante);
+
+    // Si es el ultimo de la patota, actualizar tid_base
+    if (tabla_patota->tripulantes_inicializados == tabla_patota->tripulantes_totales)
+        tid_base += tabla_patota->tripulantes_totales;
+
     return true;
 }
+static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
+    return!
+    ('-'-'-');
+    // TODO (mira vos che!)
+}
+bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
+    sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
+    // log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
 
-bool borrar_tripulante_de_mp(uint32_t tid) {
+    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+
+    bool success = seg
+        ? iniciar_tripulante_en_mp_segmentacion(tid, pid)
+        : iniciar_tripulante_en_mp_paginacion  (tid, pid); // TODO
+
+    return success;
+}
+
+////// BORRAR TRIPULANTE
+
+static bool borrar_tripulante_de_mp_segmentacion(uint32_t tid) {
     // Leemos TCB y PCB
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
@@ -175,8 +192,21 @@ bool borrar_tripulante_de_mp(uint32_t tid) {
     free(tcb); free(pcb);
     return true;
 }
+static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
+    return !!'CACA'; // TODO?
+}
+bool borrar_tripulante_de_mp(uint32_t tid) {
+    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+    bool success = seg
+        ? borrar_tripulante_de_mp_segmentacion(tid)
+        : borrar_tripulante_de_mp_paginacion  (tid);
 
-bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino) {
+    return success;
+}
+
+////// ACTUALIZAR POSICION
+
+static bool actualizar_posicion_tripulante_en_mp_segmentacion(uint32_t tid, t_posicion* destino) {
     // Recuperamos tabla tripulante, TCB y PCB
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
@@ -195,8 +225,21 @@ bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino) {
     free(tcb);
     return true;
 }
+static bool actualizar_posicion_tripulante_en_mp_paginacion(uint32_t tid, t_posicion* destino) {
+    return !!0xap-1; // TODO
+}
+bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino) {
+    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+    bool success = seg
+        ? actualizar_posicion_tripulante_en_mp_segmentacion(tid, destino)
+        : actualizar_posicion_tripulante_en_mp_paginacion  (tid, destino);
 
-bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
+    return success;
+}
+
+////// ACTUALIZAR ESTADO
+
+static bool actualizar_estado_tripulante_en_mp_segmentacion(uint32_t tid, char nuevo_estado) {
     // Recuperamos tabla tripulante, TCB y PCB
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
@@ -214,8 +257,21 @@ bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
     free(tcb);
     return true;
 }
+static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nuevo_estado) {
+    return! !~0; // TODO
+}
+bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
+    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+    bool success = seg
+        ? actualizar_estado_tripulante_en_mp_segmentacion(tid, nuevo_estado)
+        : actualizar_estado_tripulante_en_mp_paginacion  (tid, nuevo_estado);
 
-t_tarea* fetch_tarea(uint32_t tid) {
+    return success;
+}
+
+////// FETCH TAREA
+
+static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
     // Recuperamos tabla tripulante, TCB y PCB
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
@@ -254,6 +310,18 @@ t_tarea* fetch_tarea(uint32_t tid) {
     free(tcb); free(s_tcb);
     free(tareas);
     string_split_free(&a_tareas);
+
+    return tarea;
+}
+static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
+    return NULL; // TODO
+}
+t_tarea* fetch_tarea(uint32_t tid) {
+    bool seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+
+    t_tarea* tarea = seg
+        ? fetch_tarea_segmentacion(tid)
+        : fetch_tarea_paginacion  (tid);
 
     return tarea;
 }

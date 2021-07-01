@@ -1,5 +1,4 @@
-- [ ] Mi-RAM-HQ pueda guardar las tareas de cada patota y dar tareas cuando se le pidan (discordiador - ops_tripulante.c:88) PAGINACION
-- [ ] Mi-RAM-HQ - get data en monitor_memoria.c:dump_mp(int)
-- [ ] Mi-RAM-HQ - implementar eventos iniciar_patota e iniciar_self_en_patota PAGINACION
-- [ ] Mi-RAM-HQ - actualizar tp_patotas en utils de paginacion
+- [ ] Implementar funciones en MRH :: interfaz_memoria.c relacionadas a paginación
+- [ ] Implementar dump para paginación
+- [ ] HACER ALGO DEL IMONGO???
 - [ ] No romper todo el TP
