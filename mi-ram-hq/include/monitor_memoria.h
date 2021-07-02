@@ -8,7 +8,6 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include <commons/bitarray.h>
 #include <commons/temporal.h>
 
 #include "init_mrhq.h"

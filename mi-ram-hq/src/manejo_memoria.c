@@ -8,8 +8,7 @@ extern uint32_t memoria_disponible;
 extern segmento_t* (*proximo_hueco)(uint32_t);
 
 extern t_list* tp_patotas;
-extern char* puntero_a_bits;
-extern t_bitarray* bitarray_frames;
+extern frame_t* tabla_frames;
 
 extern pthread_mutex_t MUTEX_MP;
 extern sem_t SEM_COMPACTACION_DONE;

@@ -344,7 +344,7 @@ void test_compactacion() {
 
 /// paginacion
 
-void test_print_bitarray() {
+void test_print_framo() {
     for (int i=0; i<10; i++)
         ocupar_frame_framo(i, false, 14);
     for (int i=20; i<30; i++)
@@ -404,7 +404,7 @@ CU_TestInfo tests_memoria[] = {
     // { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
     // { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
     // { "Test COMPACTACION", test_compactacion },
-    { "Test print bitarray", test_print_bitarray },
+    { "Test print framo", test_print_framo },
     { "Test primer frame libre", test_primer_frame_libre },
     CU_TEST_INFO_NULL,
 };

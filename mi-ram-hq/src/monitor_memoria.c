@@ -5,8 +5,6 @@ extern t_config_mrhq* cfg;
 extern t_list* segmentos_libres;
 extern t_list* segmentos_usados;
 
-extern char* puntero_a_bits;
-extern t_bitarray* bitarray_frames;
 extern frame_t* tabla_frames;
 
 extern void* memoria_principal;
@@ -345,7 +343,6 @@ void asesinar_segus() {
 ////// END SEGUS
 
 ////// UTILS FRAMES - A.K.A. FRAMO
-//      algunos usan la frame_t* tabla_frames, otros el bitarray_t* de las commons
 
 // off_t == uint32_t en la VM (chequeado)
 

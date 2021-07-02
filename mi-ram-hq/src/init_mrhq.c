@@ -14,8 +14,6 @@ t_list* ts_tripulantes;
 segmento_t* (*proximo_hueco)(uint32_t);
 
 // paginacion
-char* puntero_a_bits;
-t_bitarray* bitarray_frames;
 frame_t* tabla_frames;
 t_list* tp_patotas;
 
@@ -113,11 +111,6 @@ uint8_t cargar_memoria() {
         tabla_frames = malloc(cfg->CANT_PAGINAS * sizeof(frame_t));
         for (int i=0; i<cfg->CANT_PAGINAS; i++)
             tabla_frames[i].bytes = (uint64_t) 0xFFFFFFFF;
-
-        uint32_t cant_paginas = cfg->CANT_PAGINAS;
-        puntero_a_bits = malloc(cant_paginas/8);
-        memset(puntero_a_bits, 0, cant_paginas/8);
-        bitarray_frames = bitarray_create_with_mode(puntero_a_bits, cant_paginas/8, LSB_FIRST);
     }
 
     return 1;
@@ -145,8 +138,6 @@ void cerrar_programa() {
     }
     if (paginacion || debug) {
         asesinar_tppatotas();
-        bitarray_destroy(bitarray_frames);
-        free(puntero_a_bits);
         free(tabla_frames);
     }
 

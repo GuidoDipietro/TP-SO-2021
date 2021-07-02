@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include <commons/bitarray.h>
 #include <string.h>
 #include <signal.h>
 
