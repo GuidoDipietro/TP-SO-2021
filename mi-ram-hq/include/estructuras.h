@@ -77,11 +77,12 @@ typedef struct {
 } tp_patota_t;
 
 typedef union {
-    uint32_t bytes;
+    uint64_t bytes;
     struct {
-        unsigned lleno          :  1;
+        unsigned libre          :  1;
         unsigned amedias        :  1;
-        unsigned pid_ocupador   : 30;
+        unsigned inicio_hueco   : 30;
+        unsigned pid_ocupador   : 32;
     };
 } frame_t;
 

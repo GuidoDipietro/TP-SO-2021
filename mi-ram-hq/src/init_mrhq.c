@@ -111,6 +111,8 @@ uint8_t cargar_memoria() {
     if (strcmp(cfg->ESQUEMA_MEMORIA,"PAGINACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
         tp_patotas = list_create();
         tabla_frames = malloc(cfg->CANT_PAGINAS * sizeof(frame_t));
+        for (int i=0; i<cfg->CANT_PAGINAS; i++)
+            tabla_frames[i].bytes = (uint64_t) 0xFFFFFFFF;
 
         uint32_t cant_paginas = cfg->CANT_PAGINAS;
         puntero_a_bits = malloc(cant_paginas/8);

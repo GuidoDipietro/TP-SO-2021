@@ -10,8 +10,7 @@ extern t_list* ts_tripulantes;
 extern segmento_t* (*proximo_hueco)(uint32_t);
 
 extern t_list* tp_patotas;
-extern char* puntero_a_bits;
-extern t_bitarray* bitarray_frames;
+extern frame_t* tabla_frames;
 
 extern uint32_t memoria_disponible;
 extern void* memoria_principal;
@@ -343,85 +342,69 @@ void test_compactacion() {
     free(data1); free(data2); free(data3); free(data4); free(data5); free(data6);
 }
 
+/// paginacion
+
 void test_print_bitarray() {
     for (int i=0; i<10; i++)
-        ocupar_frame_frambit(i);
+        ocupar_frame_framo(i, false, 14);
     for (int i=20; i<30; i++)
-        ocupar_frame_frambit(i);
+        ocupar_frame_framo(i, true, 27);
 
-    liberar_frame_frambit(3);
-    liberar_frame_frambit(6);
+    liberar_frame_framo(3);
+    liberar_frame_framo(6);
 
-    print_frambit(false);
+    print_framo(false);
 }
 
 void test_primer_frame_libre() {
-    print_frambit(false);
+    bool amedias;
+    // 00000000 00000000 00000000 00000000
+    print_framo(false);
     uint32_t cero = 0;
-    CU_ASSERT_TRUE(primer_frame_libre_frambit() == cero);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(2, &amedias) == cero && amedias == false);
 
     for (int i=0; i<10; i++)
-        ocupar_frame_frambit(i);
-    for (int i=20; i<30; i++)
-        ocupar_frame_frambit(i);
+        ocupar_frame_framo(i, false, 6);
+    for (int i=10; i<20; i++)
+        ocupar_frame_framo(i, false, 9);
+    ocupar_frame_framo(20, true, 9);
 
-    liberar_frame_frambit(3);
-    liberar_frame_frambit(6);
+    // 66666666 66999999 99998000 00000000
 
-    print_frambit(false);
+    liberar_frame_framo(3);
+    liberar_frame_framo(6);
+
+    // 66606606 66999999 99998000 00000000
+
+    print_framo(false);
     uint32_t tres = 3;
-    CU_ASSERT_TRUE(primer_frame_libre_frambit() == tres);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(2, &amedias) == tres && amedias == false);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(9, &amedias) == 20 && amedias == true);
 
-    for (int i=0; i<(cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA); ocupar_frame_frambit(i++))
-        ;
+    for (int i=21; i<(cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA); i++)
+        ocupar_frame_framo(i, false, 2);
+    ocupar_frame_framo(3, false, 2);
+    ocupar_frame_framo(6, false, 2);
 
-    print_frambit(false);
-    CU_ASSERT_TRUE(primer_frame_libre_frambit() == -1);
-}
-
-void test_meter_choclo_paginado_en_mp() {
-    uint32_t t_pag = cfg->TAMANIO_PAGINA;
-    void* choclo = malloc(300);
-    memset(choclo, 0x11, t_pag);
-    memset(choclo+t_pag, 0x22, t_pag);
-    memset(choclo+t_pag+t_pag, 0x33, t_pag);
-    memset(choclo+t_pag+t_pag+t_pag, 0x44, t_pag);
-    memset(choclo+t_pag+t_pag+t_pag+t_pag, 0x55, 44);
-    // como para visualizarlo, nomas
-
-    CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo, 300));
-
-    mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 5);
-    print_frambit(false);
-
-    void* choclo2 = malloc(100);
-    memset(choclo2, 0x11, t_pag);
-    memset(choclo2+t_pag, 0x22, 100-t_pag);
-
-    CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo2, 100));
-
-    mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 7);
-    print_frambit(false);
-
-    free(choclo); free(choclo2);
+    print_framo(false);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(11, &amedias) == -1);
 }
 
 CU_TestInfo tests_memoria[] = {
-    { "Test print seglib/segus", test_print },
-    { "Test proximo hueco first fit", test_hueco_first_fit },
-    { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
-    { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
-    { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
-    { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
-    { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
-    { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
-    { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
-    { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
-    { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
-    { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
-    { "Test COMPACTACION", test_compactacion },
+    // { "Test print seglib/segus", test_print },
+    // { "Test proximo hueco first fit", test_hueco_first_fit },
+    // { "Test proximo hueco first fit (no hay)", test_hueco_first_fit_no_hay },
+    // { "Test proximo hueco best fit (1)", test_hueco_best_fit1 },
+    // { "Test proximo hueco best fit (2)", test_hueco_best_fit2 },
+    // { "Test proximo hueco best fit (no hay)", test_hueco_best_fit_no_hay },
+    // { "Test meter nuevo segmento (best fit - justo)", test_meter_segmento_ocupa_hueco_entero_bf },
+    // { "Test meter nuevo segmento (first fit - justo)", test_meter_segmento_ocupa_hueco_entero_ff },
+    // { "Test meter nuevo segmento (best fit)", test_meter_segmento_bf },
+    // { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
+    // { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
+    // { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
+    // { "Test COMPACTACION", test_compactacion },
     { "Test print bitarray", test_print_bitarray },
     { "Test primer frame libre", test_primer_frame_libre },
-    { "Test meter choclo paginado", test_meter_choclo_paginado_en_mp },
     CU_TEST_INFO_NULL,
 };

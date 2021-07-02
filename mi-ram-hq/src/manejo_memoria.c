@@ -290,30 +290,33 @@ void compactar_segmentos_libres() {
 
 ////// MANEJO MEMORIA PRINCIPAL - PAGINACION
 
-static bool meter_pagina_en_mp(void* data) {
-    int64_t frame_libre = primer_frame_libre_frambit();
+static bool meter_pagina_en_mp(void* data, uint32_t pid) {
+    bool amedias;
+    int64_t frame_libre = primer_frame_libre_framo(pid, &amedias);
     if (frame_libre == -1) return false; // posteriormente: implementar memoria virtual
 
     uint32_t nro_frame = frame_libre; // una especie de casteo porlas
 
-    ocupar_frame_frambit(nro_frame);
+    ocupar_frame_framo(nro_frame, amedias, pid);
     memcpy_pagina_en_frame_mp(nro_frame, data);
     return true;
 }
 
 // Dado un stream de bytes, lo mete en MP donde encuentre paginas libres
-bool meter_choclo_paginado_en_mp(void* data, size_t size) {
+// O si la ultima del proceso esta por la mitad, empieza por ahi
+bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
-    uint32_t cant_paginas = size%t_pag==0? size/t_pag : size/t_pag + 1;
+    uint32_t n_pags = cant_paginas(size);
 
-    void* padded_data = malloc(cant_paginas * t_pag);
-    memset(padded_data, 0, cant_paginas * t_pag);
+    void* padded_data = malloc(n_pags * t_pag);
+    memset(padded_data, 0, n_pags * t_pag);
     memcpy(padded_data, data, size);
 
+    // Itera de a una pagina y las mete en MP
     void* buf = malloc(t_pag);
-    for (uint32_t i=0; i<cant_paginas; i++) {
+    for (uint32_t i=0; i<n_pags; i++) {
         memcpy(buf, padded_data+i*t_pag, t_pag);
-        if (!meter_pagina_en_mp(buf)) {
+        if (!meter_pagina_en_mp(buf, pid)) {
             free(buf);
             return false;
         }

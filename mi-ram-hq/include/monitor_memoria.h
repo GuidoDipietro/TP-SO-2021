@@ -62,16 +62,15 @@ t_list* list_get_pcb_segments_segus();
 void asesinar_segus();
 /// END SEGUS
 
-/// FRAMBIT
-int64_t primer_frame_libre_frambit();
+/// FRAMO
+int64_t primer_frame_libre_framo(uint32_t pid, bool* amedias);
 uint32_t cant_frames_libres();
-void ocupar_frame_frambit(uint32_t index);
-void liberar_frame_frambit(uint32_t index);
-bool estado_frame_frambit(uint32_t index);
-/// END FRAMBIT
+void ocupar_frame_framo(uint32_t index, bool amedias, uint32_t pid);
+void liberar_frame_framo(uint32_t index);
+/// END FRAMO
 
 // debug
-void print_frambit(bool);
+void print_framo(bool);
 void print_segmento_t(void*);
 void print_seglib(bool);
 void print_segus(bool);

@@ -27,6 +27,6 @@ void compactar_segmentos_libres(void);
 
 /// PAGINACION
 
-bool meter_choclo_paginado_en_mp(void* data, size_t size);
+bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid);
 
 #endif
