@@ -154,12 +154,6 @@ void* get_segmento_data(uint32_t inicio, uint32_t size) {
     return stream;
 }
 
-void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data) {
-    pthread_mutex_lock(&MUTEX_MP);
-    memcpy(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, data, cfg->TAMANIO_PAGINA); // size_t == uint32_t en la VM (chequeado)
-    pthread_mutex_unlock(&MUTEX_MP);
-}
-
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio) {
     pthread_mutex_lock(&MUTEX_MP);
     memset(memoria_principal+inicio, 0, tamanio);
@@ -177,6 +171,27 @@ void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio)
     pthread_mutex_unlock(&MUTEX_MP);
 
     free(data);
+}
+
+
+void* get_pagina_data(uint32_t nro_frame) {
+    void* data = malloc(cfg->TAMANIO_PAGINA);
+    pthread_mutex_lock(&MUTEX_MP);
+    memcpy(data, memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, cfg->TAMANIO_PAGINA);
+    pthread_mutex_unlock(&MUTEX_MP);
+    return data;
+}
+
+void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data) {
+    pthread_mutex_lock(&MUTEX_MP);
+    memcpy(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, data, cfg->TAMANIO_PAGINA); // size_t == uint32_t en la VM (chequeado)
+    pthread_mutex_unlock(&MUTEX_MP);
+}
+
+void clear_frame_en_mp(uint32_t nro_frame) {
+    pthread_mutex_lock(&MUTEX_MP);
+    memset(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, 0, cfg->TAMANIO_PAGINA);
+    pthread_mutex_unlock(&MUTEX_MP);
 }
 
 ////// UTILS SEGMENTOS_LIBRES A.K.A. SEGLIB
@@ -332,15 +347,28 @@ void asesinar_segus() {
 
 // off_t == uint32_t en la VM (chequeado)
 
-// Si no hay ninguno libre, retorna ==
+// Si no hay ninguno libre, retorna -1
 int64_t primer_frame_libre_frambit() {
     int64_t i = 0;
     pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
     int64_t size = bitarray_get_max_bit(bitarray_frames);
-    for (; i<size; i++)
-        if (bitarray_test_bit(bitarray_frames, i) == false) break;
+    for (; i<size; i++) {
+        if (bitarray_test_bit(bitarray_frames, i) == false)
+            break;
+    }
     pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
     return i==size? -1 : i;
+}
+
+uint32_t cant_frames_libres() {
+    uint32_t count = 0;
+    pthread_mutex_lock(&MUTEX_BITARRAY_FRAMES);
+    uint32_t size = bitarray_get_max_bit(bitarray_frames);
+    for (uint32_t i = 0; i<size; i++) {
+        if (bitarray_test_bit(bitarray_frames, i) == false) 
+            count++;
+    }
+    pthread_mutex_unlock(&MUTEX_BITARRAY_FRAMES);
 }
 
 void ocupar_frame_frambit(uint32_t index) {
@@ -367,7 +395,7 @@ bool estado_frame_frambit(uint32_t index) {
 
 static bool log = false;
 
-void print_bitarray_frames(bool ynlog) {
+void print_frambit(bool ynlog) {
     ynlog ? log_info(logger, "--------- BITARRAY FRAMES ---------\n")
         : printf("\n\n--------- BITARRAY FRAMES ---------\n");
     for (size_t i=0; i < bitarray_get_max_bit(bitarray_frames); i = i+1) {

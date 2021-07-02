@@ -16,6 +16,7 @@ segmento_t* (*proximo_hueco)(uint32_t);
 // paginacion
 char* puntero_a_bits;
 t_bitarray* bitarray_frames;
+frame_t* tabla_frames;
 t_list* tp_patotas;
 
 void* memoria_principal;
@@ -60,8 +61,9 @@ uint8_t cargar_configuracion(char* path) {
 
     cfg->TAMANIO_MEMORIA = config_get_int_value(cfg_file, "TAMANIO_MEMORIA");
     cfg->ESQUEMA_MEMORIA = strdup(config_get_string_value(cfg_file, "ESQUEMA_MEMORIA"));
-    seg = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
+    cfg->SEG = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0;
     cfg->TAMANIO_PAGINA = config_get_int_value(cfg_file, "TAMANIO_PAGINA");
+    cfg->CANT_PAGINAS = cfg->TAMANIO_MEMORIA / cfg->TAMANIO_PAGINA;
     cfg->TAMANIO_SWAP = config_get_int_value(cfg_file, "TAMANIO_SWAP");
     cfg->PATH_SWAP = strdup(config_get_string_value(cfg_file, "PATH_SWAP"));
     cfg->ALGORITMO_REEMPLAZO = strdup(config_get_string_value(cfg_file, "ALGORITMO_REEMPLAZO"));
@@ -108,7 +110,9 @@ uint8_t cargar_memoria() {
     // Paginacion
     if (strcmp(cfg->ESQUEMA_MEMORIA,"PAGINACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
         tp_patotas = list_create();
-        uint32_t cant_paginas = cfg->TAMANIO_MEMORIA / cfg->TAMANIO_PAGINA;
+        tabla_frames = malloc(cfg->CANT_PAGINAS * sizeof(frame_t));
+
+        uint32_t cant_paginas = cfg->CANT_PAGINAS;
         puntero_a_bits = malloc(cant_paginas/8);
         memset(puntero_a_bits, 0, cant_paginas/8);
         bitarray_frames = bitarray_create_with_mode(puntero_a_bits, cant_paginas/8, LSB_FIRST);
@@ -141,6 +145,7 @@ void cerrar_programa() {
         asesinar_tppatotas();
         bitarray_destroy(bitarray_frames);
         free(puntero_a_bits);
+        free(tabla_frames);
     }
 
     free(memoria_principal);

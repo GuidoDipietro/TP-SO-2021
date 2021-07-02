@@ -17,11 +17,18 @@ extern sem_t SEM_COMPACTACION_START;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
-////// MANEJO MEMORIA PRINCIPAL - SEGMENTACION
+static uint32_t cant_paginas(uint32_t size) {
+    uint32_t t_pag = cfg->TAMANIO_PAGINA;
+    return size%t_pag==0? size/t_pag : size/t_pag + 1;
+}
 
 bool entra_en_mp(uint32_t tamanio) {
-    return memoria_disponible >= tamanio;
+    return cfg->SEG
+        ? memoria_disponible   >= tamanio
+        : cant_frames_libres() >= cant_paginas(tamanio);
 }
+
+////// MANEJO MEMORIA PRINCIPAL - SEGMENTACION
 
 bool get_structures_from_tid
 (uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb) {
@@ -294,6 +301,7 @@ static bool meter_pagina_en_mp(void* data) {
     return true;
 }
 
+// Dado un stream de bytes, lo mete en MP donde encuentre paginas libres
 bool meter_choclo_paginado_en_mp(void* data, size_t size) {
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
     uint32_t cant_paginas = size%t_pag==0? size/t_pag : size/t_pag + 1;

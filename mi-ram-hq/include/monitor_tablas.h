@@ -45,6 +45,7 @@ void print_tstripulantes(bool log);
 #define PRI_SEGUS           (uint8_t) 0b00000100
 #define PRI_TSTRIPULANTES   (uint8_t) 0b00001000
 #define PRI_TSPATOTAS       (uint8_t) 0b00010000
+#define PRI_FRAMBIT         (uint8_t) 0b00100000
 #define PRI_ALL             (uint8_t) 0b11111111
 #define PRI_ALL_NO_MP       (uint8_t) 0b11111110
 #define PRI_NONE            (uint8_t) 0b00000000

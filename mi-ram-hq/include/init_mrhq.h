@@ -10,15 +10,18 @@
 #include <signal.h>
 
 typedef struct {
-    uint16_t TAMANIO_MEMORIA;
     char* ESQUEMA_MEMORIA;
-    uint16_t TAMANIO_PAGINA;
-    uint16_t TAMANIO_SWAP;
     char* PATH_SWAP;
     char* ALGORITMO_REEMPLAZO;
     char* CRITERIO_SELECCION;
+    uint16_t TAMANIO_MEMORIA;
+    uint16_t TAMANIO_PAGINA;
+    uint16_t TAMANIO_SWAP;
     uint16_t PUERTO;
     uint16_t IP;
+    // agregadas:
+    uint16_t CANT_PAGINAS;
+    bool SEG;
 } t_config_mrhq;
 
 static t_config_mrhq* initialize_cfg() {

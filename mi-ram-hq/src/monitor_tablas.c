@@ -241,4 +241,5 @@ void log_structures(uint8_t options) {
     if (options & PRI_SEGUS)          LOGPRINT          (segus);
     if (options & PRI_TSPATOTAS)      LOGPRINT      (tspatotas);
     if (options & PRI_TSTRIPULANTES)  LOGPRINT  (tstripulantes);
+    if (options & PRI_FRAMBIT)        LOGPRINT        (frambit);
 }

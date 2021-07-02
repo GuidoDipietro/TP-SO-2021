@@ -56,9 +56,16 @@ typedef struct {
 ////// PAGINACION //////
 
 // TP === TABLA DE PAGINAS
-typedef struct __attribute__((packed)) {
-    uint32_t nro_pagina;
-    uint32_t nro_frame;
+typedef struct {
+    uint32_t nro_pagina;    // la pagina X
+    uint32_t nro_frame;     // esta en el frame Y
+    union {
+        struct {
+            uint16_t bit_U; // bit usado
+            uint16_t bit_M; // bit modificado
+        };
+        uint32_t TUR;       // tiempo de ultima referencia
+    };
 } entrada_tp_t;
 
 typedef struct {
@@ -66,8 +73,17 @@ typedef struct {
     uint32_t tripulantes_totales;
     uint32_t tripulantes_inicializados;
     t_list* posiciones;
-    t_list* tabla;  // tipo: <entrada_tp_t>
+    t_list* tabla;          // tipo: <entrada_tp_t>
 } tp_patota_t;
+
+typedef union {
+    uint32_t bytes;
+    struct {
+        unsigned lleno          :  1;
+        unsigned amedias        :  1;
+        unsigned pid_ocupador   : 30;
+    };
+} frame_t;
 
 ///////// FUNCIONES /////////
 

@@ -352,11 +352,11 @@ void test_print_bitarray() {
     liberar_frame_frambit(3);
     liberar_frame_frambit(6);
 
-    print_bitarray_frames(false);
+    print_frambit(false);
 }
 
 void test_primer_frame_libre() {
-    print_bitarray_frames(false);
+    print_frambit(false);
     uint32_t cero = 0;
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == cero);
 
@@ -368,14 +368,14 @@ void test_primer_frame_libre() {
     liberar_frame_frambit(3);
     liberar_frame_frambit(6);
 
-    print_bitarray_frames(false);
+    print_frambit(false);
     uint32_t tres = 3;
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == tres);
 
     for (int i=0; i<(cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA); ocupar_frame_frambit(i++))
         ;
 
-    print_bitarray_frames(false);
+    print_frambit(false);
     CU_ASSERT_TRUE(primer_frame_libre_frambit() == -1);
 }
 
@@ -392,7 +392,7 @@ void test_meter_choclo_paginado_en_mp() {
     CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo, 300));
 
     mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 5);
-    print_bitarray_frames(false);
+    print_frambit(false);
 
     void* choclo2 = malloc(100);
     memset(choclo2, 0x11, t_pag);
@@ -401,7 +401,7 @@ void test_meter_choclo_paginado_en_mp() {
     CU_ASSERT_TRUE(meter_choclo_paginado_en_mp(choclo2, 100));
 
     mem_hexdump(memoria_principal, cfg->TAMANIO_PAGINA * 7);
-    print_bitarray_frames(false);
+    print_frambit(false);
 
     free(choclo); free(choclo2);
 }

@@ -24,12 +24,17 @@ void finalizar_mutex();
 void dump_mp();
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size);
 void* get_segmento_data(uint32_t inicio, uint32_t size);
-void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data);
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
-
 segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t inicio, uint32_t taman);
 segmento_t* segmento_t_duplicate(segmento_t*);
+
+	// NO SE CONTEMPLO NADA DE SWAP TODAVIA
+void* get_pagina_data(uint32_t nro_frame);
+void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data);
+void clear_frame_en_mp(uint32_t nro_frame);
+
+		         /* ------------------------------------------------------------ */
 
 /// SEGLIB
 uint32_t list_size_seglib();
@@ -59,13 +64,14 @@ void asesinar_segus();
 
 /// FRAMBIT
 int64_t primer_frame_libre_frambit();
+uint32_t cant_frames_libres();
 void ocupar_frame_frambit(uint32_t index);
 void liberar_frame_frambit(uint32_t index);
 bool estado_frame_frambit(uint32_t index);
 /// END FRAMBIT
 
 // debug
-void print_bitarray_frames(bool);
+void print_frambit(bool);
 void print_segmento_t(void*);
 void print_seglib(bool);
 void print_segus(bool);
