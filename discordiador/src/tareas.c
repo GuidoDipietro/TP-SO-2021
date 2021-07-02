@@ -56,14 +56,18 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         //ciclo();
         __asm__ volatile ("call ciclo"); // Por los memes
 
-        if((t->tarea)->duracion) {
-            correr_tarea(thread_data);
+        if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
+            mover_tripulante(thread_data);
         } else {
-            if(replanificar_tripulante(thread_data, t)) {
-                log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
-                goto final;
-            } else
-                log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+            if((t->tarea)->duracion) {
+                correr_tarea_generica(thread_data);
+            } else {
+                if(replanificar_tripulante(thread_data, t)) {
+                    log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                    goto final;
+                } else
+                    log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+            }
         }
     }
 
@@ -95,7 +99,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         __asm__ volatile ("call ciclo"); // Por los memes
 
 
-        if ((t->tarea)->duracion) {
+        /*if ((t->tarea)->duracion) {
             if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
                 desalojar_tripulante(thread_data);
             else {
@@ -109,6 +113,26 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                 goto final;
             } else
                 log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+        }*/
+
+        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
+            desalojar_tripulante(thread_data);
+        else {
+            if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
+                mover_tripulante(thread_data);
+                (thread_data->quantum)++;
+            } else {
+                if((t->tarea)->duracion) {
+                    correr_tarea_generica(thread_data);
+                    (thread_data->quantum)++;
+                } else {
+                    if(replanificar_tripulante(thread_data, t)) {
+                        log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                        goto final;
+                    } else
+                        log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                }
+            }
         }
     }
 
@@ -146,43 +170,45 @@ uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) 
     return 0;
 }
 
-void correr_tarea(t_running_thread* r_t) {
+void mover_tripulante(t_running_thread* r_t) {
     t_tripulante* t = r_t->t;
 
-    if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
-        t_posicion* origen = malloc(sizeof(t_posicion));
-        origen->x = t->pos->x;
-        origen->y = t->pos->y;
+    t_posicion* origen = malloc(sizeof(t_posicion));
+    origen->x = t->pos->x;
+    origen->y = t->pos->y;
 
-        int16_t dif = (t->pos)->x - ((t->tarea)->pos)->x;
+    int16_t dif = (t->pos)->x - ((t->tarea)->pos)->x;
 
-        if(dif != 0)
-            (t->pos)->x -= signo(dif);
-        else {
-            dif = (t->pos)->y - ((t->tarea)->pos)->y;
-            (t->pos)->y -= signo(dif);
-        }
-
-        // Le avisamos al MRH que actualice la GUI
-        int ret_code = send_movimiento(
-            t->fd_mi_ram_hq,
-            t->tid,
-            origen,
-            t->pos
-        );
-        if (ret_code == -1) {
-            log_error(main_log, "Error enviando movimiento del tripulante %d", t->tid);
-        }
-
-        log_info(main_log, "MOVE tid#%d %d|%d => %d|%d",
-            t->tid, origen->x, origen->y, t->pos->x, t->pos->y
-        );
-
-        free(origen);
-    } else {
-        ((t->tarea)->duracion)--; // Decrementamos hasta que no tenga mas duracion
-        log_info(main_log, "WAIT tid#%d @ %d|%d (dur: %d)",
-            t->tid, t->pos->x, t->pos->y, t->tarea->duracion
-        );
+    if(dif != 0)
+        (t->pos)->x -= signo(dif);
+    else {
+        dif = (t->pos)->y - ((t->tarea)->pos)->y;
+        (t->pos)->y -= signo(dif);
     }
+
+    // Le avisamos al MRH que actualice la GUI
+    int ret_code = send_movimiento(
+        t->fd_mi_ram_hq,
+        t->tid,
+        origen,
+        t->pos
+    );
+    if (ret_code == -1) {
+        log_error(main_log, "Error enviando movimiento del tripulante %d", t->tid);
+    }
+
+    log_info(main_log, "MOVE tid#%d %d|%d => %d|%d",
+        t->tid, origen->x, origen->y, t->pos->x, t->pos->y
+    );
+
+    free(origen);
+}
+
+void correr_tarea_generica(t_running_thread* r_t) {
+    t_tripulante* t = r_t->t;
+
+    ((t->tarea)->duracion)--; // Decrementamos hasta que no tenga mas duracion
+    log_info(main_log, "WAIT tid#%d @ %d|%d (dur: %d)",
+        t->tid, t->pos->x, t->pos->y, t->tarea->duracion
+    );
 }
