@@ -20,7 +20,6 @@ void finalizar_mutex();
 /// SEGMENTACION
 
 // utils
-void dump_mp();
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size);
 void* get_segmento_data(uint32_t inicio, uint32_t size);
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
@@ -58,6 +57,7 @@ segmento_t* list_find_by_inicio_segus(uint32_t inicio);
 segmento_t* list_get_segus(uint32_t indice);
 t_list* list_get_tcb_segments_segus();
 t_list* list_get_pcb_segments_segus();
+char* stringify_segus();
 void asesinar_segus();
 /// END SEGUS
 

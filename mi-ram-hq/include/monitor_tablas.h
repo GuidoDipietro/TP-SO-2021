@@ -19,7 +19,6 @@ ts_patota_t* list_find_by_pid_tspatotas(uint32_t pid);
 ts_patota_t* list_find_by_pid_plus_plus_tspatotas(uint32_t pid);
 ts_patota_t* list_find_by_inicio_pcb_tspatotas(uint32_t inicio);
 ts_patota_t* list_find_by_inicio_tareas_tspatotas(uint32_t inicio);
-char* stringify_tspatotas();
 void asesinar_tspatotas();
 
 

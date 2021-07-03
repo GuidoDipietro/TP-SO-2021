@@ -12,6 +12,7 @@
 
 bool entra_en_mp(uint32_t tamanio);
 bool entra_en_swap(uint32_t tamanio);
+void dump_mp();
 
 /// SEGMENTACION
 

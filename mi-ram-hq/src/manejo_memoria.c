@@ -16,6 +16,8 @@ extern sem_t SEM_COMPACTACION_START;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
+// Varios
+
 static uint32_t cant_paginas(uint32_t size, size_t* rem) {
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
     *rem = size % t_pag;
@@ -32,6 +34,37 @@ bool entra_en_mp(uint32_t tamanio) {
 bool entra_en_swap(uint32_t tamanio) {
     return true;
     // TODO
+}
+
+void dump_mp() {
+    char* timestamp = temporal_get_string_time("%d_%m_%y--%H_%M_%S");
+    char* filename = string_from_format("Dump_%s.dmp", timestamp);
+    FILE* dump_file = fopen(filename, "w+");
+
+    char* hr = string_repeat('-', 50);
+    char* data = NULL;
+    if (cfg->SEG) {
+        char* str_segus = stringify_segus();
+        data = string_from_format(
+            "\n%s\nDump: %s\n%s\n%s\n\n",
+            hr, timestamp, str_segus, hr
+        );
+        free(str_segus);
+    }
+    else {
+        // TODO: get data paginacion a "data"
+        data = strdup("paginacion!!");
+    }
+
+    fprintf(dump_file, "%s", data);
+
+    goto die;
+    die:
+        fclose(dump_file);
+        free(hr);
+        free(data);
+        free(timestamp);
+        free(filename);
 }
 
 ////// MANEJO MEMORIA PRINCIPAL - SEGMENTACION

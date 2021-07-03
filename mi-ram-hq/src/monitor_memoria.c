@@ -111,33 +111,7 @@ segmento_t* segmento_t_duplicate(segmento_t* s) {
 
 /// funcs
 
-void dump_mp() {
-    char* timestamp = temporal_get_string_time("%d_%m_%y--%H_%M_%S");
-    char* filename = string_from_format("Dump_%s.dmp", timestamp);
-    FILE* dump_file = fopen(filename, "w+");
-
-    char* hr = string_repeat('-', 50);
-    char* data = NULL;
-    if (strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION") == 0) {
-        char* str_tspatotas = stringify_tspatotas();
-        data = string_from_format("\n%s\nDump: %s\n%s\n%s\n\n", hr, timestamp, str_tspatotas, hr);
-        free(str_tspatotas);
-    }
-    else if (strcmp(cfg->ESQUEMA_MEMORIA, "PAGINACION") == 0) {
-        // TODO: get data paginacion a "data"
-        data = strdup("paginacion!!");
-    }
-    else goto die;
-
-    fprintf(dump_file, "%s", data);
-
-    die:
-        fclose(dump_file);
-        free(hr);
-        free(data);
-        free(timestamp);
-        free(filename);
-}
+            // SEGMENTACION
 
 void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size) {
     pthread_mutex_lock(&MUTEX_MP);
@@ -194,6 +168,8 @@ void clear_frame_en_mp(uint32_t nro_frame) {
     memset(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, 0, cfg->TAMANIO_PAGINA);
     pthread_mutex_unlock(&MUTEX_MP);
 }
+
+            // UTILS - BIBLIOTECAS SEGLIB | SEGUS | FRAMO
 
 ////// UTILS SEGMENTOS_LIBRES A.K.A. SEGLIB
 
@@ -334,6 +310,76 @@ t_list* list_get_pcb_segments_segus() {
     t_list* lista_ret = list_filter(segmentos_usados, &seg_es_pcb);
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
     return lista_ret;
+}
+
+static char* segmento_t_en_ram_a_string_de_dump(segmento_t* seg) {
+    // Retorna string dumpleable del segmento (55 bytes sin el \0)
+    char* str = NULL;
+    switch (seg->tipo) {
+        case PCB_SEG:
+        {
+            ts_patota_t* tabla = list_find_by_inicio_pcb_tspatotas(seg->inicio);
+            str = string_from_format(
+                "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
+                tabla->pid, 0, tabla->pcb->inicio, tabla->pcb->tamanio
+            );
+            return str;
+        }
+
+        case TAREAS_SEG:
+        {
+            ts_patota_t* tabla = list_find_by_inicio_tareas_tspatotas(seg->inicio);
+            str = string_from_format(
+                "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
+                tabla->pid, 1, tabla->tareas->inicio, tabla->tareas->tamanio
+            );
+            return str;
+        }
+
+        case TCB_SEG:
+        {
+            ts_tripulante_t* tabla = list_find_by_inicio_tcb_tstripulantes(seg->inicio);
+            PCB_t* pcb; TCB_t* tcb;
+            if (!get_structures_from_tid(tabla->tid, &tabla, &tcb, &pcb)) {
+                str = strdup("Error fatal en dump segmentacion");
+                free(pcb); free(tcb);
+                return str;
+            }
+            ts_patota_t* tabla_p = list_find_by_pid_tspatotas(pcb->pid);
+            str = string_from_format(
+                "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
+                pcb->pid, 2, tabla->tcb->inicio, tabla->tcb->tamanio
+            );
+            free(pcb); free(tcb);
+            return str;
+        }
+
+        default:
+        {
+            str = strdup("Epic fail, el segmento no era de ningun tipo.\n");
+            return str;
+        }
+    }
+}
+char* stringify_segus() {
+    size_t size_line = 55; // sin el \0
+
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_USADOS);
+    size_t size_str = list_size(segmentos_usados) * size_line + 1; // rows * size_row + \0
+    char* str = malloc(size_str);
+    memset(str, 0, size_str);
+    
+    t_list_iterator* i_segmentos_usados = list_iterator_create(segmentos_usados);
+    for (int i = 0; list_iterator_has_next(i_segmentos_usados); i++) {
+        segmento_t* seg = list_iterator_next(i_segmentos_usados);
+        char* line = segmento_t_en_ram_a_string_de_dump(seg);
+        memcpy(str+size_line*i, line, strlen(line)); // sin el \0
+        free(line);
+    }
+    list_iterator_destroy(i_segmentos_usados);
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_USADOS);
+
+    return str;
 }
 
 void asesinar_segus() {
