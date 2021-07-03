@@ -17,6 +17,7 @@ t_queue* COLA_NEW;
 t_config_disc* DISCORDIADOR_CFG;
 t_list* COLA_EXIT;
 t_list* LISTA_SABOTAJE;
+t_queue* COLA_BLOQUEADOS;
 
 static t_config_disc* initialize_cfg() {
     t_config_disc* cfg = malloc(sizeof(t_config_disc));
@@ -33,6 +34,7 @@ int main() {
     LISTA_HILOS = list_create();
     COLA_EXIT = list_create();
     LISTA_SABOTAJE = list_create();
+    COLA_BLOQUEADOS = queue_create();
     iniciar_mutex();
     set_signal_handlers();
 

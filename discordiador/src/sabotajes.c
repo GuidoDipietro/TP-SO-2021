@@ -109,7 +109,7 @@ void iniciar_sabotaje(int signum) {
 
     while(((encargado->t)->tarea)->duracion) {
         ciclo();
-        correr_tarea(encargado);
+        correr_tarea_generica(encargado);
     }
 
     log_info(main_log, "Sabotaje resuelto");

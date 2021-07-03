@@ -15,6 +15,7 @@
 sem_t ACTIVE_THREADS;
 sem_t TRIPULANTES_EN_COLA;
 sem_t TRIPULANTE_LISTA_HILOS_PAUSADO;
+sem_t TRIPULANTE_EN_BLOQUEADOS;
 
 //
 
@@ -48,6 +49,13 @@ void push_cola_new(t_running_thread*);
 t_running_thread* pop_cola_new();
 void iterar_cola_new(void (*f)(void*));
 uint16_t largo_cola_new();
+
+// Bloqueados E/S
+
+extern t_queue* COLA_BLOQUEADOS;
+
+void push_cola_bloqueados(t_running_thread* thread);
+t_running_thread* pop_cola_bloqueados();
 
 // Cola tripulantes
 

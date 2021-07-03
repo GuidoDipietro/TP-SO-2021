@@ -27,6 +27,7 @@ pthread_mutex_t MUTEX_COLA;
 pthread_mutex_t MUTEX_LISTA_HILOS;
 pthread_mutex_t MUTEX_LISTA_NEW;
 pthread_mutex_t MUTEX_COLA_EXIT;
+pthread_mutex_t MUTEX_COLA_BLOQUEADOS;
 
 void free_t_tripulante(void* t_p) {
     t_tripulante* t = (t_tripulante*) t_p;
@@ -43,8 +44,10 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_LISTA_NEW, NULL);
     pthread_mutex_init(&MUTEX_COLA_EXIT, NULL);
     pthread_mutex_init(&MUTEX_LISTA_SABOTAJE, NULL);
+    pthread_mutex_init(&MUTEX_COLA_BLOQUEADOS, NULL);
     sem_init(&TRIPULANTES_EN_COLA, 0, 0);
     sem_init(&TRIPULANTE_LISTA_HILOS_PAUSADO, 0, 0);
+    sem_init(&TRIPULANTE_EN_BLOQUEADOS, 0, 0);
 }
 
 void finalizar_mutex() {
@@ -53,8 +56,10 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_LISTA_NEW);
     pthread_mutex_destroy(&MUTEX_COLA_EXIT);
     pthread_mutex_destroy(&MUTEX_LISTA_SABOTAJE);
+    pthread_mutex_destroy(&MUTEX_COLA_BLOQUEADOS);
     sem_destroy(&TRIPULANTES_EN_COLA);
     sem_destroy(&TRIPULANTE_LISTA_HILOS_PAUSADO);
+    sem_destroy(&TRIPULANTE_EN_BLOQUEADOS);
 }
 
 // Lista new
@@ -91,6 +96,21 @@ uint16_t largo_cola_new() {
     uint16_t ret = queue_size(COLA_NEW);
     pthread_mutex_unlock(&MUTEX_LISTA_NEW);
     return ret;
+}
+
+// Bloqueados E/S
+
+void push_cola_bloqueados(t_running_thread* thread) {
+    pthread_mutex_lock(&MUTEX_COLA_BLOQUEADOS);
+    queue_push(COLA_BLOQUEADOS, thread);
+    pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
+}
+
+t_running_thread* pop_cola_bloqueados() {
+    pthread_mutex_lock(&MUTEX_COLA_BLOQUEADOS);
+    t_running_thread* t = queue_pop(COLA_BLOQUEADOS);
+    pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
+    return t;
 }
 
 // Cola tripulantes
