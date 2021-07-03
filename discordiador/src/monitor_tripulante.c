@@ -113,6 +113,12 @@ t_running_thread* pop_cola_bloqueados() {
     return t;
 }
 
+void iterar_cola_bloqueados(void (*f)(void*)) {
+    pthread_mutex_lock(&MUTEX_COLA_BLOQUEADOS);
+    list_iterate(COLA_BLOQUEADOS->elements, f);
+    pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
+}
+
 // Cola tripulantes
 
 void push_cola_tripulante(t_running_thread* t) {

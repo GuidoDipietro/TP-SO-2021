@@ -6,6 +6,7 @@
 #include <commons/collections/queue.h>
 #include "include/config.h"
 #include "include/sabotajes.h"
+#include "include/entrada_salida.h"
 
 #define MODULENAME "DIS"
 
@@ -49,7 +50,13 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
+    pthread_t THREAD_IO;
+    if(!pthread_create(&THREAD_IO, NULL, (void*) controlador_es, NULL)) {
+        pthread_detach(THREAD_IO);
+        menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
+    } else
+        log_error(main_log, "ERROR CRITICO INICIANDO EL DISCORDIADOR. NO SE PUDO CREAR EL HILO DEL CONTROLADOR DE E/S. ABORTANDO.");
+    
     
     cerrar_programa(main_log, main_log_inv, DISCORDIADOR_CFG);
 

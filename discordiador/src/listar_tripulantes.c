@@ -38,6 +38,7 @@ void op_listar_tripulantes() {
     iterar_lista_hilos(imprimir_tripulante_exec);
     iterar_cola_ready(imprimir_tripulante_exec);
     iterar_cola_new(imprimir_tripulante_exec);
+    iterar_cola_bloqueados(imprimir_tripulante_exec);
     iterar_lista_exit(imprimir_tripulante);
     //list_iterate(LISTA_SABOTAJE, imprimir_tripulante_exec);
     // OJITO CON LAS CONDICIONES DE CARRERA ACA!

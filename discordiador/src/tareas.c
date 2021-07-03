@@ -56,13 +56,18 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         //ciclo();
         __asm__ volatile ("call ciclo"); // Por los memes
 
+        printf("\n\n\nDUR: %d\n\n\n", (t->tarea)->duracion);
+
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             mover_tripulante(thread_data);
         } else {
-            if((t->tarea)->duracion) {
+            if((t->tarea)->tipo != OTRO_T) {
+                    tarea_io(thread_data, t);
+                    goto final;
+            } else if((t->tarea)->duracion)
                 correr_tarea_generica(thread_data);
-            } else {
-                if(replanificar_tripulante(thread_data, t)) {
+            else {
+                 if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     goto final;
                 } else
@@ -98,23 +103,6 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         //ciclo();
         __asm__ volatile ("call ciclo"); // Por los memes
 
-
-        /*if ((t->tarea)->duracion) {
-            if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
-                desalojar_tripulante(thread_data);
-            else {
-                correr_tarea(thread_data);
-                (thread_data->quantum)++;
-            }
-        }
-        else {
-            if(replanificar_tripulante(thread_data, t)) {
-                log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
-                goto final;
-            } else
-                log_info(main_log, "El tripulante %d fue replanificado", t->tid);
-        }*/
-
         if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
             desalojar_tripulante(thread_data);
         else {
@@ -122,7 +110,10 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                 mover_tripulante(thread_data);
                 (thread_data->quantum)++;
             } else {
-                if((t->tarea)->duracion) {
+                if((t->tarea)->tipo != OTRO_T) {
+                    tarea_io(thread_data, t);
+                    goto final;
+                } else if((t->tarea)->duracion) {
                     correr_tarea_generica(thread_data);
                     (thread_data->quantum)++;
                 } else {
