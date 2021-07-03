@@ -1,4 +1,5 @@
 - [ ] Implementar funciones en MRH :: interfaz_memoria.c relacionadas a paginación
 - [ ] Implementar dump para paginación
+- [ ] Lolwut todo lo de MEMORIA VIRTUAL que es un chino
 - [ ] HACER ALGO DEL IMONGO???
 - [ ] No romper todo el TP

@@ -16,7 +16,7 @@ void sighandler(int x) {
     switch (x) {
         case SIGUSR1:
             dump_mp();
-            log_structures(PRI_MP | PRI_SEGUS | PRI_SEGLIB);
+            log_structures(PRI_MP | PRI_FRAMO);
             break;
         case SIGUSR2:
             sem_post(&SEM_COMPACTACION_START);

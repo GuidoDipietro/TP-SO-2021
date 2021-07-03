@@ -16,15 +16,22 @@ extern sem_t SEM_COMPACTACION_START;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
 
-static uint32_t cant_paginas(uint32_t size) {
+static uint32_t cant_paginas(uint32_t size, size_t* rem) {
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
-    return size%t_pag==0? size/t_pag : size/t_pag + 1;
+    *rem = size % t_pag;
+    return (*rem) ? size/t_pag + 1 : size/t_pag;
 }
 
 bool entra_en_mp(uint32_t tamanio) {
+    size_t rem;
     return cfg->SEG
         ? memoria_disponible   >= tamanio
-        : cant_frames_libres() >= cant_paginas(tamanio);
+        : cant_frames_libres() >= cant_paginas(tamanio, &rem);
+}
+
+bool entra_en_swap(uint32_t tamanio) {
+    return true;
+    // TODO
 }
 
 ////// MANEJO MEMORIA PRINCIPAL - SEGMENTACION
@@ -122,6 +129,7 @@ bool eliminar_segmento_de_mp(uint32_t inicio) {
 }
 
 static void fix_inicio_seg_en_mp(segmento_t* seg, uint32_t inicio_destino) {
+    // sangre sudor y lagrimas
     switch (seg->tipo) {
         case TCB_SEG:
         {
@@ -289,41 +297,63 @@ void compactar_segmentos_libres() {
 
 ////// MANEJO MEMORIA PRINCIPAL - PAGINACION
 
-static bool meter_pagina_en_mp(void* data, uint32_t pid) {
-    bool amedias;
-    int64_t frame_libre = primer_frame_libre_framo(pid, &amedias);
-    if (frame_libre == -1) return false; // posteriormente: implementar memoria virtual
+static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid) {
+    uint32_t inicio;
+    int64_t frame_libre = primer_frame_libre_framo(pid, &inicio);
+    if (frame_libre == -1) return false;
+    // TODO: CONTEMPLAR MEMORIA VIRTUAL
 
     uint32_t nro_frame = frame_libre; // una especie de casteo porlas
 
-    ocupar_frame_framo(nro_frame, amedias, pid);
-    memcpy_pagina_en_frame_mp(nro_frame, data);
+    ocupar_frame_framo(nro_frame, size, pid);
+    memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);
+
+    printf(
+        "Ocupe el frame %" PRIu32 " desde el inicio %" PRIu32 " con data de size %zu\n",
+        nro_frame, inicio, size
+    );
     return true;
 }
 
 // Dado un stream de bytes, lo mete en MP donde encuentre paginas libres
 // O si la ultima del proceso esta por la mitad, empieza por ahi
+#define MIN(A,B) ((A)<(B)?(A):(B))
 bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
+    void* buf;
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
-    uint32_t n_pags = cant_paginas(size);
 
-    void* padded_data = malloc(n_pags * t_pag);
-    memset(padded_data, 0, n_pags * t_pag);
-    memcpy(padded_data, data, size);
+    // Data de la primera pag libre, para saber si esta por la mitad o que
+    uint32_t offset;
+    int64_t pag_fragmentada = primer_frame_libre_framo(pid, &offset);
+
+    size_t rem;
+    size_t size_ajustado = size - (offset ? t_pag-offset : 0);
+    uint32_t n_pags = cant_paginas(size_ajustado, &rem);  // iteraciones sin offset
+    if (offset) n_pags++;                                 // iteraciones ajustadas
+
+    printf("Vou inserir um size %zu com rem %zu e offset %" PRIu32 " fazendo %" PRIu32 " iteracoes\n",
+        size, rem, offset, n_pags);
 
     // Itera de a una pagina y las mete en MP
-    void* buf = malloc(t_pag);
     for (uint32_t i=0; i<n_pags; i++) {
-        memcpy(buf, padded_data+i*t_pag, t_pag);
-        if (!meter_pagina_en_mp(buf, pid)) {
+        size_t size_chunk = i==0
+            ? MIN(t_pag - offset, size)        // Primera pagina, posible offset
+            : rem && i==n_pags-1? rem : t_pag; // Otras paginas, si es la ultima es tamanio rem si hay rem
+
+        printf("O size do chunk e: %zu\n", size_chunk);
+        buf = malloc(size_chunk);
+        if (i == 0)      memcpy(buf, data, size_chunk);
+        else if (offset) memcpy(buf, data+(i-1)*t_pag+offset, size_chunk);
+        else             memcpy(buf, data+i*t_pag, size_chunk);
+
+        if (!meter_pagina_en_mp(buf, size_chunk, pid)) {
             free(buf);
             return false;
         }
+        free(buf);
     }
 
     // actualizar tp_patotas
 
-    free(padded_data);
-    free(buf);
     return true;
 }

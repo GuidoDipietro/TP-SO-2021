@@ -172,6 +172,8 @@ void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio)
     free(data);
 }
 
+            // PAGINACION
+// size_t == uint32_t en la VM (chequeado)
 
 void* get_pagina_data(uint32_t nro_frame) {
     void* data = malloc(cfg->TAMANIO_PAGINA);
@@ -181,9 +183,9 @@ void* get_pagina_data(uint32_t nro_frame) {
     return data;
 }
 
-void memcpy_pagina_en_frame_mp(uint32_t nro_frame, void* data) {
+void memcpy_pagina_en_frame_mp(uint32_t nro_frame, uint32_t inicio, void* data, size_t size) {
     pthread_mutex_lock(&MUTEX_MP);
-    memcpy(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA, data, cfg->TAMANIO_PAGINA); // size_t == uint32_t en la VM (chequeado)
+    memcpy(memoria_principal+nro_frame*cfg->TAMANIO_PAGINA+inicio, data, size);
     pthread_mutex_unlock(&MUTEX_MP);
 }
 
@@ -347,8 +349,8 @@ void asesinar_segus() {
 // off_t == uint32_t en la VM (chequeado)
 
 // Primer frame libre para proceso, puede ser uno que ya uso a medias
-int64_t primer_frame_libre_framo(uint32_t pid, bool* amedias) {
-    int64_t primero_vacio   = -1;
+int64_t primer_frame_libre_framo(uint32_t pid, uint32_t* inicio) {
+    int64_t primero_vacio = -1;
 
     pthread_mutex_lock(&MUTEX_FRAMO);
     for (uint32_t i = 0; i < cfg->CANT_PAGINAS; i++) {
@@ -358,17 +360,15 @@ int64_t primer_frame_libre_framo(uint32_t pid, bool* amedias) {
         if (tabla_frames[i].amedias && (tabla_frames[i].pid_ocupador == pid)) {
             pthread_mutex_unlock(&MUTEX_FRAMO);
 
-            *amedias = true;
+            *inicio = tabla_frames[i].inicio_hueco;
             return i;
         }
     }
     pthread_mutex_unlock(&MUTEX_FRAMO);
 
-    *amedias = false;
+    *inicio = 0;
     return primero_vacio;
 }
-
-
 
 uint32_t cant_frames_libres() {
     uint32_t libres = 0;
@@ -381,13 +381,14 @@ uint32_t cant_frames_libres() {
     return libres;
 }
 
-void ocupar_frame_framo(uint32_t index, bool amedias, uint32_t pid) {
+void ocupar_frame_framo(uint32_t index, size_t size, uint32_t pid) {
     pthread_mutex_lock(&MUTEX_FRAMO);
-    tabla_frames[index].pid_ocupador    =       pid;
-    tabla_frames[index].libre           =         0;
-    tabla_frames[index].amedias         =   amedias;
+    tabla_frames[index].pid_ocupador    = pid;
+    tabla_frames[index].libre           = 0;
+    tabla_frames[index].inicio_hueco   += size;
+    tabla_frames[index].amedias         = tabla_frames[index].inicio_hueco < cfg->TAMANIO_PAGINA;
     pthread_mutex_unlock(&MUTEX_FRAMO);
-    // Si amedias == 1, ya ni miramos libre
+    // Despues, si amedias == 1, ya ni miramos libre
 }
 
 void liberar_frame_framo(uint32_t index) {

@@ -11,6 +11,7 @@
 // Ver tests para ejemplos :) :D
 
 bool entra_en_mp(uint32_t tamanio);
+bool entra_en_swap(uint32_t tamanio);
 
 /// SEGMENTACION
 

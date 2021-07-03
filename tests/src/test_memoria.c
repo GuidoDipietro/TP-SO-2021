@@ -346,9 +346,9 @@ void test_compactacion() {
 
 void test_print_framo() {
     for (int i=0; i<10; i++)
-        ocupar_frame_framo(i, false, 14);
+        ocupar_frame_framo(i, cfg->TAMANIO_PAGINA, 14);
     for (int i=20; i<30; i++)
-        ocupar_frame_framo(i, true, 27);
+        ocupar_frame_framo(i, cfg->TAMANIO_PAGINA/2, 27);
 
     liberar_frame_framo(3);
     liberar_frame_framo(6);
@@ -357,17 +357,17 @@ void test_print_framo() {
 }
 
 void test_primer_frame_libre() {
-    bool amedias;
+    uint32_t inicio;
     // 00000000 00000000 00000000 00000000
     print_framo(false);
     uint32_t cero = 0;
-    CU_ASSERT_TRUE(primer_frame_libre_framo(2, &amedias) == cero && amedias == false);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(2, &inicio) == cero && inicio == 0);
 
     for (int i=0; i<10; i++)
-        ocupar_frame_framo(i, false, 6);
+        ocupar_frame_framo(i, cfg->TAMANIO_PAGINA, 6);
     for (int i=10; i<20; i++)
-        ocupar_frame_framo(i, false, 9);
-    ocupar_frame_framo(20, true, 9);
+        ocupar_frame_framo(i, cfg->TAMANIO_PAGINA, 9);
+    ocupar_frame_framo(20, 15, 9);
 
     // 66666666 66999999 99998000 00000000
 
@@ -378,16 +378,72 @@ void test_primer_frame_libre() {
 
     print_framo(false);
     uint32_t tres = 3;
-    CU_ASSERT_TRUE(primer_frame_libre_framo(2, &amedias) == tres && amedias == false);
-    CU_ASSERT_TRUE(primer_frame_libre_framo(9, &amedias) == 20 && amedias == true);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(2, &inicio) == tres && inicio == 0);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(9, &inicio) == 20 && inicio == 15);
 
     for (int i=21; i<(cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA); i++)
-        ocupar_frame_framo(i, false, 2);
-    ocupar_frame_framo(3, false, 2);
-    ocupar_frame_framo(6, false, 2);
+        ocupar_frame_framo(i, cfg->TAMANIO_PAGINA, 2);
+    ocupar_frame_framo(3, cfg->TAMANIO_PAGINA, 2);
+    ocupar_frame_framo(6, cfg->TAMANIO_PAGINA, 2);
 
     print_framo(false);
-    CU_ASSERT_TRUE(primer_frame_libre_framo(11, &amedias) == -1);
+    CU_ASSERT_TRUE(primer_frame_libre_framo(11, &inicio) == -1);
+}
+
+void test_ocupar_frames() {
+    uint32_t patota1 = 7, patota2 = 3, patota3 = 2;
+
+    size_t size_of_pan = cfg->TAMANIO_PAGINA + 27;
+    void* pan = malloc(size_of_pan);
+    memset(pan, 0xCA, size_of_pan);
+
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(pan, size_of_pan, patota1));
+    mem_hexdump(memoria_principal, 400);
+    print_framo(false);
+
+    // 76000000 00000000 00000000 00000000
+
+    size_t size_of_salmon = cfg->TAMANIO_PAGINA*3 - 10;
+    void* salmon = malloc(size_of_salmon);
+    memset(salmon, 0xFA, size_of_salmon);
+
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(salmon, size_of_salmon, patota2));
+    mem_hexdump(memoria_principal, 400);
+    print_framo(false);
+
+    // 76332000 00000000 00000000 00000000
+
+    size_t size_of_salame = cfg->TAMANIO_PAGINA*2;
+    void* salame = malloc(size_of_salame);
+    memset(salame, 0xFE, size_of_salame);
+
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(salame, size_of_salame, patota1));
+    mem_hexdump(memoria_principal, 400);
+    print_framo(false);
+
+    // 77332760 00000000 00000000 00000000
+
+    size_t size_of_queso = cfg->TAMANIO_PAGINA - 27;
+    void* queso = malloc(size_of_queso);
+    memset(queso, 0xFE, size_of_queso);
+
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(queso, size_of_queso, patota1));
+    mem_hexdump(memoria_principal, 400);
+    print_framo(false);
+
+    // 77332770 00000000 00000000 00000000
+
+    size_t size_of_chocolate = 14;
+    void* chocolate = malloc(size_of_chocolate);
+    memset(chocolate, 0xC0, size_of_chocolate);
+
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(chocolate, size_of_chocolate, patota3));
+    mem_hexdump(memoria_principal, 1050);
+    print_framo(false);
+
+    // 77332771 00000000 00000000 00000000
+
+    free(pan); free(queso); free(salmon); free(chocolate); free(salame); // comida gratis
 }
 
 CU_TestInfo tests_memoria[] = {
@@ -406,5 +462,6 @@ CU_TestInfo tests_memoria[] = {
     // { "Test COMPACTACION", test_compactacion },
     { "Test print framo", test_print_framo },
     { "Test primer frame libre", test_primer_frame_libre },
+    { "Test ocupar frames", test_ocupar_frames },
     CU_TEST_INFO_NULL,
 };

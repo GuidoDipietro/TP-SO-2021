@@ -40,16 +40,18 @@ void print_tspatotas(bool log);
 void print_tstripulantes(bool log);
 
 /// Prints (logs)
-#define PRI_MP              (uint8_t) 0b00000001
-#define PRI_SEGLIB          (uint8_t) 0b00000010
-#define PRI_SEGUS           (uint8_t) 0b00000100
-#define PRI_TSTRIPULANTES   (uint8_t) 0b00001000
-#define PRI_TSPATOTAS       (uint8_t) 0b00010000
-#define PRI_FRAMO           (uint8_t) 0b00100000
-#define PRI_ALL             (uint8_t) 0b11111111
-#define PRI_ALL_NO_MP       (uint8_t) 0b11111110
-#define PRI_NONE            (uint8_t) 0b00000000
-#define LOGPRINT(_)         print_ ## _ (true)
+#define PRI_MP                 (uint8_t) 0b00000001
+#define PRI_SEGLIB             (uint8_t) 0b00000010
+#define PRI_SEGUS              (uint8_t) 0b00000100
+#define PRI_TSTRIPULANTES      (uint8_t) 0b00001000
+#define PRI_TSPATOTAS          (uint8_t) 0b00010000
+#define PRI_FRAMO              (uint8_t) 0b00100000
+#define PRI_ALL                (uint8_t) 0b11111111
+#define PRI_ALL_NO_MP          (uint8_t) 0b11111110
+#define PRI_ALL_SEGMENTACION   (uint8_t) 0b11011111
+#define PRI_NONE               (uint8_t) 0b00000000
+#define PRI_ALL_PAGINACION     (PRI_MP | PRI_FRAMO) // por ahora solo esto
+#define LOGPRINT(_)            print_ ## _ (true)
 void log_structures(uint8_t options);
 
 #endif
