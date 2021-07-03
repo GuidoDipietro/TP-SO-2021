@@ -96,11 +96,6 @@ void free_ts_patota_t(void* x);
 void free_ts_tripulante_t(void* x);
 void free_tp_patota_t(void* x);
 
-/// Stringify
-char* stringify_segmento_t(segmento_t* segmento);
-char* stringify_ts_patota_t(ts_patota_t* tabla, char* timestamp);
-char* stringify_ts_tripulante_t(ts_tripulante_t* tabla, char* timestamp);
-
 /// Serializacion! De nuevo
 void* serializar_pcb(PCB_t* pcb);
 PCB_t* deserializar_pcb(void* stream);
