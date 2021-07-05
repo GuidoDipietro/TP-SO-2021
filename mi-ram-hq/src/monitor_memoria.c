@@ -93,9 +93,10 @@ static bool comp_segmento_t_indice(void* s1, void* s2) {
 
 /// cosas que serian static pero las uso en otro lado
 
-segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t inicio, uint32_t taman) {
+segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t nro, uint32_t inicio, uint32_t taman) {
     segmento_t* seg = malloc(sizeof(segmento_t));
     seg->tipo = tipo;
+    seg->nro_segmento = nro;
     seg->tamanio = taman;
     seg->inicio = inicio;
     return seg;
@@ -104,6 +105,7 @@ segmento_t* segmento_t_duplicate(segmento_t* s) {
     if (s==NULL) return NULL;
     segmento_t* seg = malloc(sizeof(segmento_t));
     seg->tipo = s->tipo;
+    seg->nro_segmento = s->nro_segmento;
     seg->inicio = s->inicio;
     seg->tamanio = s->tamanio;
     return seg;
@@ -321,7 +323,7 @@ static char* segmento_t_en_ram_a_string_de_dump(segmento_t* seg) {
             ts_patota_t* tabla = list_find_by_inicio_pcb_tspatotas(seg->inicio);
             str = string_from_format(
                 "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
-                tabla->pid, 0, tabla->pcb->inicio, tabla->pcb->tamanio
+                tabla->pid, tabla->pcb->nro_segmento, tabla->pcb->inicio, tabla->pcb->tamanio
             );
             return str;
         }
@@ -331,7 +333,7 @@ static char* segmento_t_en_ram_a_string_de_dump(segmento_t* seg) {
             ts_patota_t* tabla = list_find_by_inicio_tareas_tspatotas(seg->inicio);
             str = string_from_format(
                 "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
-                tabla->pid, 1, tabla->tareas->inicio, tabla->tareas->tamanio
+                tabla->pid, tabla->tareas->nro_segmento, tabla->tareas->inicio, tabla->tareas->tamanio
             );
             return str;
         }
@@ -348,7 +350,7 @@ static char* segmento_t_en_ram_a_string_de_dump(segmento_t* seg) {
             ts_patota_t* tabla_p = list_find_by_pid_tspatotas(pcb->pid);
             str = string_from_format(
                 "Proceso: %3" PRIu32 " Segmento: %3d Inicio: %04" PRIx32 " Tamanio: %5" PRIu32 "\n",
-                pcb->pid, 2, tabla->tcb->inicio, tabla->tcb->tamanio
+                pcb->pid, tabla->tcb->nro_segmento, tabla->tcb->inicio, tabla->tcb->tamanio
             );
             free(pcb); free(tcb);
             return str;
@@ -475,11 +477,11 @@ void print_segmento_t(void* s) {
     segmento_t* seg = (segmento_t*) s;
     log ? log_info(
         logger,
-        "#%d -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
-        seg->tipo, seg->inicio, seg->tamanio
+        "(%d) #%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        seg->tipo, seg->nro_segmento, seg->inicio, seg->tamanio
     )   : printf(
-        "#%d -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
-        seg->tipo, seg->inicio, seg->tamanio
+        "(%d) #%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        seg->tipo, seg->nro_segmento, seg->inicio, seg->tamanio
     );
 }
 void print_seglib(bool ynlog) {

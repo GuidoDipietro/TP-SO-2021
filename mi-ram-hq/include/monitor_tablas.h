@@ -23,6 +23,7 @@ void asesinar_tspatotas();
 
 
 /// TS TRIPULANTES
+void list_update_nro_seg_tcb_by_pid_tstripulantes(uint32_t tid_eliminado, uint32_t pid);
 ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t tid);
 ts_tripulante_t* list_find_by_inicio_tcb_tstripulantes(uint32_t inicio);
 void list_delete_by_tid_tstripulantes(uint32_t tid);

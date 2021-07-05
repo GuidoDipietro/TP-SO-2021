@@ -16,6 +16,7 @@ void dump_mp();
 
 /// SEGMENTACION
 
+bool get_structures_from_tabla_tripulante(ts_tripulante_t* tabla, TCB_t** p_tcb, PCB_t** p_pcb);
 bool get_structures_from_tid
 (uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb);
 uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo);

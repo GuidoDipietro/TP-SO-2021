@@ -35,6 +35,7 @@ typedef enum {
 
 typedef struct {
     tipo_segmento_t tipo;
+    uint32_t nro_segmento;
     uint32_t inicio;
     uint32_t tamanio;
 } segmento_t;

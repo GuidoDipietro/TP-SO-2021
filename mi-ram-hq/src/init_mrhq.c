@@ -93,7 +93,7 @@ uint8_t cargar_memoria() {
     // Segmentacion
     if (strcmp(cfg->ESQUEMA_MEMORIA,"SEGMENTACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
         segmentos_libres = list_create();
-        segmento_t* hueco = new_segmento(0, 0, cfg->TAMANIO_MEMORIA);
+        segmento_t* hueco = new_segmento(0, 0, 0, cfg->TAMANIO_MEMORIA);
         if (hueco == NULL) {
             log_error(logger, "Fallo en la creacion de t_list* segmentos_libres");
             asesinar_seglib();

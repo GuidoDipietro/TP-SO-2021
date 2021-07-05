@@ -48,8 +48,8 @@ static bool iniciar_patota_en_mp_segmentacion(uint32_t n_tripulantes, char* tare
     free(pcb);
 
     // Creo tabla y actualizo tabla de patotas
-    segmento_t* seg_pcb = new_segmento(PCB_SEG, inicio_pcb, 8);
-    segmento_t* seg_tareas = new_segmento(TAREAS_SEG, inicio_tareas, strlen(tareas)+1);
+    segmento_t* seg_tareas = new_segmento(TAREAS_SEG, 0, inicio_tareas, strlen(tareas)+1);
+    segmento_t* seg_pcb = new_segmento(PCB_SEG, 1, inicio_pcb, 8);
 
     ts_patota_t* tabla = malloc(sizeof(ts_patota_t));
     tabla->pcb = seg_pcb;
@@ -119,7 +119,11 @@ static bool iniciar_tripulante_en_mp_segmentacion(uint32_t tid, uint32_t pid) {
     free(s_tcb);
 
     // Creo tabla y actualizo ts tripulantes
-    segmento_t* seg_tcb = new_segmento(TCB_SEG, inicio_tcb, 21);
+    // El nro. de segmento es siempre 1 mas que trip. inicializados
+    // porque segmento 0 y 1 son TAREAS y PCB (think about it)
+    segmento_t* seg_tcb = new_segmento(
+        TCB_SEG, tabla_patota->tripulantes_inicializados+1, inicio_tcb, 21
+    );
 
     ts_tripulante_t* tabla_tripulante = malloc(sizeof(ts_tripulante_t));
     tabla_tripulante->tid = tid;
@@ -166,6 +170,7 @@ static bool borrar_tripulante_de_mp_segmentacion(uint32_t tid) {
     }
 
     list_delete_by_tid_tstripulantes(tid);
+    list_update_nro_seg_tcb_by_pid_tstripulantes(tid, pcb->pid);
 
     // if patota vacia, borrar patota
     ts_patota_t* tabla_patota = list_find_by_pid_tspatotas(pcb->pid);

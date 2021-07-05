@@ -69,6 +69,24 @@ void dump_mp() {
 
 ////// MANEJO MEMORIA PRINCIPAL - SEGMENTACION
 
+bool get_structures_from_tabla_tripulante(ts_tripulante_t* tabla, TCB_t** p_tcb, PCB_t** p_pcb) {
+    // Leemos TCB
+    void* s_tcb = get_segmento_data(
+        tabla->tcb->inicio,
+        tabla->tcb->tamanio
+    );
+    TCB_t* tcb = deserializar_tcb(s_tcb);
+    *p_tcb = tcb;
+
+    // Leemos PCB
+    void* s_pcb = get_segmento_data(tcb->dl_pcb, 8);
+    PCB_t* pcb = deserializar_pcb(s_pcb);
+    *p_pcb = pcb;
+
+    free(s_tcb); free(s_pcb);
+    return true;
+}
+
 bool get_structures_from_tid
 (uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb) {
     ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
@@ -126,7 +144,7 @@ uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo) {
         return INICIO_INVALIDO;
     }
 
-    list_add_segus(new_segmento(tipo, inicio, size)); // Al final, por si exploto todo antes
+    list_add_segus(new_segmento(tipo, 0, inicio, size)); // Al final, por si exploto todo antes
 
     return inicio;
 }
@@ -136,7 +154,7 @@ bool eliminar_segmento_de_mp(uint32_t inicio) {
     if (segmento == NULL) return false;
 
     // Nuevo hueco
-    segmento_t* hueco_generado = new_segmento(0, segmento->inicio, segmento->tamanio);
+    segmento_t* hueco_generado = new_segmento(0, 0, segmento->inicio, segmento->tamanio);
     segmento_t* hueco_posterior = list_find_first_by_inicio_seglib(hueco_generado->inicio+hueco_generado->tamanio);
     segmento_t* hueco_anterior = list_find_first_by_inicio_seglib(hueco_generado->inicio-1);
     if (hueco_posterior) {
@@ -320,7 +338,7 @@ void compactar_segmentos_libres() {
     list_clean_seglib();
     list_add_seglib(
         new_segmento(
-            0,
+            0, 0,
             cfg->TAMANIO_MEMORIA-memoria_disponible,
             memoria_disponible
         )

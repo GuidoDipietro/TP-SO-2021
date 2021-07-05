@@ -40,10 +40,10 @@ void test_hueco_first_fit() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -59,10 +59,10 @@ void test_hueco_first_fit_no_hay() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -76,10 +76,10 @@ void test_hueco_best_fit1() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -95,10 +95,10 @@ void test_hueco_best_fit2() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 8);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 8);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 8);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 8);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -114,10 +114,10 @@ void test_hueco_best_fit_no_hay() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -131,10 +131,10 @@ void test_meter_segmento_ocupa_hueco_entero_bf() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -157,10 +157,10 @@ void test_meter_segmento_ocupa_hueco_entero_ff() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -183,10 +183,10 @@ void test_meter_segmento_bf() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);
@@ -209,10 +209,10 @@ void test_meter_segmento_ff() {
     asesinar_seglib();
     segmentos_libres = list_create();
     
-    segmento_t* hueco_1 = new_segmento(69, 0, 2);
-    segmento_t* hueco_2 = new_segmento(69, 10, 5);
-    segmento_t* hueco_3 = new_segmento(69, 17, 10);
-    segmento_t* hueco_4 = new_segmento(69, 50, 4);
+    segmento_t* hueco_1 = new_segmento(69, 4, 0, 2);
+    segmento_t* hueco_2 = new_segmento(69, 4, 10, 5);
+    segmento_t* hueco_3 = new_segmento(69, 4, 17, 10);
+    segmento_t* hueco_4 = new_segmento(69, 4, 50, 4);
     list_add_seglib(hueco_1);
     list_add_seglib(hueco_2);
     list_add_seglib(hueco_3);

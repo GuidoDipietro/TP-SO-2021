@@ -24,7 +24,7 @@ void memcpy_segmento_en_mp(uint32_t inicio, void* data, uint32_t size);
 void* get_segmento_data(uint32_t inicio, uint32_t size);
 void memset_0_segmento_en_mp(uint32_t inicio, uint32_t tamanio);
 void realloc_segmento_en_mp(uint32_t inicio, uint32_t destino, uint32_t tamanio);
-segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t inicio, uint32_t taman);
+segmento_t* new_segmento(tipo_segmento_t tipo, uint32_t nro_segmento, uint32_t inicio, uint32_t taman);
 segmento_t* segmento_t_duplicate(segmento_t*);
 
 	// NO SE CONTEMPLO NADA DE SWAP TODAVIA

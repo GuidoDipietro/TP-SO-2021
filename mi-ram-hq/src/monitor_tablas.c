@@ -97,6 +97,23 @@ static bool ts_tripulante_t_tcb_has_inicio(void* x) {
     return elem->tcb->inicio == static_inicio;
 }
 
+// Cuando expulsan un tripulante hay que actualizar los nros de segmento de los demas
+void list_update_nro_seg_tcb_by_pid_tstripulantes(uint32_t tid_eliminado, uint32_t pid) {
+    pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    t_list_iterator* i_ts_tripulantes = list_iterator_create(ts_tripulantes);
+    while (list_iterator_has_next(i_ts_tripulantes)) {
+        ts_tripulante_t* tabla = list_iterator_next(i_ts_tripulantes);
+        TCB_t* tcb; PCB_t* pcb;
+        if (get_structures_from_tabla_tripulante(tabla, &tcb, &pcb)) {
+            if (pcb->pid == pid && tcb->tid > tid_eliminado)
+                tabla->tcb->nro_segmento--;
+            free(tcb); free(pcb);
+        }
+    }
+    list_iterator_destroy(i_ts_tripulantes);
+    pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
+}
+
 ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t tid) {
     static_tid = tid;
     pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
