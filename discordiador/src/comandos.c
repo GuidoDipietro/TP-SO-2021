@@ -40,7 +40,7 @@ static void mensaje_error_sin_args(char* cmd) {
 
 // INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4
 // Estos chequeos podrian ponerse en otra funcion. Por ahora quedan aca.
-void iniciar_patota(char *args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
+void iniciar_patota(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(args == NULL) {
         mensaje_error_con_args("INICIAR_PATOTA", "<int> <string> {<int>|<int>}*");
         return;

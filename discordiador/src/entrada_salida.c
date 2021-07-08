@@ -7,7 +7,7 @@ sem_t SEM_IO_LIBRE;
 void controlador_es() {
     log_info(main_log, "Controlador de E/S iniciado correctamente");
     sem_init(&SEM_IO_LIBRE, 0, 1);
-    while(1) {
+    while (1) {
         sem_wait(&SEM_IO_LIBRE);
         sem_wait(&TRIPULANTE_EN_BLOQUEADOS);
         t_running_thread* thread = pop_cola_bloqueados();

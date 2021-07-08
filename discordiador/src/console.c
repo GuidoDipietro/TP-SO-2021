@@ -40,7 +40,7 @@ void menu_start(int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         add_history(input);
 
         if(strlen(input) == 5)
-            isExit = (bool)(strcmp(input, "salir\0") == 0);
+            isExit = (strcmp(input, "salir\0") == 0);
 
         // Si no hay que salir, parseamos el comando
         if(!isExit)

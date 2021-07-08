@@ -32,8 +32,10 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
         break;
     }
 
-    if(!conecto)
+    if(!conecto) {
+    	free(servinfo);
         return 0;
+    }
 
 	listen(socket_servidor, SOMAXCONN); // Escuchando (hasta SOMAXCONN conexiones simultaneas)
 

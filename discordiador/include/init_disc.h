@@ -6,6 +6,8 @@
 #include <commons/log.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <readline/readline.h>
+
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/utils.h"
 #include "config.h"

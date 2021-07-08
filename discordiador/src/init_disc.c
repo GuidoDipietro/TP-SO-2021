@@ -7,16 +7,19 @@ void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
     log_destroy(main_log);
     log_destroy(main_log_inv);
 
-    if(cfg->IP_MI_RAM_HQ != NULL)
-        free(cfg->IP_MI_RAM_HQ);
-
-    if(cfg->IP_I_MONGO_STORE != NULL)
-        free(cfg->IP_I_MONGO_STORE);
-
-    if(cfg->ALGORITMO != NULL)
-        free(cfg->ALGORITMO);
-
+    free(cfg->IP_MI_RAM_HQ);
+    free(cfg->IP_I_MONGO_STORE);
+    free(cfg->ALGORITMO);
     free(cfg);
+
+    queue_destroy(COLA_TRIPULANTES);
+    queue_destroy(COLA_NEW);
+    queue_destroy(COLA_BLOQUEADOS);
+    list_destroy(LISTA_HILOS);
+    list_destroy(COLA_EXIT);
+    list_destroy(LISTA_SABOTAJE);
+
+    rl_clear_history();
 }
 
 uint8_t generar_conexiones(int* i_mongo_store_fd, int* mi_ram_hq_fd, t_config_disc* cfg) {
