@@ -348,21 +348,27 @@ void compactar_segmentos_libres() {
 
 ////// MANEJO MEMORIA PRINCIPAL - PAGINACION
 
-static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid) {
+static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t iter, bool offset) {
+    // iter es la pagina numero i que esta metiendo en esta vuelta
+    // offset indica si se empezo a cargar en una pag. que estaba por la mitad
+
     uint32_t inicio;
     int64_t frame_libre = primer_frame_libre_framo(pid, &inicio);
+    log_info(logger, "Iter (%" PRIu32 "), hubo offset? (%d)", iter, offset);
+    log_info(logger, "Primer frame libre: %" PRId64 ", inicio %" PRIu32, frame_libre, inicio);
     if (frame_libre == -1) return false;
     // TODO: CONTEMPLAR MEMORIA VIRTUAL
 
     uint32_t nro_frame = frame_libre; // una especie de casteo porlas
 
-    ocupar_frame_framo(nro_frame, size, pid);
-    memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);
+    ocupar_frame_framo(nro_frame, size, pid);                           // admin.
+    memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);           // MP
+    list_add_page_frame_tppatotas(pid, nro_frame);                      // admin.
 
-    printf(
+    /*printf(
         "Ocupe el frame %" PRIu32 " desde el inicio %" PRIu32 " con data de size %zu\n",
         nro_frame, inicio, size
-    );
+    );*/
     return true;
 }
 
@@ -374,37 +380,48 @@ bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
 
     // Data de la primera pag libre, para saber si esta por la mitad o que
-    uint32_t offset;
-    int64_t pag_fragmentada = primer_frame_libre_framo(pid, &offset);
+    uint32_t offset = 0;
+    int64_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);
+    if (frame_de_pag_fragmentada == -1) {
+        // TODO: ALGO DE SWAP, QUE SE YO
+        log_info(logger, "No hay frame libre para meter la info para PID#%" PRIu32, pid);
+        return false;
+    }
 
-    size_t rem;
-    size_t size_ajustado = size - (offset ? t_pag-offset : 0);
-    uint32_t n_pags = cant_paginas(size_ajustado, &rem);  // iteraciones sin offset
-    if (offset) n_pags++;                                 // iteraciones ajustadas
+    size_t rem = 0;
+    size_t size_ajustado; // sin el "cachito que sobra porque entra en la pag fragmentada"
+    if (offset) {
+        if (t_pag - offset > size)  size_ajustado = 0;
+        else                        size_ajustado = size - (t_pag - offset);
+    }
+    else                            size_ajustado = size;
 
-    printf("Vou inserir um size %zu com rem %zu e offset %" PRIu32 " fazendo %" PRIu32 " iteracoes\n",
+    uint32_t n_pags = cant_paginas(size_ajustado, &rem);  // iteraciones sin offset (sin el "cachito")
+    if (offset) n_pags++;                                 // iteraciones ajustadas  (el "cachito")
+
+    log_info(logger, "\nVou inserir um size %zu com rem %zu e offset %" PRIu32 " fazendo %" PRIu32 " iteracoes",
         size, rem, offset, n_pags);
 
     // Itera de a una pagina y las mete en MP
-    for (uint32_t i=0; i<n_pags; i++) {
+    uint32_t n_iteraciones = n_pags;                    // +0.5 profes de PDP
+
+    for (uint32_t i=0; i<n_iteraciones; i++) {
         size_t size_chunk = i==0
-            ? MIN(t_pag - offset, size)        // Primera pagina, posible offset
-            : rem && i==n_pags-1? rem : t_pag; // Otras paginas, si es la ultima es tamanio rem si hay rem
+            ? MIN(t_pag - offset, size)                 // Primera pagina, posible offset
+            : rem && (i==n_iteraciones-1)? rem : t_pag; // Otras paginas, si es la ultima es tamanio rem si hay rem
 
-        printf("O size do chunk e: %zu\n", size_chunk);
+        log_info(logger, "Chunk inserido: %zu", size_chunk);
         buf = malloc(size_chunk);
-        if (i == 0)      memcpy(buf, data, size_chunk);
-        else if (offset) memcpy(buf, data+(i-1)*t_pag+offset, size_chunk);
-        else             memcpy(buf, data+i*t_pag, size_chunk);
+        if (i == 0)      memcpy(buf, data,                          size_chunk); // primera
+        else if (offset) memcpy(buf, data+t_pag-offset+(i-1)*t_pag, size_chunk); // completas intermedias o final (hubo offset)
+        else             memcpy(buf, data+i*t_pag,                  size_chunk); // completas intermedias o final (no hubo offset)
 
-        if (!meter_pagina_en_mp(buf, size_chunk, pid)) {
+        if (!meter_pagina_en_mp(buf, size_chunk, pid, i, !!offset)) {
             free(buf);
             return false;
         }
         free(buf);
     }
-
-    // actualizar tp_patotas
 
     return true;
 }

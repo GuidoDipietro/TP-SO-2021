@@ -64,13 +64,39 @@ static bool iniciar_patota_en_mp_segmentacion(uint32_t n_tripulantes, char* tare
 }
 static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     static uint32_t PID = 1;
-    return!! '/'/'/';;;;;;;
-    // TODO (no me digas!)
+
+    // Primero TAREAS, despues PCB
+    void* data = malloc(strlen(tareas) + 1 + 8);
+
+    PCB_t* pcb = malloc(sizeof(PCB_t));
+    pcb->pid = PID;
+    pcb->dl_tareas = 0;
+    
+    memcpy(data, tareas, strlen(tareas)+1);
+    memcpy(data+strlen(tareas)+1, pcb, 8);
+    free(pcb);
+
+    // Tabla administrativa
+    tp_patota_t* tabla = malloc(sizeof(tp_patota_t));
+    tabla->pid = PID;
+    tabla->tripulantes_totales = n_tripulantes;
+    tabla->tripulantes_inicializados = 0;
+    tabla->tamanio_tareas = strlen(tareas)+1;
+    tabla->pages = 0;
+    tabla->posiciones = list_duplicate(posiciones);
+    tabla->paginas = list_create();
+
+    list_add_tppatotas(tabla);
+
+    bool ret = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++);
+    free(data);
+
+    return ret;
 }
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     bool success = cfg->SEG
         ? iniciar_patota_en_mp_segmentacion(n_tripulantes, tareas, posiciones)
-        : iniciar_patota_en_mp_paginacion  (n_tripulantes, tareas, posiciones); // TODO
+        : iniciar_patota_en_mp_paginacion  (n_tripulantes, tareas, posiciones);
 
     if (success) {
         // Para que no se inicialicen antes que el PAPURRI
@@ -113,6 +139,7 @@ static bool iniciar_tripulante_en_mp_segmentacion(uint32_t tid, uint32_t pid) {
     if (inicio_tcb == INICIO_INVALIDO) {
         log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
         free(tcb);
+        free(s_tcb);
         return false;
     }
     free(tcb);
@@ -138,9 +165,52 @@ static bool iniciar_tripulante_en_mp_segmentacion(uint32_t tid, uint32_t pid) {
     return true;
 }
 static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
-    return!
-    ('-'-'-');
-    // TODO (mira vos che!)
+    // Posicion para ese tripulante
+    tp_patota_t* tabla_patota = list_find_by_pid_plus_plus_tppatotas(pid);
+    if (tabla_patota == NULL) {
+        return false;
+    }
+    t_posicion* pos = (t_posicion*) list_get(tabla_patota->posiciones, tid-tid_base-1);
+
+    // Where the PCB at? My man? (Al final de las tareas, bud)
+    uint32_t size_tareas = tabla_patota->tamanio_tareas;
+    uint32_t pag_pcb = size_tareas / cfg->TAMANIO_PAGINA;
+    uint32_t offset_pcb = size_tareas % cfg->TAMANIO_PAGINA;
+
+    // Genero TCB
+    TCB_t* tcb          = malloc(sizeof(TCB_t));
+
+    tcb->tid            = tid;
+    tcb->estado         = 'N';
+    tcb->pos_x          = pos->x;
+    tcb->pos_y          = pos->y;
+    tcb->id_sig_tarea   = 0;
+    tcb->dl_pcb         = (pag_pcb << 16) + offset_pcb;
+
+    log_info(logger, "DL_PCB at 0x%08" PRIx32 " for PID#%" PRIu32, tcb->dl_pcb, pid);
+
+    void* s_tcb = serializar_tcb(tcb);
+    if (s_tcb == NULL) {
+        free(tcb);
+        log_error(logger, "Exploto todo al inicializar tripulante %" PRIu32, tid);
+        return false;
+    }
+
+    // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
+    bool ret = append_data_to_patota_en_mp(s_tcb, 21, pid);
+    if (!ret) {
+        log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
+    }
+    else {
+        // Si es el ultimo de la patota, actualizar tid_base
+        if (tabla_patota->tripulantes_inicializados == tabla_patota->tripulantes_totales)
+            tid_base += tabla_patota->tripulantes_totales;
+    }
+
+    free(s_tcb);
+    free(tcb);
+
+    return ret;
 }
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
@@ -148,7 +218,7 @@ bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
 
     bool success = cfg->SEG
         ? iniciar_tripulante_en_mp_segmentacion(tid, pid)
-        : iniciar_tripulante_en_mp_paginacion  (tid, pid); // TODO
+        : iniciar_tripulante_en_mp_paginacion  (tid, pid);
 
     return success;
 }
@@ -312,7 +382,13 @@ static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
     return tarea;
 }
 static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
-    return NULL; // TODO
+    // TODO
+    t_posicion* pos = malloc(sizeof(t_posicion));
+    pos->x = 6; pos->y = 9;
+    t_tarea* tarea = tarea_create("Tarea GENERAR BASURA TEST", 3, pos, 5, "GENERAR_BASURA");
+    free(pos);
+
+    return tarea;
 }
 t_tarea* fetch_tarea(uint32_t tid) {
     t_tarea* tarea = cfg->SEG

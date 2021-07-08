@@ -9,19 +9,21 @@
 #include <inttypes.h>
 #include <commons/collections/list.h>
 
+ // 8 bytes
 typedef struct {
     uint32_t pid;
-    uint32_t dl_tareas;
-} PCB_t; // 8 bytes
+    uint32_t dl_tareas; // segmentacion = offset en void* | paginacion = 0
+} PCB_t;
 
+ // 21 bytes (sin padding)
 typedef struct {
     uint32_t tid;
     char estado;
     uint32_t pos_x;
     uint32_t pos_y;
     uint32_t id_sig_tarea;
-    uint32_t dl_pcb;
-} TCB_t; // 21 bytes (sin padding)
+    uint32_t dl_pcb;    // segmentacion = offset en void* | paginacion = [N PAG | N OFFSET]
+} TCB_t;
 
 ////// SEGMENTACION //////
 
@@ -73,8 +75,10 @@ typedef struct {
     uint32_t pid;
     uint32_t tripulantes_totales;
     uint32_t tripulantes_inicializados;
+    uint32_t tamanio_tareas;
+    uint32_t pages;
     t_list* posiciones;
-    t_list* tabla;          // tipo: <entrada_tp_t>
+    t_list* paginas;          // tipo: <entrada_tp_t>
 } tp_patota_t;
 
 typedef union {
@@ -88,9 +92,6 @@ typedef union {
 } frame_t;
 
 ///////// FUNCIONES /////////
-
-/// Creacion
-tp_patota_t* tp_patota_t_create();
 
 /// Frees
 void free_ts_patota_t(void* x);

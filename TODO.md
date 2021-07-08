@@ -2,4 +2,5 @@
 - [ ] Implementar dump para paginación
 - [ ] Lolwut todo lo de MEMORIA VIRTUAL que es un chino
 - [ ] HACER ALGO DEL IMONGO???
+- [ ] MORIR
 - [ ] No romper todo el TP

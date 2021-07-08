@@ -1,13 +1,5 @@
 #include "../include/estructuras.h"
 
-/// Creacion
-
-tp_patota_t* tp_patota_t_create() {
-    tp_patota_t* struct_tabla = malloc(sizeof(tp_patota_t));
-    struct_tabla->tabla = list_create();
-    return struct_tabla;
-}
-
 /// Frees
 
 void free_ts_patota_t(void* x) {
@@ -29,7 +21,8 @@ void free_ts_tripulante_t(void* x) {
 void free_tp_patota_t(void* x) {
     if (x == NULL) return;
     tp_patota_t* elem = (tp_patota_t*) x;
-    list_destroy_and_destroy_elements(elem->tabla, (void*) free);
+    list_destroy_and_destroy_elements(elem->posiciones, (void*) free);
+    list_destroy_and_destroy_elements(elem->paginas, (void*) free);
     free(elem);
 }
 
