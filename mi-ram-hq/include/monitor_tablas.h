@@ -33,6 +33,7 @@ void asesinar_tstripulantes();
 /// TP PATOTAS
 
 void list_add_tppatotas(tp_patota_t* elem);
+tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid);
 tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid);
 void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame);
 void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t nro_frame);

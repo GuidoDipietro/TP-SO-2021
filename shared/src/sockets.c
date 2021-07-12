@@ -2,7 +2,7 @@
 
 // INICIA SERVER ESCUCHANDO EN IP:PUERTO
 int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
-	int socket_servidor;
+    int socket_servidor;
     struct addrinfo hints, *servinfo;
 
     // Inicializando hints
@@ -23,7 +23,7 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
             continue;
 
         if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-        	// Si entra aca fallo el bind
+            // Si entra aca fallo el bind
             close(socket_servidor);
             continue;
         }
@@ -33,13 +33,13 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
     }
 
     if(!conecto) {
-    	free(servinfo);
+        free(servinfo);
         return 0;
     }
 
-	listen(socket_servidor, SOMAXCONN); // Escuchando (hasta SOMAXCONN conexiones simultaneas)
+    listen(socket_servidor, SOMAXCONN); // Escuchando (hasta SOMAXCONN conexiones simultaneas)
 
-	// Aviso al logger
+    // Aviso al logger
     log_trace(logger, "Escuchando en %s:%s (%s)\n", ip, puerto, name);
 
     freeaddrinfo(servinfo); //free
@@ -49,58 +49,58 @@ int iniciar_servidor(t_log* logger, const char* name, char* ip, char* puerto) {
 
 // ESPERAR CONEXION DE CLIENTE EN UN SERVER ABIERTO
 int esperar_cliente(t_log* logger, const char* name, int socket_servidor) {
-	struct sockaddr_in dir_cliente;
-	socklen_t tam_direccion = sizeof(struct sockaddr_in);
+    struct sockaddr_in dir_cliente;
+    socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
-	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+    int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
 
-	///////////////////////////////////////
-	///// LO SACO PARA PROBAR LA GUI //////
-	///////////////////////////////////////
+    ///////////////////////////////////////
+    ///// LO SACO PARA PROBAR LA GUI //////
+    ///////////////////////////////////////
 
-	// log_info(logger, "Cliente conectado (a %s)\n", name);
+    // log_info(logger, "Cliente conectado (a %s)\n", name);
 
-	return socket_cliente;
+    return socket_cliente;
 }
 
 // CLIENTE SE INTENTA CONECTAR A SERVER ESCUCHANDO EN IP:PUERTO
 int crear_conexion(t_log* logger, const char* server_name, char* ip, char* puerto) {
-	struct addrinfo hints, *servinfo;
+    struct addrinfo hints, *servinfo;
 
-	// Init de hints
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
+    // Init de hints
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
 
-	// Recibe addrinfo
-	getaddrinfo(ip, puerto, &hints, &servinfo);
+    // Recibe addrinfo
+    getaddrinfo(ip, puerto, &hints, &servinfo);
 
-	// Crea un socket con la informacion recibida (del primero, suficiente)
-	int socket_cliente = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
+    // Crea un socket con la informacion recibida (del primero, suficiente)
+    int socket_cliente = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 
-	// Fallo en crear el socket
-	if(socket_cliente == -1) {
+    // Fallo en crear el socket
+    if(socket_cliente == -1) {
         log_error(logger, "Error creando el socket para %s:%s", ip, puerto);
         return 0;
-	}
+    }
 
-	// Error conectando
-	if(connect(socket_cliente, servinfo->ai_addr, servinfo->ai_addrlen) == -1) {
+    // Error conectando
+    if(connect(socket_cliente, servinfo->ai_addr, servinfo->ai_addrlen) == -1) {
         log_error(logger, "Error al conectar (a %s)\n", server_name);
         freeaddrinfo(servinfo);
         return 0;
     } else
-		log_info(logger, "Cliente conectado en %s:%s (a %s)\n", ip, puerto, server_name);
+        log_info(logger, "Cliente conectado en %s:%s (a %s)\n", ip, puerto, server_name);
 
-	freeaddrinfo(servinfo); //free
+    freeaddrinfo(servinfo); //free
 
-	return socket_cliente;
+    return socket_cliente;
 }
 
 // CERRAR CONEXION
 void liberar_conexion(int* socket_cliente) {
-	close(*socket_cliente);
+    close(*socket_cliente);
     *socket_cliente = -1;
 }

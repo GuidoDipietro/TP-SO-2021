@@ -31,5 +31,6 @@ void compactar_segmentos_libres(void);
 /// PAGINACION
 
 bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid);
+bool delete_patota_en_mp(uint32_t pid);
 
 #endif

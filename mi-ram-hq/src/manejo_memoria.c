@@ -425,3 +425,20 @@ bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
 
     return true;
 }
+
+bool delete_patota_en_mp(uint32_t pid) {
+    tp_patota_t* tabla_patota = list_remove_by_pid_tppatotas(pid);
+    if (tabla_patota == NULL) return false;
+
+    t_list* paginas = tabla_patota->paginas;
+    t_list_iterator* i_paginas = list_iterator_create(paginas);
+    while (list_iterator_has_next(i_paginas)) {
+        entrada_tp_t* pagina = (entrada_tp_t*) list_iterator_next(i_paginas);
+        clear_frame_en_mp(pagina->nro_frame);
+        liberar_frame_framo(pagina->nro_frame);
+    }
+    list_iterator_destroy(i_paginas);
+
+    free_tp_patota_t((void*) tabla_patota);
+    return true;
+}

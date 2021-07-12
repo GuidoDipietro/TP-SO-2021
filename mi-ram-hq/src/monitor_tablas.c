@@ -178,6 +178,14 @@ tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid) {
     return elem;
 }
 
+tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
+    static_pid = pid;
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    tp_patota_t* elem = list_remove_by_condition(tp_patotas, &has_pid);
+    pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
+    return elem;
+}
+
 // Agrega una nueva entrada a la tabla de paginas, cuando se ocupa un nuevo frame, si estaba vacio
 // (significa que se cargo una nueva pagina en memoria, total o parcialmente, ante un INICIAR_algo)
 // Tambien actualiza cantidad total de paginas de la patota

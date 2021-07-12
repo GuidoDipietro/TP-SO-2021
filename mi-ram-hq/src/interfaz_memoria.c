@@ -264,7 +264,12 @@ static bool borrar_tripulante_de_mp_segmentacion(uint32_t tid) {
     return true;
 }
 static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
-    return !!'CACA'; // TODO?
+    // Conseguir el pid de alguna forma partiendo del TID y llamar a
+    // bool ret = delete_patota_en_mp(uint32_t pid);
+    // TODO
+
+    return!!
+    (0xDEAD & 'CACA');
 }
 bool borrar_tripulante_de_mp(uint32_t tid) {
     bool success = cfg->SEG

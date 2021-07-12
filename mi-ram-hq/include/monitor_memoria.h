@@ -65,7 +65,7 @@ void asesinar_segus();
 int64_t primer_frame_libre_framo(uint32_t pid, uint32_t* inicio);
 uint32_t cant_frames_libres();
 void ocupar_frame_framo(uint32_t index, size_t size, uint32_t pid);
-void liberar_frame_framo(uint32_t index);
+void liberar_frame_framo(uint32_t nro_frame);
 /// END FRAMO
 
 // debug
