@@ -133,7 +133,7 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
                 else {
                     ((t_running_thread*) p)->blocked = true;
                     sem_post(&ACTIVE_THREADS); // Avisamos que se libero un hilo
-                    log_info(main_log, "El tripulante %d fue pausado", tid);
+                    log_info(main_log, "El tripulante %d fue expulsado", tid);
                 }
             } else
                 sem_wait(&TRIPULANTES_EN_COLA); // Avisamos que hay un tripulante menos en la cola
@@ -144,9 +144,12 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         pthread_cancel(((t_running_thread*) p)->thread); // Finalizamos el hilo
         //free_t_tripulante(((t_running_thread*) p)->t);
         trip = ((t_running_thread*) p)->t;
-        free(p);
+        //free((t_running_thread*) p);
+        printf("\n%p - %d\n", p, sizeof(t_running_thread));
         send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
         // si el tripulante esta en exit, el mi-ram-alta-calidad ya borro el TCB, por lo que no hace falta avisarle
+        sem_destroy(&(((t_running_thread*) p)->sem_pause));
+        free((t_running_thread*) p);
     } else
         trip = p;
 
