@@ -15,7 +15,7 @@ CC = gcc
 
 CFLAGS = -c
 
-LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses
+LINK = -lcommons -lreadline -lpthread -lnivel-gui -lncurses -lm
 
 OUT_NAME = i_mongo_store.out
 

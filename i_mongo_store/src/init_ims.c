@@ -1,7 +1,7 @@
 #include "../include/init_ims.h"
 
 extern t_log* logger;
-extern t_config_ims* cfg;
+t_config_ims* cfg;
 
 uint8_t cargar_configuracion() {
     t_config* cfg_file = config_create("i_mongo_store.config");
@@ -56,7 +56,7 @@ bool crear_servidor(int* fd, char* name) {
 
 void cerrar_programa() {
     log_destroy(logger);
-
+    bitarray_destroy(superbloque.bitarray);
     free(cfg->PUNTO_MONTAJE);
     list_destroy_and_destroy_elements(cfg->POSICIONES_SABOTAJE, free_t_posicion);
     free(cfg);

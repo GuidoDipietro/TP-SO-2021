@@ -8,6 +8,7 @@
 
 #include "init_ims.h"
 #include "comunicacion.h"
+#include "init_fs.h"
 
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
