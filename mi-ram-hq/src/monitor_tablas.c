@@ -276,6 +276,14 @@ uint32_t pid_of_tid(uint32_t tid) {
     return elem->pid;
 }
 
+tid_pid_lookup_t* list_tid_pid_lookup_find_by_tid(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
+    static_tid = tid;
+    tid_pid_lookup_t* elem = list_find(tid_pid_lookup, &has_tid);
+    pthread_mutex_unlock(&MUTEX_TID_PID_LOOKUP);
+    return elem;
+}
+
 void list_add_tid_pid_lookup(tid_pid_lookup_t* elem) {
     pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
     list_add(tid_pid_lookup, (void*) elem);
@@ -406,8 +414,11 @@ void print_tppatotas(bool log) {
 static void print_tid_pid_lookup_t(void* x) {
     tid_pid_lookup_t* elem = (tid_pid_lookup_t*) x;
     ynlog
-        ? log_info(logger, "TID: %" PRIu32 " | PID: %" PRIu32, elem->tid, elem->pid)
-        : printf("TID: %" PRIu32 " | PID: %" PRIu32 "\n", elem->tid, elem->pid);
+        ? log_info(logger,
+                 "TID: %" PRIu32 " | PID: %" PRIu32 " | AT (P. %" PRIu32 ">>%" PRIu32 ")",
+            elem->tid, elem->pid, elem->nro_pagina, elem->inicio)
+        : printf("TID: %" PRIu32 " | PID: %" PRIu32 " | AT (P. %" PRIu32 ">>%" PRIu32 ")\n",
+            elem->tid, elem->pid, elem->nro_pagina, elem->inicio);
 }
 void print_tid_pid_lookup(bool log) {
     ynlog = log;

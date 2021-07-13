@@ -22,7 +22,7 @@ typedef struct {
     uint32_t pos_x;
     uint32_t pos_y;
     uint32_t id_sig_tarea;
-    uint32_t dl_pcb;    // segmentacion = offset en void* | paginacion = [N PAG | N OFFSET]
+    uint32_t dl_pcb;    // segmentacion = offset en void* | paginacion = [N PAG | N OFFSET] 16|16
 } TCB_t;
 
 ////// SEGMENTACION //////
@@ -84,6 +84,8 @@ typedef struct {
 typedef struct {
     uint32_t tid;
     uint32_t pid;
+    uint32_t nro_pagina;      // pagina del TCB
+    uint32_t inicio;          // inicio del TCB en esa pagina (puede pasar a la proxima)
 } tid_pid_lookup_t;
 
 typedef union {

@@ -44,6 +44,7 @@ void asesinar_tppatotas();
 
 /// TID_PID_LOOKUP
 uint32_t pid_of_tid(uint32_t tid);
+tid_pid_lookup_t* list_tid_pid_lookup_find_by_tid(uint32_t tid);
 void list_add_tid_pid_lookup(tid_pid_lookup_t* elem);
 void list_tid_pid_lookup_remove_by_tid(uint32_t tid);
 void asesinar_tid_pid_lookup();
