@@ -1,4 +1,5 @@
 #include "../include/manejo_memoria.h"
+#define MIN(A,B) ((A)<(B)?(A):(B))
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
@@ -87,7 +88,7 @@ bool get_structures_from_tabla_tripulante(ts_tripulante_t* tabla, TCB_t** p_tcb,
     return true;
 }
 
-bool get_structures_from_tid
+bool get_structures_from_tid_segmentacion
 (uint32_t tid, ts_tripulante_t** p_tabla_tripulante, TCB_t** p_tcb, PCB_t** p_pcb) {
     ts_tripulante_t* tabla_tripulante = list_find_by_tid_tstripulantes(tid);
     if (tabla_tripulante == NULL) return false;
@@ -348,14 +349,95 @@ void compactar_segmentos_libres() {
 
 ////// MANEJO MEMORIA PRINCIPAL - PAGINACION
 
+
+// ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP
+// POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
+void* read_from_mp_pid_pagina_offset_tamanio
+(uint32_t pid, uint32_t pagina, uint32_t offset, uint32_t tamanio) {
+    void* data = malloc((size_t) tamanio);
+    memset(data, 0, tamanio); //porlas
+
+    // Quiero la tabla de paginas
+    tp_patota_t* tabla_patota = list_find_by_pid_tppatotas(pid);
+    t_list* paginas = tabla_patota->paginas;
+
+    // Leo de las paginas que precise... Considerando que la imagen del proceso esta cargada de forma contigua
+    int64_t tamanio_restante = tamanio;
+    for (int p=0; tamanio_restante>0; p++) {
+        // inner function
+        bool has_page_number(void* x) {
+            entrada_tp_t* elem = (entrada_tp_t*) x;
+            return elem->nro_pagina == pagina+p;
+        }
+        entrada_tp_t* pag = list_find(paginas, &has_page_number); // cond. de carrera aca si una pag. cambia de frame
+
+        void* buf = get_pagina_data(pag->nro_frame);
+
+        uint32_t bytes_a_leer = p==0
+            ? (cfg->TAMANIO_PAGINA - offset) // primera pag
+            : (MIN(cfg->TAMANIO_PAGINA, tamanio_restante)) // medio o ultima
+        ;
+
+        // !!! THIS SHIT DOESN'T WORK!! WHY? HAS I EVER?
+        log_info(logger,
+            "\nFUCK YOU WTF %d %" PRIu32 " %" PRIu32 "\n"
+            "args: %" PRIu32 " %" PRIu32 " %" PRIu32 " %" PRIu32 "\n"
+            "(frame %" PRIu32 ") memcpy: %" PRIu32 " %" PRIu32 " %" PRIu32 " (AAAA? %d|%" PRIu32 ")\n",
+            p, cfg->TAMANIO_PAGINA - offset, bytes_a_leer,
+            pid, pagina, offset, tamanio,
+            pag->nro_frame, tamanio - tamanio_restante, (p==0? offset : 0), bytes_a_leer, p, (cfg->TAMANIO_PAGINA - offset)
+        );
+        memcpy(
+            data + (tamanio - tamanio_restante),
+            buf + (p==0? offset : 0),
+            bytes_a_leer
+        );
+
+        tamanio_restante -= bytes_a_leer;
+        free(buf);
+    }
+
+    return data;
+}
+
+// ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP (ver read_from_mp_pid_pagina_offset_tamanio)
+// POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
+bool get_structures_from_tid_paginacion
+(uint32_t tid, tid_pid_lookup_t** p_tabla, TCB_t** p_tcb, PCB_t** p_pcb) {
+    tid_pid_lookup_t* tabla = list_tid_pid_lookup_find_by_tid(tid);
+    if (tabla==NULL) return false;
+    *p_tabla = tabla;
+
+    void* s_tcb = read_from_mp_pid_pagina_offset_tamanio(
+        tabla->pid, tabla->nro_pagina, tabla->inicio, 21
+    );
+
+    /*for (int i = 0; i < 21; i++) {
+        log_info(logger, "%02x", ((unsigned char*) s_tcb) [i]);
+    }*/
+
+    TCB_t* tcb = deserializar_tcb(s_tcb);
+    *p_tcb = tcb;
+    free(s_tcb);
+
+    void* s_pcb = read_from_mp_pid_pagina_offset_tamanio(
+        tabla->pid, tcb->dl_pcb>>16, tcb->dl_pcb&0x00FF, 8
+    );
+    PCB_t* pcb = deserializar_pcb(s_pcb);
+    *p_pcb = pcb;
+    free(s_pcb);
+
+    return true;
+}
+
 static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t iter, bool offset) {
     // iter es la pagina numero i que esta metiendo en esta vuelta
     // offset indica si se empezo a cargar en una pag. que estaba por la mitad
 
     uint32_t inicio;
     int64_t frame_libre = primer_frame_libre_framo(pid, &inicio);
-    log_info(logger, "Iter (%" PRIu32 "), hubo offset? (%d)", iter, offset);
-    log_info(logger, "Primer frame libre: %" PRId64 ", inicio %" PRIu32, frame_libre, inicio);
+    //log_info(logger, "Iter (%" PRIu32 "), hubo offset? (%d)", iter, offset);
+    //log_info(logger, "Primer frame libre: %" PRId64 ", inicio %" PRIu32, frame_libre, inicio);
     if (frame_libre == -1) return false;
     // TODO: CONTEMPLAR MEMORIA VIRTUAL
 
@@ -374,8 +456,7 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
 
 // Dado un stream de bytes, lo mete en MP donde encuentre paginas libres
 // O si la ultima del proceso esta por la mitad, empieza por ahi
-#define MIN(A,B) ((A)<(B)?(A):(B))
-bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
+uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     void* buf;
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
 
@@ -385,7 +466,7 @@ bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     if (frame_de_pag_fragmentada == -1) {
         // TODO: ALGO DE SWAP, QUE SE YO
         log_info(logger, "No hay frame libre para meter la info para PID#%" PRIu32, pid);
-        return false;
+        return 0xFFFF;
     }
 
     size_t rem = 0;
@@ -399,8 +480,8 @@ bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     uint32_t n_pags = cant_paginas(size_ajustado, &rem);  // iteraciones sin offset (sin el "cachito")
     if (offset) n_pags++;                                 // iteraciones ajustadas  (el "cachito")
 
-    log_info(logger, "\nVou inserir um size %zu com rem %zu e offset %" PRIu32 " fazendo %" PRIu32 " iteracoes",
-        size, rem, offset, n_pags);
+    //log_info(logger, "\nVou inserir um size %zu com rem %zu e offset %" PRIu32 " fazendo %" PRIu32 " iteracoes",
+    //    size, rem, offset, n_pags);
 
     // Itera de a una pagina y las mete en MP
     uint32_t n_iteraciones = n_pags;                    // +0.5 profes de PDP
@@ -410,7 +491,7 @@ bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
             ? MIN(t_pag - offset, size)                 // Primera pagina, posible offset
             : rem && (i==n_iteraciones-1)? rem : t_pag; // Otras paginas, si es la ultima es tamanio rem si hay rem
 
-        log_info(logger, "Chunk inserido: %zu", size_chunk);
+        //log_info(logger, "Chunk inserido: %zu", size_chunk);
         buf = malloc(size_chunk);
         if (i == 0)      memcpy(buf, data,                          size_chunk); // primera
         else if (offset) memcpy(buf, data+t_pag-offset+(i-1)*t_pag, size_chunk); // completas intermedias o final (hubo offset)
@@ -418,12 +499,12 @@ bool append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
 
         if (!meter_pagina_en_mp(buf, size_chunk, pid, i, !!offset)) {
             free(buf);
-            return false;
+            return 0xFFFF;
         }
         free(buf);
     }
 
-    return true;
+    return offset;
 }
 
 bool delete_patota_en_mp(uint32_t pid) {

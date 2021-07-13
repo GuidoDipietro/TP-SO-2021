@@ -189,7 +189,6 @@ static void procesar_conexion(void* void_args) {
             }
             case CAMBIO_ESTADO:
             {
-                // TODO: modificar estado de tripulante en MP
                 uint32_t id_tripulante;
                 t_status estado;
                 if (recv_cambio_estado(cliente_socket, &id_tripulante, &estado)) {
@@ -218,6 +217,8 @@ static void procesar_conexion(void* void_args) {
     log_warning(logger, "El cliente se desconecto de %s server", server_name);
     return;
 }
+
+#define ARROBA @
 
 int server_escuchar(char* server_name, int server_socket) {
     int cliente_socket = esperar_cliente(logger, server_name, server_socket);

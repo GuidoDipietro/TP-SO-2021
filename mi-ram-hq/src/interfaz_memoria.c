@@ -6,6 +6,8 @@ extern t_config_mrhq* cfg;
 
 extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
 
+extern pthread_mutex_t MUTEX_MP_BUSY;
+
 //////
 
 static uint32_t tid_base = 0;
@@ -88,10 +90,10 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
 
     list_add_tppatotas(tabla);
 
-    bool ret = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++);
+    uint32_t inicio = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++);
     free(data);
 
-    return ret;
+    return inicio!=0xFFFF;
 }
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
     bool success = cfg->SEG
@@ -171,6 +173,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
         return false;
     }
     t_posicion* pos = (t_posicion*) list_get(tabla_patota->posiciones, tid-tid_base-1);
+    uint32_t cant_paginas_antes = tabla_patota->pages;
 
     // Where the PCB at? My man? (Al final de las tareas, bud)
     uint32_t size_tareas = tabla_patota->tamanio_tareas;
@@ -187,7 +190,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     tcb->id_sig_tarea   = 0;
     tcb->dl_pcb         = (pag_pcb << 16) + offset_pcb;
 
-    log_info(logger, "DL_PCB at 0x%08" PRIx32 " for PID#%" PRIu32, tcb->dl_pcb, pid);
+    //log_info(logger, "DL_PCB at 0x%08" PRIx32 " for PID#%" PRIu32, tcb->dl_pcb, pid);
 
     void* s_tcb = serializar_tcb(tcb);
     if (s_tcb == NULL) {
@@ -197,8 +200,8 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     }
 
     // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
-    bool ret = append_data_to_patota_en_mp(s_tcb, 21, pid);
-    if (!ret) {
+    uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid);
+    if (inicio == 0xFFFF) {
         log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
     }
     else {
@@ -211,12 +214,14 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     tid_pid_lookup_t* lookup = malloc(sizeof(tid_pid_lookup_t));
     lookup->tid = tid;
     lookup->pid = pid;
+    lookup->nro_pagina = cant_paginas_antes-1;
+    lookup->inicio = inicio;
     list_add_tid_pid_lookup(lookup);
 
     free(s_tcb);
     free(tcb);
 
-    return ret;
+    return inicio!=0xFFFF;
 }
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
@@ -236,7 +241,7 @@ static bool borrar_tripulante_de_mp_segmentacion(uint32_t tid) {
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
     PCB_t* pcb;
-    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+    if (!get_structures_from_tid_segmentacion(tid, &tabla_tripulante, &tcb, &pcb))
         return false;
 
     if (!eliminar_segmento_de_mp(tabla_tripulante->tcb->inicio)) {
@@ -308,7 +313,7 @@ static bool actualizar_posicion_tripulante_en_mp_segmentacion(uint32_t tid, t_po
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
     PCB_t* pcb;
-    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+    if (!get_structures_from_tid_segmentacion(tid, &tabla_tripulante, &tcb, &pcb))
         return false;
     free(pcb); // no lo queria igualmente
 
@@ -340,7 +345,7 @@ static bool actualizar_estado_tripulante_en_mp_segmentacion(uint32_t tid, char n
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
     PCB_t* pcb;
-    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
+    if (!get_structures_from_tid_segmentacion(tid, &tabla_tripulante, &tcb, &pcb))
         return false;
     free(pcb); // no lo queria igualmente
 
@@ -366,34 +371,50 @@ bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
 
 ////// FETCH TAREA
 
-static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
-    // Recuperamos tabla tripulante, TCB y PCB
-    ts_tripulante_t* tabla_tripulante;
-    TCB_t* tcb;
-    PCB_t* pcb;
-    if (!get_structures_from_tid(tid, &tabla_tripulante, &tcb, &pcb))
-        return NULL;
-
-    // Leemos tareas
-    segmento_t* seg_tareas = list_find_by_inicio_segus(pcb->dl_tareas);
-    char* tareas = (char*) get_segmento_data(seg_tareas->inicio, seg_tareas->tamanio);
-
-    // Obtenemos la tarea numero N si existe
+static t_tarea* tarea_numero_n_si_existe(char* tareas, uint32_t tarea_n) {
     char** a_tareas = string_split(tareas, "\n");
+
+    // Cuento cuantas hay
     char** p_a_tareas = a_tareas;
     uint32_t cant_tareas = 0;
     for (; *p_a_tareas != NULL; p_a_tareas++, cant_tareas++)
         ;
 
+    // Enesima tarea o tarea null
     t_tarea* tarea;
-    if (tcb->id_sig_tarea < cant_tareas)
-        tarea = tarea_string_to_t_tarea(*(a_tareas+tcb->id_sig_tarea));
+    if (tarea_n < cant_tareas)
+        tarea = tarea_string_to_t_tarea(*(a_tareas+tarea_n));
     else {
         t_posicion* pos = malloc(sizeof(t_posicion));
         pos->x = 0; pos->y = 0;
         tarea = tarea_create("NULL", 0, pos, 0, "NULL");
         free(pos);
     }
+
+    string_split_free(&a_tareas);
+
+    return tarea;
+}
+
+static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
+    // Recuperamos tabla tripulante, TCB y PCB
+    ts_tripulante_t* tabla_tripulante = NULL;
+    TCB_t* tcb = NULL;
+    PCB_t* pcb = NULL;
+    if (!get_structures_from_tid_segmentacion(tid, &tabla_tripulante, &tcb, &pcb)) {
+        // exploto todo
+        log_error(logger, "Error MUY FEO recuperando tarea para TID#%" PRIu32, tid);
+        free(tcb); free(pcb);
+        return NULL;
+    }
+
+    // Leemos tareas
+    segmento_t* seg_tareas = list_find_by_inicio_segus(pcb->dl_tareas);
+    char* tareas = (char*) get_segmento_data(seg_tareas->inicio, seg_tareas->tamanio);
+
+    // Obtenemos la tarea numero N si existe
+    t_tarea* tarea = tarea_numero_n_si_existe(tareas, tcb->id_sig_tarea);
+    free(tareas);
 
     // Actualizamos TCB (id sig tarea + 1 'persistido' en RAM)
     tcb->id_sig_tarea = tcb->id_sig_tarea + 1;
@@ -403,12 +424,47 @@ static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
     // Murders
     free(pcb);
     free(tcb); free(s_tcb);
-    free(tareas);
-    string_split_free(&a_tareas);
 
     return tarea;
 }
 static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
+    // Estructuras relacionadas al TID
+    /*tid_pid_lookup_t* tabla = NULL;
+    TCB_t* tcb = NULL;
+    PCB_t* pcb = NULL;
+
+    pthread_mutex_lock(&MUTEX_MP_BUSY);
+    bool success = get_structures_from_tid_paginacion(tid, &tabla, &tcb, &pcb);
+    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
+    if (!success) {
+        // exploto todo
+        log_error(logger, "Error MUY FEO recuperando tarea para TID#%" PRIu32, tid);
+        free(tcb); free(pcb);
+        return NULL;
+    }
+
+    // LEO TAREAS DE MP
+    tp_patota_t* tabla_patota = list_find_by_pid_tppatotas(pcb->pid);
+
+    pthread_mutex_lock(&MUTEX_MP_BUSY);
+    char* tareas = (char*) read_from_mp_pid_pagina_offset_tamanio(
+        pcb->pid, pcb->dl_tareas>>16, pcb->dl_tareas&0x00FF, tabla_patota->tamanio_tareas
+    );
+    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
+    // Obtenemos la tarea numero N si existe
+    t_tarea* tarea = tarea_numero_n_si_existe(tareas, tcb->id_sig_tarea);
+    free(tareas);
+
+    // Actualizamos TCB (id sig tarea + 1 'persistido' en RAM)
+    tcb->id_sig_tarea = tcb->id_sig_tarea + 1;
+    // void* s_tcb = serializar_tcb(tcb);
+    // TODO
+
+    free(tcb);
+    free(pcb);*/
+
     // TODO
     t_posicion* pos = malloc(sizeof(t_posicion));
     pos->x = 6; pos->y = 9;

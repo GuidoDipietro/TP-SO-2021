@@ -346,7 +346,7 @@ static char* segmento_t_en_ram_a_string_de_dump(segmento_t* seg) {
         {
             ts_tripulante_t* tabla = list_find_by_inicio_tcb_tstripulantes(seg->inicio);
             PCB_t* pcb; TCB_t* tcb;
-            if (!get_structures_from_tid(tabla->tid, &tabla, &tcb, &pcb)) {
+            if (!get_structures_from_tid_segmentacion(tabla->tid, &tabla, &tcb, &pcb)) {
                 str = strdup("Error fatal en dump segmentacion");
                 free(pcb); free(tcb);
                 return str;
