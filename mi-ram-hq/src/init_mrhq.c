@@ -16,6 +16,7 @@ segmento_t* (*proximo_hueco)(uint32_t);
 // paginacion
 frame_t* tabla_frames;
 t_list* tp_patotas;
+t_list* tid_pid_lookup;
 
 void* memoria_principal;
 
@@ -113,6 +114,7 @@ uint8_t cargar_memoria() {
             tabla_frames[i].bytes = 0;
             tabla_frames[i].libre = 1;
         }
+        tid_pid_lookup = list_create();
     }
 
     return 1;

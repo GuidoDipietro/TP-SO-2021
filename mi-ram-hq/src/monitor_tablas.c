@@ -6,11 +6,13 @@ extern t_config_mrhq* cfg;
 extern pthread_mutex_t MUTEX_TS_PATOTAS;
 extern pthread_mutex_t MUTEX_TS_TRIPULANTES;
 extern pthread_mutex_t MUTEX_TP_PATOTAS;
+extern pthread_mutex_t MUTEX_TID_PID_LOOKUP;
 
 extern t_list* ts_patotas;
 extern t_list* ts_tripulantes;
 
 extern t_list* tp_patotas;
+extern t_list* tid_pid_lookup;
 
 static uint32_t static_pid;
 static uint32_t static_tid;
@@ -23,6 +25,11 @@ static uint32_t static_nro_frame;
 static bool has_pid(void* x) {
     ts_patota_t* elem = (ts_patota_t*) x;
     return elem->pid == static_pid;
+}
+
+static bool has_tid(void* x) {
+    tid_pid_lookup_t* elem = (tid_pid_lookup_t*) x;
+    return elem->tid == static_tid;
 }
 
 static bool has_nro_pag(void* x) {
@@ -59,8 +66,8 @@ void list_delete_by_pid_tspatotas(uint32_t pid) {
 
 // Recupera entrada de la tabla y suma 1 a tripulantes inicializados
 ts_patota_t* list_find_by_pid_plus_plus_tspatotas(uint32_t pid) {
-    static_pid = pid;
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    static_pid = pid;
     ts_patota_t* elem = list_find(ts_patotas, &has_pid);
     if (elem)
         elem->tripulantes_inicializados = elem->tripulantes_inicializados + 1;
@@ -69,24 +76,24 @@ ts_patota_t* list_find_by_pid_plus_plus_tspatotas(uint32_t pid) {
 }
 
 ts_patota_t* list_find_by_pid_tspatotas(uint32_t pid) {
-    static_pid = pid;
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    static_pid = pid;
     ts_patota_t* elem = list_find(ts_patotas, &has_pid);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
     return elem;
 }
 
 ts_patota_t* list_find_by_inicio_pcb_tspatotas(uint32_t inicio) {
-    static_inicio = inicio;
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    static_inicio = inicio;
     ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_pcb_has_inicio);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
     return elem;
 }
 
 ts_patota_t* list_find_by_inicio_tareas_tspatotas(uint32_t inicio) {
-    static_inicio = inicio;
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
+    static_inicio = inicio;
     ts_patota_t* elem = list_find(ts_patotas, &ts_patota_t_tareas_has_inicio);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
     return elem;
@@ -127,16 +134,16 @@ void list_update_nro_seg_tcb_by_pid_tstripulantes(uint32_t tid_eliminado, uint32
 }
 
 ts_tripulante_t* list_find_by_tid_tstripulantes(uint32_t tid) {
-    static_tid = tid;
     pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    static_tid = tid;
     ts_tripulante_t* elem = list_find(ts_tripulantes, &ts_tripulante_t_has_tid);
     pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
     return elem;
 }
 
 ts_tripulante_t* list_find_by_inicio_tcb_tstripulantes(uint32_t inicio) {
-    static_inicio = inicio;
     pthread_mutex_lock(&MUTEX_TS_TRIPULANTES);
+    static_inicio = inicio;
     ts_tripulante_t* elem = list_find(ts_tripulantes, &ts_tripulante_t_tcb_has_inicio);
     pthread_mutex_unlock(&MUTEX_TS_TRIPULANTES);
     return elem;
@@ -169,8 +176,8 @@ void list_add_tppatotas(tp_patota_t* elem) {
 }
 
 tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid) {
-    static_pid = pid;
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
     tp_patota_t* elem = list_find(tp_patotas, &has_pid);
     if (elem)
         elem->tripulantes_inicializados = elem->tripulantes_inicializados + 1;
@@ -178,9 +185,17 @@ tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid) {
     return elem;
 }
 
-tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
-    static_pid = pid;
+tp_patota_t* list_find_by_pid_tppatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
+    tp_patota_t* elem = list_find(tp_patotas, &has_pid);
+    pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
+    return elem;
+}
+
+tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
     tp_patota_t* elem = list_remove_by_condition(tp_patotas, &has_pid);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
     return elem;
@@ -190,9 +205,9 @@ tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
 // (significa que se cargo una nueva pagina en memoria, total o parcialmente, ante un INICIAR_algo)
 // Tambien actualiza cantidad total de paginas de la patota
 void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
 
-    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     tp_patota_t* res = list_find(tp_patotas, &has_pid);
 
     static_nro_frame = nro_frame;
@@ -215,10 +230,10 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
 // Actualiza nro de frame en la que esta una pag. data de una patota dada
 // se asume que existe la pagina indicada
 void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t nro_frame) {
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
     static_nro_pag = nro_pag;
 
-    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     tp_patota_t* res = list_find(tp_patotas, &has_pid);
     entrada_tp_t* e_pagina = list_find(res->paginas, &has_nro_pag);
     e_pagina->nro_frame = nro_frame;
@@ -228,16 +243,16 @@ void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t n
 // Actualiza cant. de paginas totales que tiene una patota
 // DEPRECATED (creo) xd!
 void list_update_n_of_pages_tppatotas(uint32_t n_pags, uint32_t pid) {
-    static_pid = pid;
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
     tp_patota_t* res = list_find(tp_patotas, &has_pid);
     res->pages += n_pags;
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
 }
 
 uint32_t list_get_n_of_pages_tppatotas(uint32_t pid) {
-    static_pid = pid;
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
     tp_patota_t* res = list_find(tp_patotas, &has_pid);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
     return res->pages;
@@ -247,6 +262,37 @@ void asesinar_tppatotas() {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     list_destroy_and_destroy_elements(tp_patotas, &free_tp_patota_t);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
+}
+
+/// TID PID LOOKUP
+
+uint32_t pid_of_tid(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
+    static_tid = tid;
+    tid_pid_lookup_t* elem = list_find(tid_pid_lookup, &has_tid);
+    pthread_mutex_unlock(&MUTEX_TID_PID_LOOKUP);
+
+    if (elem == NULL) return 0xFFFF;
+    return elem->pid;
+}
+
+void list_add_tid_pid_lookup(tid_pid_lookup_t* elem) {
+    pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
+    list_add(tid_pid_lookup, (void*) elem);
+    pthread_mutex_unlock(&MUTEX_TID_PID_LOOKUP);
+}
+
+void list_tid_pid_lookup_remove_by_tid(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
+    static_tid = tid;
+    list_remove_and_destroy_by_condition(tid_pid_lookup, &has_tid, (void*) free);
+    pthread_mutex_unlock(&MUTEX_TID_PID_LOOKUP);
+}
+
+void asesinar_tid_pid_lookup() {
+    pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
+    list_destroy_and_destroy_elements(tid_pid_lookup, (void*) free);
+    pthread_mutex_unlock(&MUTEX_TID_PID_LOOKUP);
 }
 
 /// DEBUG
@@ -357,6 +403,23 @@ void print_tppatotas(bool log) {
         :   printf("\n\n------------------------\n\n");
 }
 
+static void print_tid_pid_lookup_t(void* x) {
+    tid_pid_lookup_t* elem = (tid_pid_lookup_t*) x;
+    ynlog
+        ? log_info(logger, "TID: %" PRIu32 " | PID: %" PRIu32, elem->tid, elem->pid)
+        : printf("TID: %" PRIu32 " | PID: %" PRIu32 "\n", elem->tid, elem->pid);
+}
+void print_tid_pid_lookup(bool log) {
+    ynlog = log;
+    log ? log_info(logger, "\n\n------ TID PID LOOKUP ------")
+        : printf("\n\n------ TID PID LOOKUP ------\n");
+    pthread_mutex_lock(&MUTEX_TID_PID_LOOKUP);
+    list_iterate(tid_pid_lookup, &print_tid_pid_lookup_t);
+    pthread_mutex_unlock(&MUTEX_TID_PID_LOOKUP);
+    log ? log_info(logger, "\n\n------------------------\n\n")
+        :   printf("\n\n------------------------\n\n");
+}
+
 ////// prints (logs)
 
 void log_structures(uint8_t options) {
@@ -365,10 +428,11 @@ void log_structures(uint8_t options) {
         log_info(logger, "%s", dumpcito);
         free(dumpcito);
     }
-    if (options & PRI_SEGLIB)         LOGPRINT         (seglib);
-    if (options & PRI_SEGUS)          LOGPRINT          (segus);
-    if (options & PRI_TSPATOTAS)      LOGPRINT      (tspatotas);
-    if (options & PRI_TSTRIPULANTES)  LOGPRINT  (tstripulantes);
-    if (options & PRI_TPPATOTAS)      LOGPRINT      (tppatotas);
-    if (options & PRI_FRAMO)          LOGPRINT          (framo);
+    if (options & PRI_SEGLIB)            LOGPRINT            (seglib);
+    if (options & PRI_SEGUS)             LOGPRINT             (segus);
+    if (options & PRI_TSPATOTAS)         LOGPRINT         (tspatotas);
+    if (options & PRI_TSTRIPULANTES)     LOGPRINT     (tstripulantes);
+    if (options & PRI_TPPATOTAS)         LOGPRINT         (tppatotas);
+    if (options & PRI_FRAMO)             LOGPRINT             (framo);
+    if (options & PRI_TID_PID_LOOKUP)    LOGPRINT    (tid_pid_lookup);
 }

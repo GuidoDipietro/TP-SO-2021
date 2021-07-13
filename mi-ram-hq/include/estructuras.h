@@ -81,6 +81,11 @@ typedef struct {
     t_list* paginas;          // tipo: <entrada_tp_t>
 } tp_patota_t;
 
+typedef struct {
+    uint32_t tid;
+    uint32_t pid;
+} tid_pid_lookup_t;
+
 typedef union {
     uint64_t bytes;
     struct {

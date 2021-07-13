@@ -18,7 +18,9 @@ pthread_mutex_t MUTEX_FRAMO;
 pthread_mutex_t MUTEX_MP;
 pthread_mutex_t MUTEX_TS_PATOTAS;
 pthread_mutex_t MUTEX_TS_TRIPULANTES;
+
 pthread_mutex_t MUTEX_TP_PATOTAS;
+pthread_mutex_t MUTEX_TID_PID_LOOKUP;
 
 pthread_mutex_t MUTEX_MP_BUSY;
 
@@ -34,6 +36,7 @@ void iniciar_mutex() {
     pthread_mutex_init(&MUTEX_TS_PATOTAS, NULL);
     pthread_mutex_init(&MUTEX_TS_TRIPULANTES, NULL);
     pthread_mutex_init(&MUTEX_TP_PATOTAS, NULL);
+    pthread_mutex_init(&MUTEX_TID_PID_LOOKUP, NULL);
     pthread_mutex_init(&MUTEX_MP_BUSY, NULL);
 
     sem_init(&SEM_INICIAR_SELF_EN_PATOTA, 0, 0);
@@ -49,6 +52,7 @@ void finalizar_mutex() {
     pthread_mutex_destroy(&MUTEX_TS_PATOTAS);
     pthread_mutex_destroy(&MUTEX_TS_TRIPULANTES);
     pthread_mutex_destroy(&MUTEX_TP_PATOTAS);
+    pthread_mutex_destroy(&MUTEX_TID_PID_LOOKUP);
     pthread_mutex_destroy(&MUTEX_MP_BUSY);
     
     sem_destroy(&SEM_INICIAR_SELF_EN_PATOTA);

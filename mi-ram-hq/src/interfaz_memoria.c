@@ -207,6 +207,12 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
             tid_base += tabla_patota->tripulantes_totales;
     }
 
+    // Agregar entrada lookup de PID
+    tid_pid_lookup_t* lookup = malloc(sizeof(tid_pid_lookup_t));
+    lookup->tid = tid;
+    lookup->pid = pid;
+    list_add_tid_pid_lookup(lookup);
+
     free(s_tcb);
     free(tcb);
 
@@ -265,11 +271,27 @@ static bool borrar_tripulante_de_mp_segmentacion(uint32_t tid) {
 }
 static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
     // Conseguir el pid de alguna forma partiendo del TID y llamar a
-    // bool ret = delete_patota_en_mp(uint32_t pid);
-    // TODO
+    auto uint32_t pid = pid_of_tid(tid);
+    if (pid == 0xFFFF) return false;
 
-    return!!
-    (0xDEAD & 'CACA');
+    tp_patota_t* tabla_patota = list_find_by_pid_tppatotas(pid);
+    tabla_patota->tripulantes_inicializados--;
+
+    list_tid_pid_lookup_remove_by_tid(tid);
+
+    bool ret;
+    if (tabla_patota->tripulantes_inicializados == 0) {
+        // ULTIMO TRIPULANTE
+        ret = delete_patota_en_mp(pid); // la borra de MP y estructuras admin.
+        if (!ret) log_error(logger, "Error TERRIBLE borrando patota de MP");
+    }
+    else {
+        // TRIPULANTE CUALQUIERA (no borramos TCB en PAGINACION,
+        // borramos TODO cuando se expulsaron TODOS)
+        return true;
+    }
+
+    return ret;
 }
 bool borrar_tripulante_de_mp(uint32_t tid) {
     bool success = cfg->SEG

@@ -34,6 +34,7 @@ void asesinar_tstripulantes();
 
 void list_add_tppatotas(tp_patota_t* elem);
 tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid);
+tp_patota_t* list_find_by_pid_tppatotas(uint32_t pid);
 tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid);
 void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame);
 void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t nro_frame);
@@ -41,10 +42,17 @@ void list_update_n_of_pages_tppatotas(uint32_t pid, uint32_t n_pags);
 uint32_t list_get_n_of_pages_tppatotas(uint32_t pid);
 void asesinar_tppatotas();
 
+/// TID_PID_LOOKUP
+uint32_t pid_of_tid(uint32_t tid);
+void list_add_tid_pid_lookup(tid_pid_lookup_t* elem);
+void list_tid_pid_lookup_remove_by_tid(uint32_t tid);
+void asesinar_tid_pid_lookup();
+
 /// DEBUG
 
 void print_tspatotas(bool log);
 void print_tstripulantes(bool log);
+void print_tid_pid_lookup(bool log);
 
 /// Prints (logs)
 #define PRI_MP                 (uint8_t) 0b00000001
@@ -54,9 +62,10 @@ void print_tstripulantes(bool log);
 #define PRI_TSPATOTAS          (uint8_t) 0b00010000
 #define PRI_FRAMO              (uint8_t) 0b00100000
 #define PRI_TPPATOTAS          (uint8_t) 0b01000000
+#define PRI_TID_PID_LOOKUP     (uint8_t) 0b10000000
 #define PRI_ALL_SEGMENTACION   (uint8_t) 0b00011111
 #define PRI_NONE               (uint8_t) 0b00000000
-#define PRI_ALL_PAGINACION     (uint8_t) 0b01100001
+#define PRI_ALL_PAGINACION     (uint8_t) 0b11100001
 #define LOGPRINT(_)            print_ ## _ (true)
 void log_structures(uint8_t options);
 
