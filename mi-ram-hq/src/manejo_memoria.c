@@ -362,7 +362,7 @@ void* read_from_mp_pid_pagina_offset_tamanio
     t_list* paginas = tabla_patota->paginas;
 
     // Leo de las paginas que precise... Considerando que la imagen del proceso esta cargada de forma contigua
-    int64_t tamanio_restante = tamanio;
+    uint32_t tamanio_restante = tamanio;
     for (int p=0; tamanio_restante>0; p++) {
         // inner function
         bool has_page_number(void* x) {
@@ -374,18 +374,16 @@ void* read_from_mp_pid_pagina_offset_tamanio
         void* buf = get_pagina_data(pag->nro_frame);
 
         uint32_t bytes_a_leer = p==0
-            ? (cfg->TAMANIO_PAGINA - offset) // primera pag
-            : (MIN(cfg->TAMANIO_PAGINA, tamanio_restante)) // medio o ultima
+            ? MIN(cfg->TAMANIO_PAGINA - offset, tamanio) // primera pag
+            : MIN(cfg->TAMANIO_PAGINA, tamanio_restante) // medio o ultima
         ;
 
         // !!! THIS SHIT DOESN'T WORK!! WHY? HAS I EVER?
         log_info(logger,
-            "\nFUCK YOU WTF %d %" PRIu32 " %" PRIu32 "\n"
-            "args: %" PRIu32 " %" PRIu32 " %" PRIu32 " %" PRIu32 "\n"
-            "(frame %" PRIu32 ") memcpy: %" PRIu32 " %" PRIu32 " %" PRIu32 " (AAAA? %d|%" PRIu32 ")\n",
-            p, cfg->TAMANIO_PAGINA - offset, bytes_a_leer,
+            "\n\nargs: %" PRIu32 " %" PRIu32 " %" PRIu32 " %" PRIu32 "\n"
+            "(frame %" PRIu32 ") memcpy: %" PRIu32 " %" PRIu32 " %" PRIu32 "\n",
             pid, pagina, offset, tamanio,
-            pag->nro_frame, tamanio - tamanio_restante, (p==0? offset : 0), bytes_a_leer, p, (cfg->TAMANIO_PAGINA - offset)
+            pag->nro_frame, tamanio - tamanio_restante, (p==0? offset : 0), bytes_a_leer
         );
         memcpy(
             data + (tamanio - tamanio_restante),
@@ -393,7 +391,8 @@ void* read_from_mp_pid_pagina_offset_tamanio
             bytes_a_leer
         );
 
-        tamanio_restante -= bytes_a_leer;
+        if (tamanio_restante < bytes_a_leer) tamanio_restante = 0;
+        else tamanio_restante -= bytes_a_leer;
         free(buf);
     }
 

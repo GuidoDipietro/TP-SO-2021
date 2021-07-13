@@ -429,7 +429,7 @@ static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
 }
 static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     // Estructuras relacionadas al TID
-    /*tid_pid_lookup_t* tabla = NULL;
+    tid_pid_lookup_t* tabla = NULL;
     TCB_t* tcb = NULL;
     PCB_t* pcb = NULL;
 
@@ -463,13 +463,12 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     // TODO
 
     free(tcb);
-    free(pcb);*/
+    free(pcb);
 
-    // TODO
-    t_posicion* pos = malloc(sizeof(t_posicion));
+    /*t_posicion* pos = malloc(sizeof(t_posicion));
     pos->x = 6; pos->y = 9;
     t_tarea* tarea = tarea_create("Tarea GENERAR BASURA TEST", 3, pos, 5, "GENERAR_BASURA");
-    free(pos);
+    free(pos);*/
 
     return tarea;
 }
