@@ -7,7 +7,6 @@ static t_config_ims* initialize_cfg() {
     return cfg;
 }
 
-t_config_ims* cfg;
 t_log* logger;
 
 int main() {
@@ -22,7 +21,7 @@ int main() {
     }
 
     cargar_superbloque();
-    cargar_bloques();
+    //cargar_bloques();
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));

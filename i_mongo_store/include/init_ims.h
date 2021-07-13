@@ -3,14 +3,12 @@
 
 #include <stdint.h>
 #include <commons/collections/list.h>
-#include <commons/log.h>
 #include <commons/config.h>
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 
 #include "init_fs.h"
 #include "monitor_bitarray.h"
-
 typedef struct {
     char* PUNTO_MONTAJE;
     uint16_t PUERTO;

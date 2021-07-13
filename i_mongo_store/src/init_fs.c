@@ -27,15 +27,19 @@ void cargar_superbloque() {
     char* path = concatenar_montaje("SuperBloque.ims");
     FILE* f = fopen(path, "rb");
 
+    bool nuevo_superbloque = false;
+
     if(f == NULL) {
         crear_superbloque();
-        crear_bloques();
+        nuevo_superbloque = true;
         f = fopen(path, "rb");
     }
 
     fread(&superbloque.blocks, sizeof(uint32_t), 1, f);
     fread(&superbloque.block_size, sizeof(uint32_t), 1, f);
     superbloque.bytes_bitarray = ceil(superbloque.blocks / 8.00);
+
+    if(nuevo_superbloque) crear_bloques();
 
     printf("\n%d - %d - bytes: %d\n", superbloque.blocks, superbloque.block_size, superbloque.bytes_bitarray);
 
@@ -63,7 +67,7 @@ void cargar_bloques() {
         NULL,
         len,
         PROT_READ | PROT_WRITE,
-        MAP_SHARED,
+        0,
         fd,
         0
     );
@@ -79,9 +83,21 @@ void crear_bloques() {
 
     free(path);
     uint64_t total_size = superbloque.blocks * superbloque.block_size; // En bytes
-    uint8_t* p = malloc(1);
+
+    /*
+    Dejo esto aca por las dudas
+    
+    uint8_t* p = malloc(1); // 1 byte
     *p = 0x0;
-    fwrite(p, 1, total_size, f); // Llenamos el archivo de 0 -> memoria vacia
+
+    for(uint64_t i = 0; i < total_size; i++)
+        fwrite(p, 1, 1, f); // Llenamos el archivo de 0 -> memoria vacia
+
     free(p);
+    */
+    uint8_t* p = malloc(total_size);
+    memset(p, 0x00, total_size);
+    fwrite(p, total_size, 1, f);
+
     fclose(f);
 }

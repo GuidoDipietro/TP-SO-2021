@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <commons/bitarray.h>
+#include <commons/log.h>
 
 #include "init_ims.h"
 
@@ -15,6 +16,8 @@ typedef struct {
 
 //#define raw_bitmap_t char*
 typedef char* raw_bitmap_t;
+
+extern t_log* logger;
 
 extern superbloque_t superbloque;
 extern void* mem_map;

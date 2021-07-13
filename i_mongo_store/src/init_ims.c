@@ -1,6 +1,5 @@
 #include "../include/init_ims.h"
 
-extern t_log* logger;
 t_config_ims* cfg;
 
 void iniciar_semaforos() {
