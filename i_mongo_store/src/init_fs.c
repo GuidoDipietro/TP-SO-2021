@@ -35,13 +35,14 @@ void cargar_superbloque() {
 
     fread(&superbloque.blocks, sizeof(uint32_t), 1, f);
     fread(&superbloque.block_size, sizeof(uint32_t), 1, f);
-    uint32_t bytes = ceil(superbloque.blocks / 8.00); // el size del bitmap
-    printf("\n%d - %d - bytes: %d\n", superbloque.blocks, superbloque.block_size, bytes);
+    superbloque.bytes_bitarray = ceil(superbloque.blocks / 8.00);
+
+    printf("\n%d - %d - bytes: %d\n", superbloque.blocks, superbloque.block_size, superbloque.bytes_bitarray);
 
     // Pasamos a cargar el bitmap a memoria
-    raw_bitmap_t raw_bitmap = malloc(bytes);
-    fread(raw_bitmap, bytes, 1, f);
-    superbloque.bitarray = bitarray_create(raw_bitmap, bytes);
+    raw_bitmap_t raw_bitmap = malloc(superbloque.bytes_bitarray);
+    fread(raw_bitmap, superbloque.bytes_bitarray, 1, f);
+    superbloque.bitarray = bitarray_create(raw_bitmap, superbloque.bytes_bitarray);
 
     fclose(f);
 }
