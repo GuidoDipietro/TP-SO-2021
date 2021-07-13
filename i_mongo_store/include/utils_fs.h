@@ -12,6 +12,8 @@ typedef struct {
     t_bitarray* bitarray;
 } superbloque_t;
 
+#define raw_bitmap_t char*
+
 extern superbloque_t superbloque;
 extern void* mem_map;
 extern void* mem_cpy;

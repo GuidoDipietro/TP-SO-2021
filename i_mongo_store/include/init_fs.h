@@ -12,9 +12,8 @@
 #include "utils_fs.h"
 #include "init_ims.h"
 
-void formatear_fs();
+void crear_bloques();
 void cargar_bloques();
-void* crear_bitarray(uint32_t blocks);
 void cargar_superbloque();
 
 #endif

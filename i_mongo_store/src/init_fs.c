@@ -6,29 +6,18 @@ void* mem_cpy;
 
 void cargar_superbloque() {
     char* path = concatenar_montaje("SuperBloque.ims");
-    t_config* cfg = config_create(path);
-    free(path);
+    FILE* f = fopen(path, "r");
+    fread(&superbloque.blocks, sizeof(uint32_t), 1, f);
+    fread(&superbloque.block_size, sizeof(uint32_t), 1, f);
+    uint32_t bytes = ceil(superbloque.blocks / 8.00); // el size del bitmap
+    printf("\n%d - %d - bytes: %d\n", superbloque.blocks, superbloque.block_size, bytes);
 
-    superbloque.blocks = config_get_int_value(cfg, "BLOCK_SIZE");
-    superbloque.block_size = config_get_int_value(cfg, "BLOCKS");
-    char* temp = config_get_string_value(cfg, "BITARRAY");
+    // Pasamos a cargar el bitmap a memoria
+    raw_bitmap_t raw_bitmap = malloc(bytes);
+    fread(raw_bitmap, bytes, 1, f);
+    superbloque.bitarray = bitarray_create(raw_bitmap, bytes);
 
-    if(temp == NULL || strcmp(temp, "") == 0) // Significa que no hay bitarray
-        superbloque.bitarray = crear_bitarray(superbloque.blocks);
-    else
-        superbloque.bitarray = bitarray_create_with_mode(temp, strlen(temp), LSB_FIRST);
-    //free(temp);
-    config_destroy(cfg);
-}
-
-void* crear_bitarray(uint32_t blocks) {
-    // Tiene que haber tantos bits como bloques
-    // cada posicion de memoria es 1 byte (8 bits)
-    // entonces hay que asignar blocks/8 bytes
-    uint32_t len = ceil(blocks/8.00);
-    void* str = malloc(len);
-    memset(str, 0, len);
-    return str;
+    fclose(f);
 }
 
 void cargar_bloques() {
@@ -36,7 +25,7 @@ void cargar_bloques() {
     FILE* f = fopen(path, "rb+");
 
     if(f == NULL) { // No existe el archivo, iniciamos un FS formateado
-        formatear_fs();
+        crear_bloques();
         f = fopen(path, "rb+");
     }
     free(path);
@@ -57,9 +46,7 @@ void cargar_bloques() {
     //memcpy(mem_cpy, mem_map, len);
 }
 
-void formatear_fs() {
-    superbloque.bitarray = crear_bitarray(superbloque.blocks);
-
+void crear_bloques() {
     char* path = concatenar_montaje("Blocks.ims");
     FILE* f = fopen(path, "wb+"); // Creamos el archivo
 
