@@ -4,9 +4,35 @@ superbloque_t superbloque;
 void* mem_map;
 void* mem_cpy;
 
-void cargar_superbloque() {
+static void crear_superbloque() {
     char* path = concatenar_montaje("SuperBloque.ims");
-    FILE* f = fopen(path, "r");
+    FILE* f = fopen(path, "wb+");
+    free(path);
+
+    uint32_t* p = malloc(sizeof(uint32_t));
+    *p = cfg->BLOCKS;
+    fwrite(p, sizeof(uint32_t), 1, f);
+    *p = cfg->BLOCK_SIZE;
+    fwrite(p, sizeof(uint32_t), 1, f);
+
+    uint32_t bytes = ceil(cfg->BLOCKS / 8.0);
+    raw_bitmap_t b = malloc(bytes);
+    memset(b, 0x00, bytes);
+    fwrite(b, 1, bytes, f);
+    fclose(f);
+}
+
+void cargar_superbloque() {
+    printf("\n-- %d - %d\n", cfg->BLOCKS, cfg->BLOCK_SIZE);
+    char* path = concatenar_montaje("SuperBloque.ims");
+    FILE* f = fopen(path, "rb");
+
+    if(f == NULL) {
+        crear_superbloque();
+        crear_bloques();
+        f = fopen(path, "rb");
+    }
+
     fread(&superbloque.blocks, sizeof(uint32_t), 1, f);
     fread(&superbloque.block_size, sizeof(uint32_t), 1, f);
     uint32_t bytes = ceil(superbloque.blocks / 8.00); // el size del bitmap
@@ -42,8 +68,8 @@ void cargar_bloques() {
     );
     fclose(f);
 
-    //mem_cpy = malloc(len);
-    //memcpy(mem_cpy, mem_map, len);
+    mem_cpy = malloc(len);
+    memcpy(mem_cpy, mem_map, len);
 }
 
 void crear_bloques() {

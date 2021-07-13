@@ -9,12 +9,15 @@
 #include "../../shared/include/sockets.h"
 
 #include "init_fs.h"
+#include "monitor_bitarray.h"
 
 typedef struct {
     char* PUNTO_MONTAJE;
     uint16_t PUERTO;
     uint32_t TIEMPO_SINCRONIZACION;
     t_list* POSICIONES_SABOTAJE;
+    uint32_t BLOCKS;
+    uint32_t BLOCK_SIZE;
 } t_config_ims;
 
 extern t_config_ims* cfg;
