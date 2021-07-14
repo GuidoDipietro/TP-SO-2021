@@ -64,8 +64,8 @@ typedef struct {
     uint32_t nro_frame;     // esta en el frame Y
     union {
         struct {
+            uint16_t bit_P; // bit presencia
             uint16_t bit_U; // bit usado
-            uint16_t bit_M; // bit modificado
         };
         uint32_t TUR;       // tiempo de ultima referencia
     };

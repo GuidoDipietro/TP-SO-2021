@@ -503,6 +503,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
 // ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP
 // POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
 bool actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
+    const size_t size_tcb = 21;
     void* s_tcb = serializar_tcb(tcb);
 
     // Recupero entrada_tp_t de la primera pagina del TCB
@@ -515,7 +516,39 @@ bool actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
     }
     entrada_tp_t* pagina = list_find(paginas, &has_page_number); // posible condicion de RAZA
 
-    // ACTUALIZAR MP
+    if (pagina->bit_P) {
+        // Presente en RAM
+        if (lookup->inicio+size_tcb > cfg->TAMANIO_PAGINA) {
+            // 2 paginas
+            size_t primer_size = cfg->TAMANIO_PAGINA - lookup->inicio;
+            size_t segundo_size = size_tcb - primer_size;
+
+            bool has_page_number(void* x) {
+                entrada_tp_t* elem = (entrada_tp_t*) x;
+                return elem->nro_pagina == lookup->nro_pagina + 1;
+            }
+            entrada_tp_t* pagina_2 = list_find(paginas, &has_page_number); // posible condicion de RAZA
+            
+            memcpy_segmento_en_mp(
+                pagina->nro_frame*cfg->TAMANIO_PAGINA + lookup->inicio, s_tcb, primer_size
+            );
+            memcpy_segmento_en_mp(
+                pagina_2->nro_frame*cfg->TAMANIO_PAGINA, s_tcb+primer_size, segundo_size
+            );
+        }
+        else {
+            // 1 pagina
+            memcpy_segmento_en_mp(
+                pagina->nro_frame*cfg->TAMANIO_PAGINA + lookup->inicio, s_tcb, size_tcb
+            ); // ya se que no es un segmento, pero me sirve la funcion
+        }
+    }
+    else {
+        // SWAP
+        log_info(logger, "SWAP NO IMPLEMENTADO");
+        free(s_tcb);
+        return false;
+    }
 
     free(s_tcb);
     return true;

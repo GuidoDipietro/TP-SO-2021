@@ -217,7 +217,8 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
         entrada_tp_t* e_pagina_new = malloc(sizeof(entrada_tp_t));
         e_pagina_new->nro_pagina = res->pages;
         e_pagina_new->nro_frame = nro_frame;
-        e_pagina_new->TUR = 0; // zeroing these bytes out (either U & M bits or TUR)
+        e_pagina_new->bit_P = 1;
+        e_pagina_new->bit_U = 1;
 
         list_add(res->paginas, (void*) e_pagina_new);
 
@@ -372,11 +373,11 @@ static void print_entrada_tp_t(void* x) {
     ynlog
         ? log_info(logger,
             "PAG: %" PRIu32 " | FRAME: %" PRIu32 " | U (%" PRIu16 ") | M (%" PRIu16 ") | TUR (%" PRIu32 ")\n",
-            elem->nro_pagina, elem->nro_frame, elem->bit_U, elem->bit_M, elem->TUR
+            elem->nro_pagina, elem->nro_frame, elem->bit_U, elem->bit_P, elem->TUR
         )
         : printf(
             "PAG: %" PRIu32 " | FRAME: %" PRIu32 " | U (%" PRIu16 ") | M (%" PRIu16 ") | TUR (%" PRIu32 ")\n",
-            elem->nro_pagina, elem->nro_frame, elem->bit_U, elem->bit_M, elem->TUR
+            elem->nro_pagina, elem->nro_frame, elem->bit_U, elem->bit_P, elem->TUR
         );
     ;
 }
