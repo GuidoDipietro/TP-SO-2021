@@ -4,11 +4,15 @@
 #include <stdint.h>
 #include <commons/collections/list.h>
 #include <commons/config.h>
+#include <pthread.h>
+
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 
 #include "init_fs.h"
+#include "blocks.h"
 #include "monitor_bitarray.h"
+
 typedef struct {
     char* PUNTO_MONTAJE;
     uint16_t PUERTO;
@@ -23,5 +27,6 @@ extern t_config_ims* cfg;
 uint8_t cargar_configuracion();
 bool crear_servidor(int* fd, char* name);
 void cerrar_programa();
+void iniciar_sincronizador();
 
 #endif

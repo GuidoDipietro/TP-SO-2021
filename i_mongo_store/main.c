@@ -20,8 +20,14 @@ int main() {
         return EXIT_FAILURE;
     }
 
+<<<<<<< HEAD
     //cargar_superbloque();
     //cargar_bloques();
+=======
+    cargar_superbloque();
+    cargar_bloques();
+    iniciar_sincronizador();
+>>>>>>> 1baebe2cbd9177067afe172998a7332143d91f44
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));
