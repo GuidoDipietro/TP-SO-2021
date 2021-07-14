@@ -12,6 +12,7 @@
 
 bool entra_en_mp(uint32_t tamanio);
 bool entra_en_swap(uint32_t tamanio);
+uint32_t paginas_que_entran_en_swap();
 void dump_mp();
 
 /// SEGMENTACION
@@ -37,5 +38,8 @@ bool RACE_get_structures_from_tid_paginacion
 uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool* nuevapag);
 bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb);					     // POSIBLE RC
 bool delete_patota_en_mp(uint32_t pid);
+
+bool bajar_pagina_a_swap(uint32_t pid, uint32_t nro_pagina);
+bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina);
 
 #endif

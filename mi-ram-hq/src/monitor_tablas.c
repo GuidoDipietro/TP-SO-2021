@@ -13,6 +13,7 @@ extern t_list* ts_tripulantes;
 
 extern t_list* tp_patotas;
 extern t_list* tid_pid_lookup;
+extern uint32_t global_TUR;
 
 static uint32_t static_pid;
 static uint32_t static_tid;
@@ -223,8 +224,13 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
         entrada_tp_t* e_pagina_new = malloc(sizeof(entrada_tp_t));
         e_pagina_new->nro_pagina = res->pages;
         e_pagina_new->nro_frame = nro_frame;
+
+        if (cfg->LRU)
+            e_pagina_new->TUR = global_TUR++;
+        else
+            e_pagina_new->bit_U = 1;
+        
         e_pagina_new->bit_P = 1;
-        e_pagina_new->bit_U = 1;
 
         list_add(res->paginas, (void*) e_pagina_new);
 
@@ -378,11 +384,11 @@ static void print_entrada_tp_t(void* x) {
     entrada_tp_t* elem = (entrada_tp_t*) x;
     ynlog
         ? log_info(logger,
-            "PAG: %" PRIu32 " | FRAME: %" PRIu32 " | U (%" PRIu16 ") | M (%" PRIu16 ") | TUR (%" PRIu32 ")\n",
+            "PAG: %" PRIu32 " | FRAME: %" PRIu32 " | U (%" PRIu16 ") | P (%" PRIu16 ") | TUR (%" PRIu32 ")\n",
             elem->nro_pagina, elem->nro_frame, elem->bit_U, elem->bit_P, elem->TUR
         )
         : printf(
-            "PAG: %" PRIu32 " | FRAME: %" PRIu32 " | U (%" PRIu16 ") | M (%" PRIu16 ") | TUR (%" PRIu32 ")\n",
+            "PAG: %" PRIu32 " | FRAME: %" PRIu32 " | U (%" PRIu16 ") | P (%" PRIu16 ") | TUR (%" PRIu32 ")\n",
             elem->nro_pagina, elem->nro_frame, elem->bit_U, elem->bit_P, elem->TUR
         );
     ;
