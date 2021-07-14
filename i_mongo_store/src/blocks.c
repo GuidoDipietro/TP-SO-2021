@@ -2,11 +2,32 @@
 
 pthread_mutex_t MUTEX_BLOCKS;
 
-void escribir_bloque(void* content, uint32_t nro_bloque) {
+void escribir_bloque(void* content, uint32_t nro_bloque, uint64_t size) {
+    if(size > superbloque->block_size)
+        return;
+
     pthread_mutex_lock(&MUTEX_BLOCKS);
     monitor_bitarray_set_bit(nro_bloque);
-    memcpy(mem_cpy + superbloque->block_size * nro_bloque, content, superbloque->block_size);
+    memset(mem_cpy + superbloque->block_size, 0x00, superbloque->block_size); // Vaciamos el bloque por las dudas
+    memcpy(mem_cpy + superbloque->block_size * nro_bloque, content, size);
     pthread_mutex_unlock(&MUTEX_BLOCKS);
+    log_info(logger, "Written block %ld", nro_bloque);
+}
+
+void* leer_bloque(uint32_t nro_bloque) {
+    pthread_mutex_lock(&MUTEX_BLOCKS);
+    void* ret = malloc(sizeof(superbloque->block_size));
+    memcpy(ret, mem_cpy + superbloque->block_size * nro_bloque, superbloque->block_size);
+    pthread_mutex_unlock(&MUTEX_BLOCKS);
+    return ret;
+}
+
+void liberar_bloque(uint32_t nro_bloque) {
+    pthread_mutex_lock(&MUTEX_BLOCKS);
+    memset(mem_cpy + superbloque->block_size * nro_bloque, 0x00, superbloque->block_size); // Vaciamos el bloque
+    monitor_bitarray_clean_bit(nro_bloque);
+    pthread_mutex_unlock(&MUTEX_BLOCKS);
+    log_info(logger, "Free block %ld", nro_bloque);
 }
 
 static void sincronizar_bitarray() {
