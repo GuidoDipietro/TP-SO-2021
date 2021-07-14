@@ -72,9 +72,10 @@ bool crear_servidor(int* fd, char* name) {
 
 void cerrar_programa() {
     pthread_cancel(HILO_SINCRONIZADOR);
-    munmap(mem_map, superbloque.tamanio_fs);
+    munmap(mem_map, superbloque->tamanio_fs);
     log_destroy(logger);
-    bitarray_destroy(superbloque.bitarray);
+    bitarray_destroy(superbloque->bitarray);
+    free(superbloque);
     free(cfg->PUNTO_MONTAJE);
     list_destroy_and_destroy_elements(cfg->POSICIONES_SABOTAJE, free_t_posicion);
     free(cfg);

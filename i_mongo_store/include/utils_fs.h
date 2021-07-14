@@ -14,14 +14,14 @@ typedef struct {
     t_bitarray* bitarray;
     uint32_t bytes_bitarray;
     uint64_t tamanio_fs;
-} superbloque_t;
+} t_superbloque;
 
 //#define raw_bitmap_t char*
 typedef char* raw_bitmap_t;
 
 extern t_log* logger;
 
-extern superbloque_t superbloque;
+extern t_superbloque* superbloque;
 extern uint8_t* mem_map;
 extern uint8_t* mem_cpy;
 
