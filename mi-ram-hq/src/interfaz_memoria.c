@@ -459,16 +459,16 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
 
     // Actualizamos TCB (id sig tarea + 1 'persistido' en RAM)
     tcb->id_sig_tarea = tcb->id_sig_tarea + 1;
-    // void* s_tcb = serializar_tcb(tcb);
+    pthread_mutex_lock(&MUTEX_MP_BUSY);
+    bool ret = actualizar_tcb_en_mp(pcb->pid, tcb);
+    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+    if (!ret) {
+        log_error(logger, "Fallo actualizando TCB en memoria para TID#%" PRIu32, tid);
+    }
     // TODO
 
     free(tcb);
     free(pcb);
-
-    /*t_posicion* pos = malloc(sizeof(t_posicion));
-    pos->x = 6; pos->y = 9;
-    t_tarea* tarea = tarea_create("Tarea GENERAR BASURA TEST", 3, pos, 5, "GENERAR_BASURA");
-    free(pos);*/
 
     return tarea;
 }

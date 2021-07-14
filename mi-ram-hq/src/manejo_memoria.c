@@ -379,12 +379,6 @@ void* read_from_mp_pid_pagina_offset_tamanio
         ;
 
         // !!! THIS SHIT DOESN'T WORK!! WHY? HAS I EVER?
-        log_info(logger,
-            "\n\nargs: %" PRIu32 " %" PRIu32 " %" PRIu32 " %" PRIu32 "\n"
-            "(frame %" PRIu32 ") memcpy: %" PRIu32 " %" PRIu32 " %" PRIu32 "\n",
-            pid, pagina, offset, tamanio,
-            pag->nro_frame, tamanio - tamanio_restante, (p==0? offset : 0), bytes_a_leer
-        );
         memcpy(
             data + (tamanio - tamanio_restante),
             buf + (p==0? offset : 0),
@@ -504,6 +498,27 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     }
 
     return offset;
+}
+
+// ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP
+// POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
+bool actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
+    void* s_tcb = serializar_tcb(tcb);
+
+    // Recupero entrada_tp_t de la primera pagina del TCB
+    tid_pid_lookup_t* lookup = list_tid_pid_lookup_find_by_tid(tcb->tid);
+    tp_patota_t* tabla_patota = list_find_by_pid_tppatotas(pid);
+    t_list* paginas = tabla_patota->paginas;
+    bool has_page_number(void* x) {
+        entrada_tp_t* elem = (entrada_tp_t*) x;
+        return elem->nro_pagina == lookup->nro_pagina;
+    }
+    entrada_tp_t* pagina = list_find(paginas, &has_page_number); // posible condicion de RAZA
+
+    // ACTUALIZAR MP
+
+    free(s_tcb);
+    return true;
 }
 
 bool delete_patota_en_mp(uint32_t pid) {
