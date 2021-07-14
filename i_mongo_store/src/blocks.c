@@ -16,7 +16,8 @@ static void sincronizar_bitarray() {
     fseek(f, 2 * sizeof(uint32_t), SEEK_SET);
     fwrite(superbloque->bitarray->bitarray, 1, superbloque->bytes_bitarray, f);
     fclose(f);
-    log_info(logger, "Se sincronizo el superbloque->ims");
+    log_info(logger, "Se sincronizo el SuperBloque.ims");
+    free(path);
     pthread_mutex_unlock(&MUTEX_BITARRAY);
 }
 

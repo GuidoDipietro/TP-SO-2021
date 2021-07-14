@@ -106,6 +106,7 @@ void crear_bloques() {
     uint8_t* p = malloc(superbloque->tamanio_fs);
     memset(p, 0x00, superbloque->tamanio_fs);
     fwrite(p, superbloque->tamanio_fs, 1, f);
+    free(p);
 
     fclose(f);
     log_info(logger, "Se ha generado un nuevo Bloques.ims de %ld bytes", superbloque->tamanio_fs);
