@@ -18,6 +18,8 @@ frame_t* tabla_frames;
 t_list* tp_patotas;
 t_list* tid_pid_lookup;
 
+void* area_swap;
+
 void* memoria_principal;
 
 ////// funciones
@@ -82,14 +84,33 @@ uint8_t cargar_configuracion(char* path) {
     return 1;
 }
 
+static bool crear_archivo_swap(char* path, uint32_t tamanio) {
+    log_info(logger, "Creando SWAP en <<%s>>", path);
+    int fd_swap = open(path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+
+    if (fd_swap == -1) {
+        log_error(logger, "No se pudo crear el area de SWAP. (errno %i)", errno);
+        return false;
+    }
+
+    ftruncate(fd_swap, cfg->TAMANIO_SWAP);
+
+    area_swap = mmap(NULL, cfg->TAMANIO_SWAP, PROT_READ | PROT_WRITE, MAP_SHARED, fd_swap, 0);
+    if (errno!=0) log_error(logger, "Error en mmap: errno %i",errno);
+
+    close(fd_swap);
+
+    return true;
+}
+
 uint8_t cargar_memoria() {
-    memoria_principal = malloc(cfg->TAMANIO_MEMORIA); // void*
+    memoria_principal = malloc(cfg->TAMANIO_MEMORIA);   // void*
     if (memoria_principal == NULL) {
         log_error(logger, "Fallo en el malloc a memoria_principal");
         return 0;
     }
     memset(memoria_principal, 0, cfg->TAMANIO_MEMORIA);
-    memoria_disponible = cfg->TAMANIO_MEMORIA; // int
+    memoria_disponible = cfg->TAMANIO_MEMORIA;          // int
 
     // Segmentacion
     if (strcmp(cfg->ESQUEMA_MEMORIA,"SEGMENTACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
@@ -105,6 +126,8 @@ uint8_t cargar_memoria() {
         segmentos_usados = list_create();
         ts_patotas = list_create();
         ts_tripulantes = list_create();
+
+        return 1;
     }
     // Paginacion
     if (strcmp(cfg->ESQUEMA_MEMORIA,"PAGINACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
@@ -115,9 +138,10 @@ uint8_t cargar_memoria() {
             tabla_frames[i].libre = 1;
         }
         tid_pid_lookup = list_create();
-    }
 
-    return 1;
+        // Swap
+        return crear_archivo_swap(cfg->PATH_SWAP, cfg->TAMANIO_SWAP);
+    }
 }
 
 void cerrar_programa() {
@@ -126,12 +150,6 @@ void cerrar_programa() {
     bool paginacion = strcmp(cfg->ESQUEMA_MEMORIA, "PAGINACION")==0;
     bool debug = strcmp(cfg->ESQUEMA_MEMORIA, "DEBUG")==0;
     log_destroy(logger);
-
-    free(cfg->ALGORITMO_REEMPLAZO);
-    free(cfg->PATH_SWAP);
-    free(cfg->ESQUEMA_MEMORIA);
-    free(cfg->CRITERIO_SELECCION);
-    free(cfg);
 
     // masacre (quedo medio gracioso pero es para que me anden los tests)
     if (segmentacion || debug) {
@@ -142,8 +160,16 @@ void cerrar_programa() {
     }
     if (paginacion || debug) {
         asesinar_tppatotas();
+        asesinar_tid_pid_lookup();
         free(tabla_frames);
+        munmap(area_swap, cfg->TAMANIO_SWAP);
     }
+
+    free(cfg->ALGORITMO_REEMPLAZO);
+    free(cfg->PATH_SWAP);
+    free(cfg->ESQUEMA_MEMORIA);
+    free(cfg->CRITERIO_SELECCION);
+    free(cfg);
 
     free(memoria_principal);
     finalizar_mutex();

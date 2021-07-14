@@ -5,6 +5,7 @@ extern t_log* logger;
 extern t_list* segmentos_libres;
 
 extern void* memoria_principal;
+extern void* area_swap;
 
 extern sem_t SEM_COMPACTACION_DONE;
 extern sem_t SEM_COMPACTACION_START;

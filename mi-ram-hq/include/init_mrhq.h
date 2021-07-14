@@ -7,19 +7,24 @@
 #include <commons/config.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 
 typedef struct {
     char* ESQUEMA_MEMORIA;
     char* PATH_SWAP;
     char* ALGORITMO_REEMPLAZO;
     char* CRITERIO_SELECCION;
-    uint16_t TAMANIO_MEMORIA;
-    uint16_t TAMANIO_PAGINA;
-    uint16_t TAMANIO_SWAP;
-    uint16_t PUERTO;
-    uint16_t IP;
+    uint32_t TAMANIO_MEMORIA;
+    uint32_t TAMANIO_PAGINA;
+    uint32_t TAMANIO_SWAP;
+    uint32_t PUERTO;
+    uint32_t IP;
     // agregadas:
-    uint16_t CANT_PAGINAS;
+    uint32_t CANT_PAGINAS;
     bool SEG;
 } t_config_mrhq;
 
