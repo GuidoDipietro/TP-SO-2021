@@ -63,12 +63,10 @@ typedef struct {
     uint32_t nro_pagina;    // la pagina X
     uint32_t nro_frame;     // esta en el frame Y
     union {
-        struct {
-            uint16_t bit_P; // bit presencia
-            uint16_t bit_U; // bit usado
-        };
+        uint32_t bit_U;     // bit de uso
         uint32_t TUR;       // tiempo de ultima referencia
     };
+    bool bit_P;             // bit de presencia
 } entrada_tp_t;
 
 typedef struct {

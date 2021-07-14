@@ -1,5 +1,6 @@
 #include "../include/manejo_memoria.h"
 #define MIN(A,B) ((A)<(B)?(A):(B))
+#define ACEITUNA (. )~
 
 extern t_log* logger;
 extern t_config_mrhq* cfg;
@@ -10,12 +11,17 @@ extern segmento_t* (*proximo_hueco)(uint32_t);
 
 extern t_list* tp_patotas;
 extern frame_t* tabla_frames;
+extern void* area_swap;
+extern uint32_t espacio_disponible_swap;
 
 extern pthread_mutex_t MUTEX_MP;
+extern pthread_mutex_t MUTEX_MP_BUSY;
 extern sem_t SEM_COMPACTACION_DONE;
 extern sem_t SEM_COMPACTACION_START;
 
 #define INICIO_INVALIDO (cfg->TAMANIO_MEMORIA+69)
+
+extern uint64_t global_TUR;
 
 // Varios
 
@@ -33,8 +39,11 @@ bool entra_en_mp(uint32_t tamanio) {
 }
 
 bool entra_en_swap(uint32_t tamanio) {
-    return true;
-    // TODO
+    return tamanio >= espacio_disponible_swap;
+}
+
+uint32_t paginas_que_entran_en_swap() {
+    return espacio_disponible_swap / cfg->TAMANIO_PAGINA;
 }
 
 void dump_mp() {
@@ -380,6 +389,14 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
             return elem->nro_pagina == pagina+p;
         }
         entrada_tp_t* pag = list_find(paginas, &has_page_number); // cond. de carrera aca si una pag. cambia de frame
+        
+        // Chequeo y actualizacion de bits
+        if (pag->bit_P == 0) {
+            // SWAP BUSINESS
+            // TODO
+        }
+        if (cfg->LRU) pag->TUR   = global_TUR++;
+        else          pag->bit_U = 1;
 
         void* buf = get_pagina_data(pag->nro_frame);
 
@@ -434,6 +451,8 @@ bool RACE_get_structures_from_tid_paginacion
     return true;
 }
 
+// La funcion que de verdad mete data en una pagina y actualiza estructuras admin. y MP
+// Si se llama, es porque hay espacio en MP o en SWAP
 static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t iter, bool offset) {
     // iter es la pagina numero i que esta metiendo en esta vuelta
     // offset indica si se empezo a cargar en una pag. que estaba por la mitad
@@ -442,8 +461,14 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
     int64_t frame_libre = primer_frame_libre_framo(pid, &inicio);
     //log_info(logger, "Iter (%" PRIu32 "), hubo offset? (%d)", iter, offset);
     //log_info(logger, "Primer frame libre: %" PRId64 ", inicio %" PRIu32, frame_libre, inicio);
-    if (frame_libre == -1) return false;
-    // TODO: CONTEMPLAR MEMORIA VIRTUAL
+    
+    if (frame_libre == -1) {
+        // TODO (tiene que bajar una pagina a SWAP)
+        pthread_mutex_lock(&MUTEX_MP_BUSY);
+        // frame_libre = liberar_frame_en_mp();
+        pthread_mutex_unlock(&MUTEX_MP_BUSY);
+        // inicio = 0;
+    }
 
     uint32_t nro_frame = frame_libre; // una especie de casteo porlas
 
@@ -460,6 +485,7 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
 
 // Dado un stream de bytes, lo mete en MP donde encuentre paginas libres
 // O si la ultima del proceso esta por la mitad, empieza por ahi
+// Esta funcion nunca deberia llamarse si no hay espacio para meter la data (ni en SWAP)
 uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool* nuevapag) {
     void* buf;
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
@@ -467,12 +493,14 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
     // Data de la primera pag libre, para saber si esta por la mitad o que
     uint32_t offset = 0;
     int64_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);
-    *nuevapag = offset==0; // SIGNIFICA QUE INAUGURA UNA NUEVA PAGINA
     if (frame_de_pag_fragmentada == -1) {
-        // TODO: ALGO DE SWAP, QUE SE YO
-        log_info(logger, "No hay frame libre para meter la info para PID#%" PRIu32, pid);
-        return 0xFFFF;
+        // TODO (tiene que bajar una pagina a SWAP)
+        pthread_mutex_lock(&MUTEX_MP_BUSY);
+        // frame_libre = liberar_frame_en_mp();
+        pthread_mutex_unlock(&MUTEX_MP_BUSY);
+        // offset = 0;
     }
+    *nuevapag = offset==0; // SIGNIFICA QUE INAUGURA UNA NUEVA PAGINA
 
     size_t rem = 0;
     size_t size_ajustado; // sin el "cachito que sobra porque entra en la pag fragmentada"
@@ -557,6 +585,7 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
     }
     else {
         // SWAP
+        // TODO
         log_info(logger, "SWAP NO IMPLEMENTADO");
         free(s_tcb);
         return false;
@@ -574,11 +603,28 @@ bool delete_patota_en_mp(uint32_t pid) {
     t_list_iterator* i_paginas = list_iterator_create(paginas);
     while (list_iterator_has_next(i_paginas)) {
         entrada_tp_t* pagina = (entrada_tp_t*) list_iterator_next(i_paginas);
-        clear_frame_en_mp(pagina->nro_frame);
-        liberar_frame_framo(pagina->nro_frame);
+        if (pagina->bit_P) {
+            // Esta en MP
+            clear_frame_en_mp(pagina->nro_frame);
+            liberar_frame_framo(pagina->nro_frame);
+        }
+        else {
+            // Esta en SWAP
+            // TODO: liberar espacio en SWAP
+        }
     }
     list_iterator_destroy(i_paginas);
 
     free_tp_patota_t((void*) tabla_patota);
     return true;
+}
+
+// SWAP
+
+bool bajar_pagina_a_swap(uint32_t pid, uint32_t nro_pagina) {
+    return !!!!!!!!!!0xCACA;
+}
+
+bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
+    return '-'-'-'^'-'-'-';
 }

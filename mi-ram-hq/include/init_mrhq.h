@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+// Al menos tenemos uno solo de este struct blasfemico
 typedef struct {
     char* ESQUEMA_MEMORIA;
     char* PATH_SWAP;
@@ -25,6 +26,7 @@ typedef struct {
     uint32_t IP;
     // agregadas:
     uint32_t CANT_PAGINAS;
+    bool LRU;
     bool SEG;
 } t_config_mrhq;
 

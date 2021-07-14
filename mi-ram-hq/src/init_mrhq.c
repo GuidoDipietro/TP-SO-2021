@@ -17,6 +17,8 @@ segmento_t* (*proximo_hueco)(uint32_t);
 frame_t* tabla_frames;
 t_list* tp_patotas;
 t_list* tid_pid_lookup;
+uint32_t espacio_disponible_swap;
+uint32_t global_TUR; // evil
 
 void* area_swap;
 
@@ -68,6 +70,7 @@ uint8_t cargar_configuracion(char* path) {
     cfg->TAMANIO_SWAP = config_get_int_value(cfg_file, "TAMANIO_SWAP");
     cfg->PATH_SWAP = strdup(config_get_string_value(cfg_file, "PATH_SWAP"));
     cfg->ALGORITMO_REEMPLAZO = strdup(config_get_string_value(cfg_file, "ALGORITMO_REEMPLAZO"));
+    cfg->LRU = strcmp(cfg->ALGORITMO_REEMPLAZO, "LRU") == 0;
     cfg->CRITERIO_SELECCION = strdup(config_get_string_value(cfg_file, "CRITERIO_SELECCION"));
 
     proximo_hueco = strcmp(cfg->CRITERIO_SELECCION, "FF") == 0
@@ -96,7 +99,7 @@ static bool crear_archivo_swap(char* path, uint32_t tamanio) {
     ftruncate(fd_swap, cfg->TAMANIO_SWAP);
 
     area_swap = mmap(NULL, cfg->TAMANIO_SWAP, PROT_READ | PROT_WRITE, MAP_SHARED, fd_swap, 0);
-    if (errno!=0) log_error(logger, "Error en mmap: errno %i",errno);
+    if (errno!=0) log_error(logger, "Error en mmap: errno %i", errno);
 
     close(fd_swap);
 
@@ -131,6 +134,8 @@ uint8_t cargar_memoria() {
     }
     // Paginacion
     if (strcmp(cfg->ESQUEMA_MEMORIA,"PAGINACION")==0 || strcmp(cfg->ESQUEMA_MEMORIA,"DEBUG")==0) {
+        global_TUR = 0;
+        
         tp_patotas = list_create();
         tabla_frames = malloc(cfg->CANT_PAGINAS * sizeof(frame_t));
         for (int i=0; i<cfg->CANT_PAGINAS; i++) {
@@ -140,6 +145,7 @@ uint8_t cargar_memoria() {
         tid_pid_lookup = list_create();
 
         // Swap
+        espacio_disponible_swap = cfg->TAMANIO_SWAP;
         return crear_archivo_swap(cfg->PATH_SWAP, cfg->TAMANIO_SWAP);
     }
 }
