@@ -20,7 +20,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    cargar_superbloque();
+    //cargar_superbloque();
     //cargar_bloques();
 
     // Envio y recepcion de mensajes perenne
