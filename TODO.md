@@ -1,7 +1,4 @@
-- [ ] Implementar funciones en MRH :: interfaz_memoria.c relacionadas a paginación
-- [ ] Como consigo el PID teniendo el TID? (PAGINACION)
 - [ ] Implementar dump para paginación
-- [ ] Lolwut todo lo de MEMORIA VIRTUAL que es un chino
-- [ ] HACER ALGO DEL IMONGO???
+- [ ] Implementar SWAP sin vomitar
 - [ ] MORIR
 - [ ] No romper todo el TP

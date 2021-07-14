@@ -53,8 +53,12 @@ void dump_mp() {
         free(str_segus);
     }
     else {
-        // TODO: get data paginacion a "data"
-        data = strdup("paginacion!!");
+        char* str_frames = stringify_tabla_frames();
+        data = string_from_format(
+            "\n%s\nDump: %s\n%s\n%s\n\n",
+            hr, timestamp, str_frames, hr
+        );
+        free(str_frames);
     }
 
     fprintf(dump_file, "%s", data);
@@ -276,17 +280,20 @@ static bool compactar_mp_iteracion(uint32_t i) {
     return true;
 }
 bool compactar_mp() {
-    if (list_is_empty_segus()) {
-        return true;
-    }
-
-    log_info(logger, "Compactando memoria...");
-    uint32_t segmentos = list_size_segus();
-    for (int i=0; i<segmentos; i++) {
-        // log_warning(logger, "Compactando segmento [%d] de %d...", i, segmentos);
-        if(!compactar_mp_iteracion(i)) {
-            return false;
+    if (cfg->SEG) {
+        if (list_is_empty_segus()) {
+            return true;
         }
+
+        log_info(logger, "Compactando memoria...");
+        uint32_t segmentos = list_size_segus();
+        for (int i=0; i<segmentos; i++) {
+            // log_warning(logger, "Compactando segmento [%d] de %d...", i, segmentos);
+            if(!compactar_mp_iteracion(i)) {
+                return false;
+            }
+        }
+        return true;
     }
     return true;
 }
@@ -365,6 +372,9 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
     uint32_t tamanio_restante = tamanio;
     for (int p=0; tamanio_restante>0; p++) {
         // inner function
+        /*log_info(logger, "Leyendo pagina %" PRIu32 "+%d (>>%" PRIu32 ") de proceso %" PRIu32,
+            pagina, p, offset, pid
+        );*/
         bool has_page_number(void* x) {
             entrada_tp_t* elem = (entrada_tp_t*) x;
             return elem->nro_pagina == pagina+p;
@@ -410,11 +420,12 @@ bool RACE_get_structures_from_tid_paginacion
     }*/
 
     TCB_t* tcb = deserializar_tcb(s_tcb);
+    //log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
     *p_tcb = tcb;
     free(s_tcb);
 
     void* s_pcb = RACE_read_from_mp_pid_pagina_offset_tamanio(
-        tabla->pid, tcb->dl_pcb>>16, tcb->dl_pcb&0x00FF, 8
+        tabla->pid, (tcb->dl_pcb)>>16, tcb->dl_pcb&0x00FF, 8
     );
     PCB_t* pcb = deserializar_pcb(s_pcb);
     *p_pcb = pcb;
@@ -440,7 +451,7 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
     memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);           // MP
     list_add_page_frame_tppatotas(pid, nro_frame);                      // admin.
 
-    /*printf(
+    /*log_info(logger,
         "Ocupe el frame %" PRIu32 " desde el inicio %" PRIu32 " con data de size %zu\n",
         nro_frame, inicio, size
     );*/
@@ -449,13 +460,14 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
 
 // Dado un stream de bytes, lo mete en MP donde encuentre paginas libres
 // O si la ultima del proceso esta por la mitad, empieza por ahi
-uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
+uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool* nuevapag) {
     void* buf;
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
 
     // Data de la primera pag libre, para saber si esta por la mitad o que
     uint32_t offset = 0;
     int64_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);
+    *nuevapag = offset==0; // SIGNIFICA QUE INAUGURA UNA NUEVA PAGINA
     if (frame_de_pag_fragmentada == -1) {
         // TODO: ALGO DE SWAP, QUE SE YO
         log_info(logger, "No hay frame libre para meter la info para PID#%" PRIu32, pid);
@@ -474,7 +486,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
     if (offset) n_pags++;                                 // iteraciones ajustadas  (el "cachito")
 
     //log_info(logger, "\nVou inserir um size %zu com rem %zu e offset %" PRIu32 " fazendo %" PRIu32 " iteracoes",
-    //    size, rem, offset, n_pags);
+    //   size, rem, offset, n_pags);
 
     // Itera de a una pagina y las mete en MP
     uint32_t n_iteraciones = n_pags;                    // +0.5 profes de PDP

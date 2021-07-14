@@ -22,8 +22,13 @@ static uint32_t static_nro_frame;
 
 /// TS PATOTAS
 
-static bool has_pid(void* x) {
+// romlfoa estas dos antes era una sola funcion y destrozaba todos los structs XD
+static bool ts_patota_has_pid(void* x) {
     ts_patota_t* elem = (ts_patota_t*) x;
+    return elem->pid == static_pid;
+}
+static bool tp_patota_has_pid(void* x) {
+    tp_patota_t* elem = (tp_patota_t*) x;
     return elem->pid == static_pid;
 }
 
@@ -60,7 +65,7 @@ void list_add_tspatotas(ts_patota_t* elem) {
 
 void list_delete_by_pid_tspatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
-    list_remove_and_destroy_by_condition(ts_patotas, &has_pid, &free_ts_patota_t);
+    list_remove_and_destroy_by_condition(ts_patotas, &ts_patota_has_pid, &free_ts_patota_t);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
 }
 
@@ -68,7 +73,7 @@ void list_delete_by_pid_tspatotas(uint32_t pid) {
 ts_patota_t* list_find_by_pid_plus_plus_tspatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     static_pid = pid;
-    ts_patota_t* elem = list_find(ts_patotas, &has_pid);
+    ts_patota_t* elem = list_find(ts_patotas, &ts_patota_has_pid);
     if (elem)
         elem->tripulantes_inicializados = elem->tripulantes_inicializados + 1;
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
@@ -78,7 +83,7 @@ ts_patota_t* list_find_by_pid_plus_plus_tspatotas(uint32_t pid) {
 ts_patota_t* list_find_by_pid_tspatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TS_PATOTAS);
     static_pid = pid;
-    ts_patota_t* elem = list_find(ts_patotas, &has_pid);
+    ts_patota_t* elem = list_find(ts_patotas, &ts_patota_has_pid);
     pthread_mutex_unlock(&MUTEX_TS_PATOTAS);
     return elem;
 }
@@ -178,7 +183,7 @@ void list_add_tppatotas(tp_patota_t* elem) {
 tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
-    tp_patota_t* elem = list_find(tp_patotas, &has_pid);
+    tp_patota_t* elem = list_find(tp_patotas, &tp_patota_has_pid);
     if (elem)
         elem->tripulantes_inicializados = elem->tripulantes_inicializados + 1;
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
@@ -188,7 +193,7 @@ tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid) {
 tp_patota_t* list_find_by_pid_tppatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
-    tp_patota_t* elem = list_find(tp_patotas, &has_pid);
+    tp_patota_t* elem = list_find(tp_patotas, &tp_patota_has_pid);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
     return elem;
 }
@@ -196,7 +201,7 @@ tp_patota_t* list_find_by_pid_tppatotas(uint32_t pid) {
 tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
-    tp_patota_t* elem = list_remove_by_condition(tp_patotas, &has_pid);
+    tp_patota_t* elem = list_remove_by_condition(tp_patotas, &tp_patota_has_pid);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
     return elem;
 }
@@ -208,12 +213,13 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
 
-    tp_patota_t* res = list_find(tp_patotas, &has_pid);
+    tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
 
     static_nro_frame = nro_frame;
     entrada_tp_t* e_pagina = list_find(res->paginas, &has_nro_frame);
     if (e_pagina == NULL) {
         // Nuevo frame, nueva pagina!
+        //log_info(logger, "Nuevo frame (%" PRIu32 ")", nro_frame);
         entrada_tp_t* e_pagina_new = malloc(sizeof(entrada_tp_t));
         e_pagina_new->nro_pagina = res->pages;
         e_pagina_new->nro_frame = nro_frame;
@@ -235,7 +241,7 @@ void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t n
     static_pid = pid;
     static_nro_pag = nro_pag;
 
-    tp_patota_t* res = list_find(tp_patotas, &has_pid);
+    tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
     entrada_tp_t* e_pagina = list_find(res->paginas, &has_nro_pag);
     e_pagina->nro_frame = nro_frame;
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
@@ -246,7 +252,7 @@ void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t n
 void list_update_n_of_pages_tppatotas(uint32_t n_pags, uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
-    tp_patota_t* res = list_find(tp_patotas, &has_pid);
+    tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
     res->pages += n_pags;
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
 }
@@ -254,7 +260,7 @@ void list_update_n_of_pages_tppatotas(uint32_t n_pags, uint32_t pid) {
 uint32_t list_get_n_of_pages_tppatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
-    tp_patota_t* res = list_find(tp_patotas, &has_pid);
+    tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
     return res->pages;
 }

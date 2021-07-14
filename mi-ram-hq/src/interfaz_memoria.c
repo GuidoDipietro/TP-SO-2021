@@ -90,7 +90,8 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
 
     list_add_tppatotas(tabla);
 
-    uint32_t inicio = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++);
+    bool nuevapag; // ignorable, ver uso en iniciar_tripulante
+    uint32_t inicio = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++, &nuevapag);
     free(data);
 
     return inicio!=0xFFFF;
@@ -172,6 +173,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     if (tabla_patota == NULL) {
         return false;
     }
+
     t_posicion* pos = (t_posicion*) list_get(tabla_patota->posiciones, tid-tid_base-1);
     uint32_t cant_paginas_antes = tabla_patota->pages;
 
@@ -190,6 +192,10 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     tcb->id_sig_tarea   = 0;
     tcb->dl_pcb         = (pag_pcb << 16) + offset_pcb;
 
+    /*log_info(logger, "TID#%" PRIu32 " inicializado con pag_pcb: %" PRIu32 " , offset_pcb: %" PRIu32 " , tareas de tamanio %" PRIu32,
+            tid, pag_pcb, offset_pcb, tabla_patota->tamanio_tareas
+    );*/
+
     //log_info(logger, "DL_PCB at 0x%08" PRIx32 " for PID#%" PRIu32, tcb->dl_pcb, pid);
 
     void* s_tcb = serializar_tcb(tcb);
@@ -200,7 +206,8 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     }
 
     // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
-    uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid);
+    bool nuevapag;
+    uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid, &nuevapag);
     if (inicio == 0xFFFF) {
         log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
     }
@@ -214,7 +221,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     tid_pid_lookup_t* lookup = malloc(sizeof(tid_pid_lookup_t));
     lookup->tid = tid;
     lookup->pid = pid;
-    lookup->nro_pagina = cant_paginas_antes-1;
+    lookup->nro_pagina = cant_paginas_antes-1 + nuevapag;
     lookup->inicio = inicio;
     list_add_tid_pid_lookup(lookup);
 
