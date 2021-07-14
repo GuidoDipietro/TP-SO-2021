@@ -30,12 +30,12 @@ void compactar_segmentos_libres(void);
 
 /// PAGINACION
 
-void* read_from_mp_pid_pagina_offset_tamanio
-(uint32_t pid, uint32_t pagina, uint32_t offset, uint32_t tamanio);
-bool get_structures_from_tid_paginacion
-(uint32_t tid, tid_pid_lookup_t** p_tabla, TCB_t** p_tcb, PCB_t** p_pcb);
+void* RACE_read_from_mp_pid_pagina_offset_tamanio
+(uint32_t pid, uint32_t pagina, uint32_t offset, uint32_t tamanio);		     // POSIBLE RC
+bool RACE_get_structures_from_tid_paginacion
+(uint32_t tid, tid_pid_lookup_t** p_tabla, TCB_t** p_tcb, PCB_t** p_pcb);    // POSIBLE RC
 uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid);
-bool actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb);
+bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb);					     // POSIBLE RC
 bool delete_patota_en_mp(uint32_t pid);
 
 #endif

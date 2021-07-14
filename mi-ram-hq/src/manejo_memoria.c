@@ -352,7 +352,7 @@ void compactar_segmentos_libres() {
 
 // ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP
 // POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
-void* read_from_mp_pid_pagina_offset_tamanio
+void* RACE_read_from_mp_pid_pagina_offset_tamanio
 (uint32_t pid, uint32_t pagina, uint32_t offset, uint32_t tamanio) {
     void* data = malloc((size_t) tamanio);
     memset(data, 0, tamanio); //porlas
@@ -393,15 +393,15 @@ void* read_from_mp_pid_pagina_offset_tamanio
     return data;
 }
 
-// ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP (ver read_from_mp_pid_pagina_offset_tamanio)
+// ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP (ver RACE_read_from_mp_pid_pagina_offset_tamanio)
 // POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
-bool get_structures_from_tid_paginacion
+bool RACE_get_structures_from_tid_paginacion
 (uint32_t tid, tid_pid_lookup_t** p_tabla, TCB_t** p_tcb, PCB_t** p_pcb) {
     tid_pid_lookup_t* tabla = list_tid_pid_lookup_find_by_tid(tid);
     if (tabla==NULL) return false;
     *p_tabla = tabla;
 
-    void* s_tcb = read_from_mp_pid_pagina_offset_tamanio(
+    void* s_tcb = RACE_read_from_mp_pid_pagina_offset_tamanio(
         tabla->pid, tabla->nro_pagina, tabla->inicio, 21
     );
 
@@ -413,7 +413,7 @@ bool get_structures_from_tid_paginacion
     *p_tcb = tcb;
     free(s_tcb);
 
-    void* s_pcb = read_from_mp_pid_pagina_offset_tamanio(
+    void* s_pcb = RACE_read_from_mp_pid_pagina_offset_tamanio(
         tabla->pid, tcb->dl_pcb>>16, tcb->dl_pcb&0x00FF, 8
     );
     PCB_t* pcb = deserializar_pcb(s_pcb);
@@ -502,7 +502,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid) {
 
 // ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP
 // POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
-bool actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
+bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
     const size_t size_tcb = 21;
     void* s_tcb = serializar_tcb(tcb);
 
