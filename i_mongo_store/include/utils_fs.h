@@ -13,6 +13,7 @@ typedef struct {
     uint32_t blocks;
     t_bitarray* bitarray;
     uint32_t bytes_bitarray;
+    uint64_t tamanio_fs;
 } superbloque_t;
 
 //#define raw_bitmap_t char*

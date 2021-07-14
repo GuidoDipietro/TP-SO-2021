@@ -39,6 +39,7 @@ void cargar_superbloque() {
     fread(&superbloque.blocks, sizeof(uint32_t), 1, f);
     fread(&superbloque.block_size, sizeof(uint32_t), 1, f);
     superbloque.bytes_bitarray = ceil(superbloque.blocks / 8.00);
+    superbloque.tamanio_fs = superbloque.blocks * superbloque.block_size;
 
     if(nuevo_superbloque) crear_bloques();
 
@@ -63,34 +64,19 @@ void cargar_bloques() {
     free(path);
 
     int fd = fileno(f);
-    uint64_t len = superbloque.blocks * superbloque.block_size;
 
     mem_map = mmap(
         0,
-        len,
+        superbloque.tamanio_fs,
         PROT_READ | PROT_WRITE,
         MAP_SHARED,
         fd,
         0
     );
-    
-    printf("\n- %d -\n", mem_map[0]);
-
-    mem_cpy = malloc(len);
-    memcpy(mem_cpy, mem_map, len);
-    printf("\n%d\n", mem_cpy[0]);
-
-
-    //mem_cpy[0] = 0x0B;
-    //msync(mem_cpy, len, MS_SYNC);
-    //memcpy(mem_map, mem_cpy, len);
-    //msync(mem_cpy, len, MS_SYNC);
-
-
-    printf("\n - %d - %d -\n", mem_cpy[0], mem_map[0]);
-
     fclose(f);
-    munmap(mem_map, len);
+
+    mem_cpy = malloc(superbloque.tamanio_fs);
+    memcpy(mem_cpy, mem_map, superbloque.tamanio_fs);
 }
 
 void crear_bloques() {
@@ -98,8 +84,6 @@ void crear_bloques() {
     FILE* f = fopen(path, "wb+"); // Creamos el archivo
 
     free(path);
-    uint64_t total_size = superbloque.blocks * superbloque.block_size; // En bytes
-
     /*
     Dejo esto aca por las dudas
     
@@ -111,10 +95,10 @@ void crear_bloques() {
 
     free(p);
     */
-    uint8_t* p = malloc(total_size);
-    memset(p, 0x00, total_size);
-    fwrite(p, total_size, 1, f);
+    uint8_t* p = malloc(superbloque.tamanio_fs);
+    memset(p, 0x00, superbloque.tamanio_fs);
+    fwrite(p, superbloque.tamanio_fs, 1, f);
 
     fclose(f);
-    log_info(logger, "Se ha generado un nuevo Bloques.ims de %ld bytes", total_size);
+    log_info(logger, "Se ha generado un nuevo Bloques.ims de %ld bytes", superbloque.tamanio_fs);
 }

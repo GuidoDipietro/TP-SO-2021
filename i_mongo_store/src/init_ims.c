@@ -2,8 +2,16 @@
 
 t_config_ims* cfg;
 
+pthread_t HILO_SINCRONIZADOR;
+
 void iniciar_semaforos() {
     pthread_mutex_init(&MUTEX_BITARRAY, NULL);
+    pthread_mutex_init(&MUTEX_BLOCKS, NULL);
+}
+
+void iniciar_sincronizador() {
+    pthread_create(&HILO_SINCRONIZADOR, NULL, (void*) sincronizador, NULL);
+    pthread_detach(HILO_SINCRONIZADOR);
 }
 
 uint8_t cargar_configuracion() {
@@ -63,6 +71,8 @@ bool crear_servidor(int* fd, char* name) {
 }
 
 void cerrar_programa() {
+    pthread_cancel(HILO_SINCRONIZADOR);
+    munmap(mem_map, superbloque.tamanio_fs);
     log_destroy(logger);
     bitarray_destroy(superbloque.bitarray);
     free(cfg->PUNTO_MONTAJE);
