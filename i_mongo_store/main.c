@@ -21,7 +21,7 @@ int main() {
     }
 
     cargar_superbloque();
-    //cargar_bloques();
+    cargar_bloques();
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));

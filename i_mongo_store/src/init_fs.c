@@ -1,10 +1,11 @@
 #include "../include/init_fs.h"
 
 superbloque_t superbloque;
-void* mem_map;
-void* mem_cpy;
+uint8_t* mem_map;
+uint8_t* mem_cpy;
 
 static void crear_superbloque() {
+    log_info(logger, "Se ha generado un nuevo SUPERBLOQUE");
     char* path = concatenar_montaje("SuperBloque.ims");
     FILE* f = fopen(path, "wb+");
     free(path);
@@ -63,18 +64,33 @@ void cargar_bloques() {
 
     int fd = fileno(f);
     uint64_t len = superbloque.blocks * superbloque.block_size;
+
     mem_map = mmap(
-        NULL,
+        0,
         len,
         PROT_READ | PROT_WRITE,
-        0,
+        MAP_SHARED,
         fd,
         0
     );
-    fclose(f);
+    
+    printf("\n- %d -\n", mem_map[0]);
 
     mem_cpy = malloc(len);
     memcpy(mem_cpy, mem_map, len);
+    printf("\n%d\n", mem_cpy[0]);
+
+
+    //mem_cpy[0] = 0x0B;
+    //msync(mem_cpy, len, MS_SYNC);
+    //memcpy(mem_map, mem_cpy, len);
+    //msync(mem_cpy, len, MS_SYNC);
+
+
+    printf("\n - %d - %d -\n", mem_cpy[0], mem_map[0]);
+
+    fclose(f);
+    munmap(mem_map, len);
 }
 
 void crear_bloques() {
@@ -100,4 +116,5 @@ void crear_bloques() {
     fwrite(p, total_size, 1, f);
 
     fclose(f);
+    log_info(logger, "Se ha generado un nuevo Bloques.ims de %ld bytes", total_size);
 }
