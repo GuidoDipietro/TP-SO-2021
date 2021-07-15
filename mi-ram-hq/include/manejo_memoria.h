@@ -39,7 +39,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb);					     // POSIBLE RC
 bool delete_patota_en_mp(uint32_t pid);
 
-bool bajar_pagina_a_swap(uint32_t pid, uint32_t nro_pagina);
+uint32_t pagina_a_reemplazar();
 bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina);
 
 #endif

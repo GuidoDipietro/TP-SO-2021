@@ -11,6 +11,7 @@ extern segmento_t* (*proximo_hueco)(uint32_t);
 
 extern t_list* tp_patotas;
 extern frame_t* tabla_frames;
+extern frame_swap_t* tabla_frames_swap;
 extern void* area_swap;
 extern uint32_t espacio_disponible_swap;
 
@@ -458,11 +459,11 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
     // offset indica si se empezo a cargar en una pag. que estaba por la mitad
 
     uint32_t inicio;
-    int64_t frame_libre = primer_frame_libre_framo(pid, &inicio);
+    uint32_t frame_libre = primer_frame_libre_framo(pid, &inicio);
     //log_info(logger, "Iter (%" PRIu32 "), hubo offset? (%d)", iter, offset);
     //log_info(logger, "Primer frame libre: %" PRId64 ", inicio %" PRIu32, frame_libre, inicio);
     
-    if (frame_libre == -1) {
+    if (frame_libre == 0xFFFF) {
         // TODO (tiene que bajar una pagina a SWAP)
         pthread_mutex_lock(&MUTEX_MP_BUSY);
         // frame_libre = liberar_frame_en_mp();
@@ -470,7 +471,7 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
         // inicio = 0;
     }
 
-    uint32_t nro_frame = frame_libre; // una especie de casteo porlas
+    uint32_t nro_frame = frame_libre; // ben
 
     ocupar_frame_framo(nro_frame, size, pid);                           // admin.
     memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);           // MP
@@ -585,7 +586,7 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
     }
     else {
         // SWAP
-        // TODO
+        // TODO: traer pagina a MP
         log_info(logger, "SWAP NO IMPLEMENTADO");
         free(s_tcb);
         return false;
@@ -621,10 +622,141 @@ bool delete_patota_en_mp(uint32_t pid) {
 
 // SWAP
 
-bool bajar_pagina_a_swap(uint32_t pid, uint32_t nro_pagina) {
-    return !!!!!!!!!!0xCACA;
+static uint32_t pagina_a_reemplazar_LRU() {
+    uint32_t TUR_minimo = 0xFFFF;
+    entrada_tp_t* entrada_victima = NULL;
+
+    t_list_iterator* i_tp_patotas = list_iterator_create(tp_patotas);
+    while (list_iterator_has_next(i_tp_patotas)) {
+        tp_patota_t* tabla_patota = list_iterator_next(i_tp_patotas);
+
+        t_list_iterator* i_paginas = list_iterator_create(tabla_patota->paginas);
+        while (list_iterator_has_next(i_paginas)) {
+            entrada_tp_t* pagina = list_iterator_next(i_paginas);
+
+            if (pagina->bit_P && pagina->TUR<TUR_minimo) {
+                TUR_minimo = pagina->TUR;
+                entrada_victima = pagina;
+            }
+        }
+        list_iterator_destroy(i_paginas);
+    }
+    list_iterator_destroy(i_tp_patotas);
+
+    entrada_victima->bit_P = 0;
+    return entrada_victima->nro_frame;
+}
+#define BEN(a,b) b
+static uint32_t pagina_a_reemplazar_CLOCK() {
+    // "No buscamos eficiencia en el TP", parte 654356
+    // 1427 profes de PDP se retuercen del dolor y los ojos les sangran chocolate
+
+    // Como tengo las tablas con bit_U en cada tabla de patota... necesito concatenar todas en una lista
+    t_list* frames_presentes = list_create();
+    t_list_iterator* i_tp_patotas = list_iterator_create(tp_patotas);
+    while (list_iterator_has_next(i_tp_patotas)) {
+        tp_patota_t* tabla_patota = list_iterator_next(i_tp_patotas);
+        list_add_all(tabla_patota->paginas, frames_presentes);
+    }
+    list_iterator_destroy(i_tp_patotas);
+
+    // yyy ordenarla por nro de frame
+    bool frame_precede_frame(void* f1, void* f2) {
+        entrada_tp_t* frame1 = f1;
+        entrada_tp_t* frame2 = f2;
+        return frame1->nro_frame < frame2->nro_frame;
+    }
+    list_sort(frames_presentes, &frame_precede_frame);
+
+    // Ahora si puedo aplicar el algoritmo del RELOJITO
+    const uint32_t cant_frames = list_size(frames_presentes);
+    uint32_t nro_frame_posible_victima = 0;
+    while (BEN(@ RELOJITO @,'@')) { // si no lo obfuscaba, era demasiado buena esta funcion ya
+        entrada_tp_t* posible_victima = list_get(frames_presentes, nro_frame_posible_victima % cant_frames);
+        if (posible_victima->bit_U == 0) {
+            posible_victima->bit_P = 0;
+            break;
+        }
+        posible_victima->bit_U = 0;
+
+        nro_frame_posible_victima++;
+    }
+
+    list_destroy(frames_presentes);
+
+    return nro_frame_posible_victima;
 }
 
+uint32_t pagina_a_reemplazar() {
+    return cfg->LRU
+        ? pagina_a_reemplazar_LRU()
+        : pagina_a_reemplazar_CLOCK();
+}
+
+// Se llama cuando bit_P == 0 y necesito leer la pagina
+// Es que yo ya a esta altura no puedo pensar una solucion eficiente y con codigo limpio, lo lamento profundamente
 bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
-    return '-'-'-'^'-'-'-';
+    pthread_mutex_lock(&MUTEX_MP_BUSY);
+
+    // Mi pagina deseada esta aca:
+    long int frame_deseado_swap = 0;
+    while (
+        tabla_frames_swap[frame_deseado_swap].pid != pid &&
+        tabla_frames_swap[frame_deseado_swap].nro_pagina != nro_pagina
+    ) frame_deseado_swap++;
+
+    uint32_t inicio; // ignorable
+    uint32_t frame_libre = primer_frame_libre_framo(pid, &inicio);
+
+    if (frame_libre == 0xFFFF) {
+        // NO HAY FRAME LIBRE EN MP
+        // Tengo que rajar una pagina (LRU | CLOCK). Cambio esa pagina por la deseada. UN SWAP.
+        frame_libre = pagina_a_reemplazar();
+
+        // Data de las paginas
+        void* data_pagina_mp = get_pagina_data(frame_libre);
+
+        void* data_pagina_swap = malloc(cfg->TAMANIO_PAGINA);
+        memcpy(
+            data_pagina_swap,
+            area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
+            cfg->TAMANIO_PAGINA
+        );
+
+        // CAMBIO CAMBIO CAMBIOOOO DOLAR EURO CAMBIOOO SWAP SWAP SWAP SWAP SWAP stroke
+        memcpy_pagina_en_frame_mp(frame_libre, 0, data_pagina_swap, cfg->TAMANIO_PAGINA);
+        memcpy(
+            area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
+            data_pagina_mp,
+            cfg->TAMANIO_PAGINA
+        );
+
+        free(data_pagina_mp);
+        free(data_pagina_swap);
+    }
+    else {
+        // HAY FRAME LIBRE EN MP
+
+        // Leo data de SWAP
+        void* data = malloc(cfg->TAMANIO_PAGINA);
+        memcpy(
+            data,
+            area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
+            cfg->TAMANIO_PAGINA
+        );
+        memset(
+            area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
+            0,
+            cfg->TAMANIO_PAGINA
+        ); // esto no hace falta pero asi quedan los bytes en 00
+
+        // Carga en MP
+        memcpy_pagina_en_frame_mp(frame_libre, 0, data, cfg->TAMANIO_PAGINA);
+    }
+
+    // Actualizo estado de pagina en TPPATOTAS
+    list_indicar_pagina_en_frame_tppatotas(pid, nro_pagina, frame_libre);
+
+    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+    return true;
 }
