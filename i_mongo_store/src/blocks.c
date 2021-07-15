@@ -3,8 +3,10 @@
 pthread_mutex_t MUTEX_BLOCKS;
 
 void escribir_bloque(void* content, uint32_t nro_bloque, uint64_t size) {
-    if(size > superbloque->block_size)
+    if(size > superbloque->block_size) {
+        log_warning(logger, "Se quiso escribir %ld bytes al bloque %d", size, nro_bloque);
         return;
+    }
 
     pthread_mutex_lock(&MUTEX_BLOCKS);
     monitor_bitarray_set_bit(nro_bloque);
@@ -12,6 +14,17 @@ void escribir_bloque(void* content, uint32_t nro_bloque, uint64_t size) {
     memcpy(mem_cpy + superbloque->block_size * nro_bloque, content, size);
     pthread_mutex_unlock(&MUTEX_BLOCKS);
     log_info(logger, "Written block %ld", nro_bloque);
+}
+
+void append_to_block(void* content, uint32_t nro_bloque, uint64_t offset, uint64_t size) {
+    if(size + offset > superbloque->block_size) {
+        log_warning(logger, "Se quiso agregar %ld bytes al bloque %d en el offset %ld", size, nro_bloque, offset);
+        return;
+    }
+
+    memcpy(mem_cpy + superbloque->block_size * nro_bloque + offset, content, size);
+    pthread_mutex_unlock(&MUTEX_BLOCKS);
+    log_info(logger, "Appended %d bytes to block %ld with offset %ld", size, nro_bloque, offset);
 }
 
 void* leer_bloque(uint32_t nro_bloque) {

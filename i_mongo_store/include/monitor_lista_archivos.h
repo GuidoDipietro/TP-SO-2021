@@ -24,5 +24,6 @@ extern t_list* OPEN_FILES;
 extern pthread_mutex_t MUTEX_LISTA_ARCHIVOS;
 
 void agregar_archivo(open_file_t* file_data);
+open_file_t* obtener_archivo(char* nombre);
 
 #endif

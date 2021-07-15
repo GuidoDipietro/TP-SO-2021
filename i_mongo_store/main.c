@@ -27,7 +27,16 @@ int main() {
     iniciar_sincronizador();
 
     //crear_archivo("Oxigeno.ims", 'O');
-    //cargar_archivo("Oxigeno.ims");
+    cargar_archivo("Oxigeno.ims");
+    //open_file_t* file = obtener_archivo("Oxigeno.ims");
+    //print_open_file_t(file);
+
+    /*void* content = malloc(sizeof(7));
+    uint64_t* src = malloc(sizeof(uint64_t));
+    *src = 0x123456789ABCDE00;
+    memcpy(content, src, 7);
+    write_to_file(file, content, 7);
+    escribir_archivo("Oxigeno.ims", file->file);*/
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));

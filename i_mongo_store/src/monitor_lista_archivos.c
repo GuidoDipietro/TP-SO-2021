@@ -10,7 +10,10 @@ void agregar_archivo(open_file_t* file_data) {
 
 static char* filename;
 static bool filtar_archivo_por_nombre(open_file_t* file_data) {
-    return (bool) strcmp(file_data->nombre, filename);
+    if(strlen(filename) != strlen(file_data->nombre))
+        return false;
+
+    return (bool) strcmp(file_data->nombre, filename) == 0;
 }
 
 open_file_t* obtener_archivo(char* nombre) {
@@ -24,5 +27,4 @@ open_file_t* obtener_archivo(char* nombre) {
     (ret->refs)++;
     pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
     return ret;
-
 }

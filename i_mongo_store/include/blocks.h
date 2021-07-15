@@ -12,5 +12,6 @@ void sincronizador();
 void escribir_bloque(void* content, uint32_t nro_bloque, uint64_t size);
 void* leer_bloque(uint32_t nro_bloque);
 void liberar_bloque(uint32_t nro_bloque);
+void append_to_block(void* content, uint32_t nro_bloque, uint64_t offset, uint64_t size);
 
 #endif

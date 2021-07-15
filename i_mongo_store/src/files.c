@@ -73,3 +73,68 @@ file_t* cargar_archivo(char* nombre) {
     print_open_file_t(file_data);
     agregar_archivo(file_data);
 }
+
+uint32_t espacio_libre_ultimo_bloque(file_t* file) {
+    if(list_is_empty(file->blocks))
+        return 0;
+
+    return superbloque->block_size * file->block_count - file->size;
+}
+
+void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
+    pthread_mutex_lock(&(file_data->mutex_file));
+    file_t* file = file_data->file;
+
+    printf("\nA\n");
+
+    uint32_t libre_ultimo_bloque;
+    bool hay_ultimo_bloque = !list_is_empty(file->blocks);
+
+    uint32_t* ultimo_bloque;
+    if(hay_ultimo_bloque) {
+        ultimo_bloque = list_get(file->blocks, 0);
+        libre_ultimo_bloque = espacio_libre_ultimo_bloque(file);
+    } else
+        libre_ultimo_bloque = 0;
+        
+
+    printf("\nC\n");
+
+    if(libre_ultimo_bloque >= len)
+        append_to_block(content, *ultimo_bloque, superbloque->block_size - libre_ultimo_bloque, len);
+    else {
+        uint32_t restante = len - libre_ultimo_bloque;
+        uint32_t bloques_a_pedir = ceil(restante / ((double) superbloque->block_size));
+        uint32_t entra_ultimo_bloque_asignado = (1 - bloques_a_pedir) * superbloque->block_size + restante;
+
+        if(hay_ultimo_bloque)
+            append_to_block(content, *ultimo_bloque, superbloque->block_size - libre_ultimo_bloque, libre_ultimo_bloque);
+
+        uint32_t* bloque_libre;
+        for(uint16_t i = 0; i < bloques_a_pedir - 1; i++) {
+            bloque_libre = malloc(sizeof(uint32_t));
+            *bloque_libre = monitor_offset_bloque_libre();
+            list_add(file->blocks, bloque_libre);
+            escribir_bloque(
+                content + superbloque->block_size * i,
+                *bloque_libre,
+                superbloque->block_size
+            );
+        }
+
+        // Escribimos el ultimo bloque. Puede tener fragmentacion interna
+        bloque_libre = malloc(sizeof(uint32_t));
+        *bloque_libre = monitor_offset_bloque_libre();
+        list_add(file->blocks, bloque_libre);
+        escribir_bloque(
+            content + superbloque->block_size * bloques_a_pedir - 1,
+            *bloque_libre,
+            entra_ultimo_bloque_asignado
+        );
+        file->block_count += bloques_a_pedir;
+    }
+    file->size += len;
+
+    pthread_mutex_unlock(&(file_data->mutex_file));
+
+}
