@@ -26,32 +26,6 @@ int main() {
     cargar_bloques();
     iniciar_sincronizador();
 
-    //crear_archivo("Oxigeno.ims", 'O');
-    cargar_archivo("Oxigeno.ims");
-    open_file_t* file = obtener_archivo("Oxigeno.ims");
-
-
-    //char* content = "abcde";
-    //write_to_file(file, content, 6);
-    //print_open_file_t(file);
-    //escribir_archivo("Oxigeno.ims", file->file);
-    //print_open_file_t(file);
-
-    /*void* content = malloc(sizeof(7));
-    uint64_t* src = malloc(sizeof(uint64_t));
-    *src = 0x123456789ABCDE00;
-    memcpy(content, src, 7);
-    write_to_file(file, content, 7);
-    escribir_archivo("Oxigeno.ims", file->file);*/
-
-    //char* b = malloc(4);
-    //fwrite(b, sizeof(char), 4, mem_cpy);
-    //memcpy(b, mem_cpy, 4);
-    //printf("\n@@ %s @@", b);
-
-    char* content = recuperar_archivo(file);
-    printf("\n## %s ##\n", content);
-
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));
 
@@ -59,3 +33,39 @@ int main() {
 
     return EXIT_SUCCESS;
 }
+
+/*
+
+CODIGO DE COMO OPERAR CON ARCHIVOS
+LO GUARDO POR LAS DUDAS PARA DESPUES
+
+crear_archivo("Oxigeno.ims", 'O');
+cargar_archivo("Oxigeno.ims");
+open_file_t* file = obtener_archivo("Oxigeno.ims");
+
+char* content1 = "NOSE NI IDEA LA VERDAD CRACK";
+write_to_file(file, content1, strlen(content1));
+escribir_archivo("Oxigeno.ims", file->file);
+
+crear_archivo("Pruebas.ims", 'R');
+cargar_archivo("Pruebas.ims");
+open_file_t* file2 = obtener_archivo("Pruebas.ims");
+char* ctnt = "PRUEBAAA";
+write_to_file(file2, ctnt, strlen(ctnt));
+escribir_archivo("Pruebas.ims", file2->file);
+
+char* content2 = "No creo la verdad";
+write_to_file(file, content2, strlen(content2));
+print_open_file_t(file);
+escribir_archivo("Oxigeno.ims", file->file);
+print_open_file_t(file);
+
+char* rec1 = recuperar_archivo(file);
+fwrite(rec1, (file->file)->size, 1, stdout);
+fflush(stdout);
+printf("\n");
+char* rec2 = recuperar_archivo(file2);
+fwrite(rec2, (file2->file)->size, 1, stdout);
+fflush(stdout);
+
+*/

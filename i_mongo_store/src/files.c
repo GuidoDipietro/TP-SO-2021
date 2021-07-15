@@ -8,8 +8,8 @@ void escribir_archivo(char* nombre, file_t* file) {
     fwrite(&(file->block_count), sizeof(uint32_t), 1, f);
     fwrite(&(file->caracter_llenado), sizeof(char), 1, f);
     if(file->block_count > 0)
-        for(uint32_t i = file->block_count; i > 0; i--) {
-            uint32_t* d = list_get(file->blocks, i - 1);
+        for(uint32_t i = 0; i < file->block_count; i++) {
+            uint32_t* d = list_get(file->blocks, i);
             fwrite(d, sizeof(uint32_t), 1, f);
         }
 
@@ -42,17 +42,17 @@ void* recuperar_archivo(open_file_t* file_data) {
 
     uint32_t* block_num;
     void* block_content;
-    for(uint32_t i = file->block_count - 1; i > 0; i--) {
+    for(uint32_t i = 0; i < file->block_count - 1; i++) {
         block_num = list_get(file->blocks, i);
         block_content = leer_bloque(*block_num);
         memcpy(
-            content + superbloque->block_size * (file->block_count - 1 - i),
+            content + superbloque->block_size * i,
             block_content,
             superbloque->block_size
         );
     }
     
-    block_num = list_get(file->blocks, 0);
+    block_num = list_get(file->blocks, file->block_count - 1);
     block_content = leer_bloque(*block_num);
     //uint32_t content_size = superbloque->block_size - ((superbloque->block_size * file->block_count) - size);
     uint32_t content_size = (1 - file->block_count) * superbloque->block_size + file->size;
@@ -136,7 +136,7 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
 
     uint32_t* ultimo_bloque;
     if(hay_ultimo_bloque) {
-        ultimo_bloque = list_get(file->blocks, 0);
+        ultimo_bloque = list_get(file->blocks, file->block_count - 1);
         libre_ultimo_bloque = espacio_libre_ultimo_bloque(file);
     } else
         libre_ultimo_bloque = 0;
@@ -149,7 +149,7 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
         uint32_t bloques_a_pedir = ceil(restante / ((double) superbloque->block_size));
         uint32_t entra_ultimo_bloque_asignado = (1 - bloques_a_pedir) * superbloque->block_size + restante;
 
-        if(hay_ultimo_bloque)
+        if(hay_ultimo_bloque && libre_ultimo_bloque > 0)
             append_to_block(content, *ultimo_bloque, superbloque->block_size - libre_ultimo_bloque, libre_ultimo_bloque);
 
         uint32_t* bloque_libre;
@@ -159,14 +159,10 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
             *bloque_libre = monitor_offset_bloque_libre();
             list_add(file->blocks, bloque_libre);
             escribir_bloque(
-                content + superbloque->block_size * i,
+                content + superbloque->block_size * i + libre_ultimo_bloque,
                 *bloque_libre,
                 superbloque->block_size
             );
-            //printf("\n****\n");
-            //printf("\n%d - %d - %d\n", superbloque->block_size * i, *bloque_libre, entra_ultimo_bloque_asignado);
-            //fwrite(mem_cpy + superbloque->block_size * i, superbloque->block_size, 1, stdout);
-            //printf("\n****\n");
         }
 
         // Escribimos el ultimo bloque. Puede tener fragmentacion interna
@@ -174,14 +170,10 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
         *bloque_libre = monitor_offset_bloque_libre();
         list_add(file->blocks, bloque_libre);
         escribir_bloque(
-            content + superbloque->block_size * (bloques_a_pedir - 1),
+            content + superbloque->block_size * (bloques_a_pedir - 1) + libre_ultimo_bloque,
             *bloque_libre,
             entra_ultimo_bloque_asignado
         );
-        //printf("\n****\n");
-        //printf("\n%d - %d - %d\n", superbloque->block_size * (bloques_a_pedir - 1), *bloque_libre, entra_ultimo_bloque_asignado);
-        //fwrite(mem_cpy + superbloque->block_size * *bloque_libre, entra_ultimo_bloque_asignado, 1, stdout);
-        //printf("\n****\n");
         file->block_count += bloques_a_pedir;
     }
     file->size += len;

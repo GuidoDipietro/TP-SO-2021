@@ -10,7 +10,7 @@ void escribir_bloque(void* content, uint32_t nro_bloque, uint64_t size) {
 
     pthread_mutex_lock(&MUTEX_BLOCKS);
     monitor_bitarray_set_bit(nro_bloque);
-    memset(mem_cpy + superbloque->block_size, 0x00, superbloque->block_size); // Vaciamos el bloque por las dudas
+    memset(mem_cpy + superbloque->block_size * nro_bloque, 0x00, superbloque->block_size); // Vaciamos el bloque por las dudas
     memcpy(mem_cpy + superbloque->block_size * nro_bloque, content, size);
     pthread_mutex_unlock(&MUTEX_BLOCKS);
     log_info(logger, "Written block %ld", nro_bloque);
