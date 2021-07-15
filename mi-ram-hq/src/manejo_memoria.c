@@ -706,7 +706,7 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
     ) frame_deseado_swap++;
 
     uint32_t inicio; // ignorable
-    uint32_t frame_libre = primer_frame_libre_framo(pid, &inicio);
+    uint32_t frame_libre = primer_frame_libre_framo(0xCACA, &inicio); // pid gigante que nunca vamos a tener para que ignore paginas por la mitad
 
     if (frame_libre == 0xFFFF) {
         // NO HAY FRAME LIBRE EN MP
