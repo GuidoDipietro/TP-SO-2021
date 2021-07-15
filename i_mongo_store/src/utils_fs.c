@@ -5,3 +5,10 @@ char* concatenar_montaje(char* str) {
     string_append(&path, str);
     return path;
 }
+
+char* concatenar_montaje_files(char* filename) {
+    char* path = strdup(cfg->PUNTO_MONTAJE);
+    string_append(&path, "Files/");
+    string_append(&path, filename);
+    return path;
+}

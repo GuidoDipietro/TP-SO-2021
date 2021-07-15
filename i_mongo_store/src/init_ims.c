@@ -7,6 +7,7 @@ pthread_t HILO_SINCRONIZADOR;
 void iniciar_semaforos() {
     pthread_mutex_init(&MUTEX_BITARRAY, NULL);
     pthread_mutex_init(&MUTEX_BLOCKS, NULL);
+    pthread_mutex_init(&MUTEX_LISTA_ARCHIVOS, NULL);
 }
 
 void iniciar_sincronizador() {

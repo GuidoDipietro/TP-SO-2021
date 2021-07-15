@@ -26,5 +26,6 @@ extern uint8_t* mem_map;
 extern uint8_t* mem_cpy;
 
 char* concatenar_montaje(char* str);
+char* concatenar_montaje_files(char* filename);
 
 #endif

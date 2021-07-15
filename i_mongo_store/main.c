@@ -8,9 +8,11 @@ static t_config_ims* initialize_cfg() {
 }
 
 t_log* logger;
+t_list* OPEN_FILES;
 
 int main() {
     cfg = initialize_cfg();
+    OPEN_FILES = list_create();
     logger = log_create("i_mongo_store.log", MODULENAME, true, LOG_LEVEL_INFO);
 
     int server_fd;
@@ -23,6 +25,9 @@ int main() {
     cargar_superbloque();
     cargar_bloques();
     iniciar_sincronizador();
+
+    //crear_archivo("Oxigeno.ims", 'O');
+    //cargar_archivo("Oxigeno.ims");
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));
