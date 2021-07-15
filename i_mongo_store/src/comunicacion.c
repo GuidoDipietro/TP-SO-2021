@@ -32,9 +32,49 @@ static void procesar_conexion(void* void_args) {
             case FIN_TAREA:
             case ATENCION_SABOTAJE:
             case RESOLUCION_SABOTAJE:
-            case GENERAR:
-            case CONSUMIR:
+            case GENERAR: {
+                tipo_item tipo;
+                uint16_t cantidad;
+                if(recv_item_cantidad(cliente_socket, &tipo, &cantidad)) {
+                    char c;
+                    char* archivo;
+                    if(tipo == OXIGENO) {
+                        c = 'O';
+                        archivo = "Oxigeno.ims";
+                    } else if(tipo == COMIDA) {
+                        c = 'C';
+                        archivo = "Comida.ims";
+                    } else if(tipo == BASURA) {
+                        c = 'B';
+                        archivo = "Basura.ims";
+                    }
+                    tarea_generar(archivo, c, cantidad);
+                } else{
+                    log_error(logger, "Error fatal recibiendo instruccion de generar recursos");
+                }
+                break;
+            }
+                
+            case CONSUMIR: {
+                tipo_item tipo;
+                uint16_t cantidad;
+                if(recv_item_cantidad(cliente_socket, &tipo, &cantidad)) {
+                    char* archivo;
+                    if(tipo == OXIGENO)
+                        archivo = "Oxigeno.ims";
+                    else if(tipo == COMIDA)
+                        archivo = "Comida.ims";
+
+                    tarea_consumir(archivo, cantidad);
+                } else{
+                    log_error(logger, "Error fatal recibiendo instruccion de consumir recursos");
+                }
+                break;
+            }
+
             case DESCARTAR_BASURA:
+                descartar_basura();
+                break;
             case INICIO_FSCK:
                 break;
             // Errores
@@ -65,3 +105,17 @@ int server_escuchar(char* server_name, int server_fd) {
     }
     return 0;
 }
+
+/*
+
+bool send_obtener_bitacora(int fd, uint32_t id_tripulante);
+bool send_bitacora(int fd, char* bitacora);
+bool recv_bitacora(int fd, char** bitacora);
+bool send_sabotaje(int fd, t_posicion* posicion);
+bool recv_sabotaje(int fd, t_posicion** posicion);
+bool send_iniciar_fsck(int fd);
+bool send_generar_consumir(int fd, tipo_item item, uint16_t cant, op_code cop);
+bool recv_item_cantidad(int fd, tipo_item* item, uint16_t* cant);
+bool send_descartar_basura(int fd); // solo op code
+
+*/

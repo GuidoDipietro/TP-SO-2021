@@ -6,9 +6,13 @@
 #include <pthread.h>
 #include <commons/log.h>
 #include <commons/config.h>
+
+#include "tareas.h"
+
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolo.h"
+
 
 int server_escuchar(char* server_name, int server_socket);
 

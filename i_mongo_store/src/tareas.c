@@ -17,6 +17,18 @@ void tarea_generar(char* nombre, char c, uint32_t cantidad) {
     cerrar_archivo(file_data);
 }
 
+void tarea_consumir(char* nombre, uint32_t cantidad) {
+    open_file_t* file_data = obtener_archivo(nombre);
+
+    if(file_data == NULL) {
+        log_info(logger, "No existe %s. No se puede consumir", nombre);
+        return;
+    }
+    consumir_recurso(file_data, cantidad);
+    cerrar_archivo(file_data);
+}
+
+
 void descartar_basura() {
     open_file_t* file_data = obtener_archivo("Basura.ims");
 
