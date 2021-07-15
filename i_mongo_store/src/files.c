@@ -1,5 +1,18 @@
 #include "../include/files.h"
 
+void free_file_t(file_t* file) {
+    if(file->blocks != NULL)
+        list_destroy_and_destroy_elements(file->blocks, free);
+    free(file);
+}
+
+void free_open_file_t(open_file_t* file_data) {
+    free(file_data->nombre);
+    free_file_t(file_data->file);
+    pthread_mutex_destroy(&(file_data->mutex_file));
+    free(file_data);
+}
+
 static void interfaz_escribir_archivo(open_file_t* file_data) {
     escribir_archivo(file_data->nombre, file_data->file);
 }
@@ -92,15 +105,15 @@ void print_open_file_t(open_file_t* file_data) {
     print_file_t(file_data->file);
 }
 
-file_t* cargar_archivo(char* nombre) {
-    file_t* file = malloc(sizeof(file_t));
-
-    if(file == NULL)
-        return NULL;
-
+open_file_t* cargar_archivo(char* nombre) {
     char* path = concatenar_montaje_files(nombre);
     FILE* f = fopen(path, "rb");
     free(path);
+
+    if(f == NULL)
+        return NULL;
+
+    file_t* file = malloc(sizeof(file_t));
 
     fread(&(file->size), sizeof(uint32_t), 1, f);
     uint32_t block_count;
@@ -124,11 +137,12 @@ file_t* cargar_archivo(char* nombre) {
     open_file_t* file_data = malloc(sizeof(open_file_t));
     file_data->file = file;
     file_data->refs = 1;
-    file_data->nombre = nombre;
+    file_data->nombre = strdup(nombre);
     pthread_mutex_init(&(file_data->mutex_file), NULL);
     print_open_file_t(file_data);
     agregar_archivo(file_data);
     fclose(f);
+    return file_data;
 }
 
 uint32_t espacio_libre_ultimo_bloque(file_t* file) {
@@ -136,6 +150,15 @@ uint32_t espacio_libre_ultimo_bloque(file_t* file) {
         return 0;
 
     return superbloque->block_size * file->block_count - file->size;
+}
+
+void generar_recurso(open_file_t* file_data, uint32_t cantidad) {
+    char* c = malloc(cantidad);
+    //*c = (file_data->file)->caracter_llenado;
+    memset(c, (file_data->file)->caracter_llenado, cantidad);
+    write_to_file(file_data, c, cantidad);
+    free(c);
+    log_info(logger, "Se generaron %ld recursos en %s", cantidad, file_data->nombre);
 }
 
 void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
@@ -191,4 +214,28 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
 
     pthread_mutex_unlock(&(file_data->mutex_file));
 
+}
+
+void cerrar_archivo(open_file_t* file_data) {
+    escribir_archivo(file_data->nombre, file_data->file);
+    (file_data->refs)--;
+
+    if(!file_data->refs) { // Nadie mas lo referencia, lo podemos sacar
+        remover_lista_archivos(file_data->nombre);
+        //free_open_file_t(file_data);
+    }
+}
+
+void eliminar_archivo(open_file_t* file_data) {
+    file_t* file = file_data->file;
+    char* name = strdup(file_data->nombre);
+    void iterador_liberar_bloques(uint32_t* num) { liberar_bloque(*num); }
+    list_iterate(file->blocks, (void*) iterador_liberar_bloques);
+    remover_lista_archivos(file_data->nombre);
+    char* path = concatenar_montaje_files(file_data->nombre);
+    remove(path);
+    free(path);
+    free_open_file_t(file_data);
+    log_info(logger, "Archivo %s eliminado.", name);
+    free(name);
 }
