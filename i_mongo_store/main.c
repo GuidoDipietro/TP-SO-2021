@@ -28,7 +28,13 @@ int main() {
 
     //crear_archivo("Oxigeno.ims", 'O');
     cargar_archivo("Oxigeno.ims");
-    //open_file_t* file = obtener_archivo("Oxigeno.ims");
+    open_file_t* file = obtener_archivo("Oxigeno.ims");
+
+
+    //char* content = "abcde";
+    //write_to_file(file, content, 6);
+    //print_open_file_t(file);
+    //escribir_archivo("Oxigeno.ims", file->file);
     //print_open_file_t(file);
 
     /*void* content = malloc(sizeof(7));
@@ -37,6 +43,14 @@ int main() {
     memcpy(content, src, 7);
     write_to_file(file, content, 7);
     escribir_archivo("Oxigeno.ims", file->file);*/
+
+    //char* b = malloc(4);
+    //fwrite(b, sizeof(char), 4, mem_cpy);
+    //memcpy(b, mem_cpy, 4);
+    //printf("\n@@ %s @@", b);
+
+    char* content = recuperar_archivo(file);
+    printf("\n## %s ##\n", content);
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));

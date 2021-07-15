@@ -73,6 +73,12 @@ void cargar_bloques() {
     free(path);
 
     int fd = fileno(f);
+
+    //char* b = malloc(4);
+    //fread(b, sizeof(char), 4, f);
+    //printf("$%s$", b);
+    //fseek(f, 0, SEEK_SET);
+
     mem_map = mmap(
         0,
         superbloque->tamanio_fs,

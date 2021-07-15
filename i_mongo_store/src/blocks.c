@@ -46,7 +46,7 @@ void liberar_bloque(uint32_t nro_bloque) {
 static void sincronizar_bitarray() {
     pthread_mutex_lock(&MUTEX_BITARRAY);
     char* path = concatenar_montaje("SuperBloque.ims");
-    FILE* f = fopen(path, "wb+");
+    FILE* f = fopen(path, "rb+");
     fseek(f, 2 * sizeof(uint32_t), SEEK_SET);
     fwrite(superbloque->bitarray->bitarray, 1, superbloque->bytes_bitarray, f);
     fclose(f);
