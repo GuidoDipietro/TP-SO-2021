@@ -28,3 +28,9 @@ open_file_t* obtener_archivo(char* nombre) {
     pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
     return ret;
 }
+
+void monitor_iterar_lista_archivos(void (*f)(open_file_t*)) {
+    pthread_mutex_lock(&MUTEX_LISTA_ARCHIVOS);
+    list_iterate(OPEN_FILES, (void*) f);
+    pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
+}

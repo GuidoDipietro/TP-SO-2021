@@ -15,5 +15,7 @@ void print_open_file_t(open_file_t* file_data);
 file_t* cargar_archivo(char* nombre);
 void write_to_file(open_file_t* file_data, void* content, uint32_t len);
 void* recuperar_archivo(open_file_t* file_data);
+void guardar_metadata_todos();
+void guardar_metadata_todos_ignorar_mutex();
 
 #endif

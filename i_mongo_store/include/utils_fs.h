@@ -5,6 +5,7 @@
 #include <commons/bitarray.h>
 #include <commons/log.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "init_ims.h"
 
@@ -24,6 +25,8 @@ extern t_log* logger;
 extern t_superbloque* superbloque;
 extern uint8_t* mem_map;
 extern uint8_t* mem_cpy;
+
+extern pthread_t HILO_SINCRONIZADOR;
 
 char* concatenar_montaje(char* str);
 char* concatenar_montaje_files(char* filename);

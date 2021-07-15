@@ -13,7 +13,6 @@
 #include "blocks.h"
 #include "monitor_bitarray.h"
 #include "monitor_lista_archivos.h"
-
 typedef struct {
     char* PUNTO_MONTAJE;
     uint16_t PUERTO;

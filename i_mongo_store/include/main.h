@@ -12,6 +12,7 @@
 #include "utils_fs.h"
 #include "files.h"
 #include "monitor_lista_archivos.h"
+#include "sighandler.h"
 
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"

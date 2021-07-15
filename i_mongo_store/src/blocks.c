@@ -64,6 +64,23 @@ void sincronizar_fs() {
     pthread_mutex_unlock(&MUTEX_BLOCKS);
 }
 
+static void sincronizar_bitarray_ignorar_mutex() {
+    char* path = concatenar_montaje("SuperBloque.ims");
+    FILE* f = fopen(path, "rb+");
+    fseek(f, 2 * sizeof(uint32_t), SEEK_SET);
+    fwrite(superbloque->bitarray->bitarray, 1, superbloque->bytes_bitarray, f);
+    fclose(f);
+    log_info(logger, "Se sincronizo el SuperBloque.ims");
+    free(path);
+}
+
+void sincronizar_fs_ignorar_mutex() {
+    memcpy(mem_map, mem_cpy, superbloque->tamanio_fs);
+    msync(mem_map, superbloque->tamanio_fs, MS_SYNC);
+    log_info(logger, "Se sincronizo Blocks.ims");
+    sincronizar_bitarray_ignorar_mutex();
+}
+
 void sincronizador() {
     log_info(logger, "Sincronizador inicializado.");
     while(true) {

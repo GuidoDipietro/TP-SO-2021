@@ -1,5 +1,17 @@
 #include "../include/files.h"
 
+static void interfaz_escribir_archivo(open_file_t* file_data) {
+    escribir_archivo(file_data->nombre, file_data->file);
+}
+
+void guardar_metadata_todos() {
+    monitor_iterar_lista_archivos((void*) interfaz_escribir_archivo);
+}
+
+void guardar_metadata_todos_ignorar_mutex() {
+    list_iterate(OPEN_FILES, (void*) interfaz_escribir_archivo);
+}
+
 void escribir_archivo(char* nombre, file_t* file) {
     char* path = concatenar_montaje_files(nombre);
     FILE* f = fopen(path, "wb");
@@ -12,7 +24,6 @@ void escribir_archivo(char* nombre, file_t* file) {
             uint32_t* d = list_get(file->blocks, i);
             fwrite(d, sizeof(uint32_t), 1, f);
         }
-
     fclose(f);
     log_info(logger, "%s - Metadata escrita", nombre);
     print_file_t(file);

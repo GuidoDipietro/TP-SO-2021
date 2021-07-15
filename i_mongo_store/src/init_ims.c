@@ -72,7 +72,7 @@ bool crear_servidor(int* fd, char* name) {
 }
 
 void cerrar_programa() {
-    pthread_cancel(HILO_SINCRONIZADOR);
+    log_info(logger, "Cerrando programa");
     munmap(mem_map, superbloque->tamanio_fs);
     log_destroy(logger);
     bitarray_destroy(superbloque->bitarray);
