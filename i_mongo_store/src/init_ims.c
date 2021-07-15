@@ -80,4 +80,5 @@ void cerrar_programa() {
     free(cfg->PUNTO_MONTAJE);
     list_destroy_and_destroy_elements(cfg->POSICIONES_SABOTAJE, free_t_posicion);
     free(cfg);
+    liberar_conexion(&server_fd);
 }

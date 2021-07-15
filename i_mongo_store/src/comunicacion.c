@@ -36,6 +36,7 @@ static void procesar_conexion(void* void_args) {
                 tipo_item tipo;
                 uint16_t cantidad;
                 if(recv_item_cantidad(cliente_socket, &tipo, &cantidad)) {
+                    log_info(logger, "Tarea de generar recursos recibida");
                     char c;
                     char* archivo;
                     if(tipo == OXIGENO) {
@@ -59,6 +60,7 @@ static void procesar_conexion(void* void_args) {
                 tipo_item tipo;
                 uint16_t cantidad;
                 if(recv_item_cantidad(cliente_socket, &tipo, &cantidad)) {
+                    log_info(logger, "Tarea de consumir recursos recibida");
                     char* archivo;
                     if(tipo == OXIGENO)
                         archivo = "Oxigeno.ims";

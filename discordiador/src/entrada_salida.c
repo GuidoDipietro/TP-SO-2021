@@ -38,7 +38,28 @@ void tarea_io(t_running_thread* thread, t_tripulante* t) {
     sem_wait(&(thread->sem_pause));
     log_info(main_log, "El tripulante %d comenzo su I/O", t->tid);
     
-    // Aca tendria que ir la llamada al I-MONGO-STORE
+    t_tarea* tarea = t->tarea;
+
+    // Asco esto, pero no tengo tiempo para pensar algo mejor :)
+    if(tarea->tipo == DESCARTAR_BASURA_T)
+        send_descartar_basura(t->fd_i_mongo_store);
+    else {
+        tipo_item item;
+        op_code opcode;
+        if(tarea->tipo == GENERAR_BASURA_T || tarea->tipo == GENERAR_COMIDA_T || tarea->tipo == GENERAR_OXIGENO_T)
+            opcode = GENERAR;
+        else
+            opcode = CONSUMIR;
+
+        if(tarea->tipo == GENERAR_BASURA_T)
+            item = BASURA;
+        else if(tarea->tipo == GENERAR_COMIDA_T || tarea->tipo == CONSUMIR_COMIDA_T)
+            item = COMIDA;
+        else if(tarea->tipo == GENERAR_OXIGENO_T || tarea->tipo == CONSUMIR_OXIGENO_T)
+            item = OXIGENO;
+        send_generar_consumir(t->fd_i_mongo_store, item, tarea->param, opcode);
+    }
+
     while((t->tarea)->duracion) {
         __asm__ volatile ("call ciclo");
         ((t->tarea)->duracion)--;

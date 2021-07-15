@@ -63,7 +63,13 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         } else {
             if((t->tarea)->tipo != OTRO_T) {
                     tarea_io(thread_data, t);
+                    
+                if(replanificar_tripulante(thread_data, t)) {
+                    log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     goto final;
+                } else
+                    log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+
             } else if((t->tarea)->duracion)
                 correr_tarea_generica(thread_data);
             else {
@@ -112,7 +118,13 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
             } else {
                 if((t->tarea)->tipo != OTRO_T) {
                     tarea_io(thread_data, t);
-                    goto final;
+                    
+                    if(replanificar_tripulante(thread_data, t)) {
+                        log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                        goto final;
+                    } else
+                        log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+
                 } else if((t->tarea)->duracion) {
                     correr_tarea_generica(thread_data);
                     (thread_data->quantum)++;

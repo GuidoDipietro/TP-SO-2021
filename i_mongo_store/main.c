@@ -9,16 +9,16 @@ static t_config_ims* initialize_cfg() {
 
 t_log* logger;
 t_list* OPEN_FILES;
+int server_fd;
 
 int main() {
     cfg = initialize_cfg();
     OPEN_FILES = list_create();
     logger = log_create("i_mongo_store.log", MODULENAME, true, LOG_LEVEL_INFO);
 
-    int server_fd;
-
     if(!cargar_configuracion() || !crear_servidor(&server_fd, SERVERNAME)) {
         cerrar_programa();
+        liberar_conexion(&server_fd);
         return EXIT_FAILURE;
     }
 

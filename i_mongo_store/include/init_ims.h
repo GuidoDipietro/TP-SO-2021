@@ -23,6 +23,7 @@ typedef struct {
 } t_config_ims;
 
 extern t_config_ims* cfg;
+extern int server_fd;
 
 uint8_t cargar_configuracion();
 bool crear_servidor(int* fd, char* name);
