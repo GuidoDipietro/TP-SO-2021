@@ -36,7 +36,7 @@ void list_add_tppatotas(tp_patota_t* elem);
 tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid);
 tp_patota_t* list_find_by_pid_tppatotas(uint32_t pid);
 tp_patota_t* list_find_by_pid_plus_plus_tppatotas(uint32_t pid);
-void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame);
+void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame, size_t size, bool presente);
 void list_update_page_frame_tppatotas(uint32_t pid, uint32_t nro_pag, uint32_t nro_frame);
 void list_update_n_of_pages_tppatotas(uint32_t pid, uint32_t n_pags);
 void list_indicar_pagina_en_frame_tppatotas(uint32_t pid, uint32_t nro_pagina, uint32_t nuevo_frame);
@@ -58,18 +58,19 @@ void print_tstripulantes(bool log);
 void print_tid_pid_lookup(bool log);
 
 /// Prints (logs)
-#define PRI_MP                 (uint8_t) 0b00000001
-#define PRI_SEGLIB             (uint8_t) 0b00000010
-#define PRI_SEGUS              (uint8_t) 0b00000100
-#define PRI_TSTRIPULANTES      (uint8_t) 0b00001000
-#define PRI_TSPATOTAS          (uint8_t) 0b00010000
-#define PRI_FRAMO              (uint8_t) 0b00100000
-#define PRI_TPPATOTAS          (uint8_t) 0b01000000
-#define PRI_TID_PID_LOOKUP     (uint8_t) 0b10000000
-#define PRI_ALL_SEGMENTACION   (uint8_t) 0b00011111
-#define PRI_NONE               (uint8_t) 0b00000000
-#define PRI_ALL_PAGINACION     (uint8_t) 0b11100001
+#define PRI_MP                 (uint16_t) 0b0000000000000001
+#define PRI_SEGLIB             (uint16_t) 0b0000000000000010
+#define PRI_SEGUS              (uint16_t) 0b0000000000000100
+#define PRI_TSTRIPULANTES      (uint16_t) 0b0000000000001000
+#define PRI_TSPATOTAS          (uint16_t) 0b0000000000010000
+#define PRI_FRAMO              (uint16_t) 0b0000000000100000
+#define PRI_TPPATOTAS          (uint16_t) 0b0000000001000000
+#define PRI_TID_PID_LOOKUP     (uint16_t) 0b0000000010000000
+#define PRI_SWAP               (uint16_t) 0b0000000100000000
+#define PRI_ALL_SEGMENTACION   (uint16_t) 0b0000000000011111
+#define PRI_NONE               (uint16_t) 0b0000000000000000
+#define PRI_ALL_PAGINACION     (uint16_t) 0b0000000111100001
 #define LOGPRINT(_)            print_ ## _ (true)
-void log_structures(uint8_t options);
+void log_structures(uint16_t options);
 
 #endif

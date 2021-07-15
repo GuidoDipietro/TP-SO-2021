@@ -86,13 +86,12 @@ typedef struct {
     uint32_t inicio;          // inicio del TCB en esa pagina (puede pasar a la proxima)
 } tid_pid_lookup_t;
 
-typedef union {
-    uint64_t bytes;
-    struct {
-        uint32_t pid;
-        uint32_t nro_pagina;
-    };
+typedef struct {
+    uint32_t pid;
+    uint32_t nro_pagina;
+    uint32_t inicio;
 } frame_swap_t;
+// con los 4 bytes extra de padding me hago alto guiso
 
 typedef union {
     uint64_t bytes;

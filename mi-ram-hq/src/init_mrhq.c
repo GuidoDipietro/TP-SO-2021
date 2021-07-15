@@ -149,7 +149,9 @@ uint8_t cargar_memoria() {
 
         tabla_frames_swap = malloc((sizeof(frame_swap_t) * cfg->TAMANIO_SWAP) / cfg->TAMANIO_PAGINA);
         for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
-            tabla_frames_swap[i].bytes = 0;
+            tabla_frames_swap[i].pid = 0;
+            tabla_frames_swap[i].nro_pagina = 0xFFFF;
+            tabla_frames_swap[i].inicio = 0;
         }
 
         tid_pid_lookup = list_create();

@@ -207,7 +207,10 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
 
     // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
     bool nuevapag;
+    pthread_mutex_lock(&MUTEX_MP_BUSY);
     uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid, &nuevapag);
+    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
     if (inicio == 0xFFFF) {
         log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
     }

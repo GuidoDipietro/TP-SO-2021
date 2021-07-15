@@ -13,6 +13,7 @@ extern t_list* ts_tripulantes;
 
 extern t_list* tp_patotas;
 extern t_list* tid_pid_lookup;
+extern frame_swap_t* tabla_frames_swap;
 extern uint32_t global_TUR;
 
 static uint32_t static_pid;
@@ -210,7 +211,8 @@ tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
 // Agrega una nueva entrada a la tabla de paginas, cuando se ocupa un nuevo frame, si estaba vacio
 // (significa que se cargo una nueva pagina en memoria, total o parcialmente, ante un INICIAR_algo)
 // Tambien actualiza cantidad total de paginas de la patota
-void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
+// Contempla el caso en el que una pagina arranque cargada en SWAP
+void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame, size_t size, bool presente) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
 
@@ -230,9 +232,15 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame) {
         else
             e_pagina_new->bit_U = 1;
         
-        e_pagina_new->bit_P = 1;
+        e_pagina_new->bit_P = presente;
 
         list_add(res->paginas, (void*) e_pagina_new);
+
+        if (!presente) {
+            tabla_frames_swap[nro_frame].pid = pid;
+            tabla_frames_swap[nro_frame].nro_pagina = e_pagina_new->nro_pagina;
+            tabla_frames_swap[nro_frame].inicio += size;
+        }
 
         res->pages++;
     }
@@ -469,9 +477,18 @@ void print_tid_pid_lookup(bool log) {
         :   printf("\n\n------------------------\n\n");
 }
 
+void print_swap(bool log) {
+    for (signed int i = 0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
+        log_info(logger,
+            "PID: %" PRIu32 " | NRO_PAG: %" PRIu32 " | INICIO: %" PRIu32,
+            tabla_frames_swap[i].pid, tabla_frames_swap[i].nro_pagina, tabla_frames_swap[i].inicio
+        );
+    }
+}
+
 ////// prints (logs)
 
-void log_structures(uint8_t options) {
+void log_structures(uint16_t options) {
     if (options & PRI_MP) {
         char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
         log_info(logger, "%s", dumpcito);
@@ -484,4 +501,5 @@ void log_structures(uint8_t options) {
     if (options & PRI_TPPATOTAS)         LOGPRINT         (tppatotas);
     if (options & PRI_FRAMO)             LOGPRINT             (framo);
     if (options & PRI_TID_PID_LOOKUP)    LOGPRINT    (tid_pid_lookup);
+    if (options & PRI_SWAP)              LOGPRINT              (swap);
 }
