@@ -21,8 +21,10 @@ open_file_t* obtener_archivo(char* nombre) {
     filename = nombre;
     open_file_t* ret = list_find(OPEN_FILES, (void*) filtar_archivo_por_nombre);
 
-    if(ret == NULL)
+    if(ret == NULL) {
+        pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
         return NULL;
+    }
     
     (ret->refs)++;
     pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
@@ -32,5 +34,12 @@ open_file_t* obtener_archivo(char* nombre) {
 void monitor_iterar_lista_archivos(void (*f)(open_file_t*)) {
     pthread_mutex_lock(&MUTEX_LISTA_ARCHIVOS);
     list_iterate(OPEN_FILES, (void*) f);
+    pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
+}
+
+void remover_lista_archivos(char* nombre) {
+    pthread_mutex_lock(&MUTEX_LISTA_ARCHIVOS);
+    filename = nombre;
+    list_remove_by_condition(OPEN_FILES, (void*) filtar_archivo_por_nombre);
     pthread_mutex_unlock(&MUTEX_LISTA_ARCHIVOS);
 }
