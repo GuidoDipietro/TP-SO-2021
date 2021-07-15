@@ -161,6 +161,67 @@ void generar_recurso(open_file_t* file_data, uint32_t cantidad) {
     log_info(logger, "Se generaron %ld recursos en %s", cantidad, file_data->nombre);
 }
 
+void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
+    file_t* file = file_data->file;
+
+    if(cantidad >= file->size) { // Liberamos todo
+        log_warning(
+            logger,
+            "%s - Recursos solicitados: %d - Recursos disponibles: %d - No quedan recursos disponibles",
+            file_data->nombre,
+            cantidad,
+            file->size        
+        );
+        file->size = 0;
+        file->block_count = 0;
+        void liberar_bloque_lista(uint32_t* n) {
+            liberar_bloque(*n);
+            free(n);
+        }
+        list_clean_and_destroy_elements(file->blocks, free);
+        return;
+    }
+
+    uint32_t originales = cantidad;
+
+    uint32_t size_ultimo_bloque = file->size - superbloque->block_size * (file->block_count - 1);
+    uint32_t* nro_bloque = list_get(file->blocks, file->block_count - 1);
+
+    if(cantidad > size_ultimo_bloque) {
+        liberar_bloque(*nro_bloque);
+        list_remove(file->blocks, file->block_count - 1);
+        (file->block_count)--;
+    } else
+        quitar_de_bloque(*nro_bloque, size_ultimo_bloque, size_ultimo_bloque);
+    
+    file->size -= size_ultimo_bloque;
+    cantidad -= size_ultimo_bloque;
+
+    uint32_t a_eliminar = floor(cantidad / ((double) superbloque->block_size));
+
+    for(uint32_t i = 0; i < a_eliminar; i++) {
+        nro_bloque = list_remove(file->blocks, file->block_count - 1);
+        liberar_bloque(*nro_bloque);
+        (file->block_count)--;
+    }
+    file->size -= a_eliminar * superbloque->block_size;
+    cantidad -= superbloque->block_size * a_eliminar;
+
+    if(cantidad > 0) {
+        nro_bloque = list_get(file->blocks, file->block_count - 1);
+        quitar_de_bloque(*nro_bloque, superbloque->block_size, cantidad);
+        file->size -= cantidad;
+    }
+
+    log_info(
+        logger,
+        "%s - Recursos consumidos: %d - Recursos restantes: %d",
+        file_data->nombre,
+        originales,
+        file->size
+    );
+}
+
 void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
     pthread_mutex_lock(&(file_data->mutex_file));
     file_t* file = file_data->file;

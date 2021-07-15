@@ -67,4 +67,8 @@ char* rec2 = recuperar_archivo(file2);
 fwrite(rec2, (file2->file)->size, 1, stdout);
 fflush(stdout);
 
+ tarea_generar("Oxigeno.ims", 'O', 25);
+open_file_t* file = cargar_archivo("Oxigeno.ims");
+consumir_recurso(file, 19);
+
 */

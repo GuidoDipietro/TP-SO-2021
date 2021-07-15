@@ -20,5 +20,6 @@ void guardar_metadata_todos_ignorar_mutex();
 void generar_recurso(open_file_t* file_data, uint32_t cantidad);
 void cerrar_archivo(open_file_t* file_data);
 void eliminar_archivo(open_file_t* file_data);
+void consumir_recurso(open_file_t* file_data, uint32_t cantidad);
 
 #endif

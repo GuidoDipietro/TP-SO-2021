@@ -35,6 +35,16 @@ void* leer_bloque(uint32_t nro_bloque) {
     return ret;
 }
 
+void quitar_de_bloque(uint32_t nro_bloque, uint32_t size_bloque,  uint32_t cantidad) {
+    pthread_mutex_lock(&MUTEX_BLOCKS);
+    memset(
+        mem_cpy + superbloque->block_size * nro_bloque + size_bloque - cantidad,
+        0x00,
+        cantidad
+    );
+    pthread_mutex_unlock(&MUTEX_BLOCKS);
+}
+
 void liberar_bloque(uint32_t nro_bloque) {
     pthread_mutex_lock(&MUTEX_BLOCKS);
     memset(mem_cpy + superbloque->block_size * nro_bloque, 0x00, superbloque->block_size); // Vaciamos el bloque
