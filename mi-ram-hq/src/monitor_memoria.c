@@ -402,12 +402,12 @@ void asesinar_segus() {
 // off_t == uint32_t en la VM (chequeado)
 
 // Primer frame libre para proceso, puede ser uno que ya uso a medias
-int64_t primer_frame_libre_framo(uint32_t pid, uint32_t* inicio) {
-    int64_t primero_vacio = -1;
+uint32_t primer_frame_libre_framo(uint32_t pid, uint32_t* inicio) {
+    uint32_t primero_vacio = 0xFFFF;
 
     pthread_mutex_lock(&MUTEX_FRAMO);
     for (uint32_t i = 0; i < cfg->CANT_PAGINAS; i++) {
-        if (primero_vacio == -1 && tabla_frames[i].libre)
+        if (primero_vacio == 0xFFFF && tabla_frames[i].libre)
             primero_vacio = i;
 
         if (tabla_frames[i].amedias && (tabla_frames[i].pid_ocupador == pid)) {

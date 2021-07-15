@@ -263,6 +263,31 @@ void list_update_n_of_pages_tppatotas(uint32_t n_pags, uint32_t pid) {
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
 }
 
+void list_indicar_pagina_en_frame_tppatotas(uint32_t pid, uint32_t nro_pagina, uint32_t nuevo_frame) {
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
+    static_nro_pag = nro_pagina;
+    tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
+    entrada_tp_t* pagina = list_find(res->paginas, &has_nro_pag);
+
+    pagina->bit_P = 1;
+    pagina->nro_frame = nuevo_frame;
+    pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
+}
+
+uint32_t list_get_frame_of_page_tppatotas(uint32_t pid, uint32_t page) {
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
+    static_pid = pid;
+    static_nro_pag = page;
+
+    tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
+    entrada_tp_t* pag = list_find(res->paginas, &has_nro_pag);
+    
+    uint32_t nro_frame = pag->nro_frame;
+    pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
+    return nro_frame;
+}
+
 uint32_t list_get_n_of_pages_tppatotas(uint32_t pid) {
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;

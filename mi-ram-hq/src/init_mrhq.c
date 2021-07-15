@@ -15,6 +15,7 @@ segmento_t* (*proximo_hueco)(uint32_t);
 
 // paginacion
 frame_t* tabla_frames;
+frame_swap_t* tabla_frames_swap;
 t_list* tp_patotas;
 t_list* tid_pid_lookup;
 uint32_t espacio_disponible_swap;
@@ -101,6 +102,8 @@ static bool crear_archivo_swap(char* path, uint32_t tamanio) {
     area_swap = mmap(NULL, cfg->TAMANIO_SWAP, PROT_READ | PROT_WRITE, MAP_SHARED, fd_swap, 0);
     if (errno!=0) log_error(logger, "Error en mmap: errno %i", errno);
 
+    memset(area_swap, 0, cfg->TAMANIO_SWAP);
+
     close(fd_swap);
 
     return true;
@@ -137,11 +140,18 @@ uint8_t cargar_memoria() {
         global_TUR = 0;
         
         tp_patotas = list_create();
+
         tabla_frames = malloc(cfg->CANT_PAGINAS * sizeof(frame_t));
         for (int i=0; i<cfg->CANT_PAGINAS; i++) {
             tabla_frames[i].bytes = 0;
             tabla_frames[i].libre = 1;
         }
+
+        tabla_frames_swap = malloc((sizeof(frame_swap_t) * cfg->TAMANIO_SWAP) / cfg->TAMANIO_PAGINA);
+        for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
+            tabla_frames_swap[i].bytes = 0;
+        }
+
         tid_pid_lookup = list_create();
 
         // Swap
@@ -168,6 +178,7 @@ void cerrar_programa() {
         asesinar_tppatotas();
         asesinar_tid_pid_lookup();
         free(tabla_frames);
+        free(tabla_frames_swap);
         munmap(area_swap, cfg->TAMANIO_SWAP);
     }
 
