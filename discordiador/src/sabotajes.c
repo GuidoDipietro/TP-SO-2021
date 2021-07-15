@@ -108,7 +108,7 @@ void iniciar_sabotaje(int signum) {
     monitor_add_lista_hilos(encargado);
 
     while(((encargado->t)->tarea)->duracion) {
-        ciclo();
+        ciclo_dis();
         correr_tarea_generica(encargado);
     }
 

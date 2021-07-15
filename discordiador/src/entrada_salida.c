@@ -61,7 +61,7 @@ void tarea_io(t_running_thread* thread, t_tripulante* t) {
     }
 
     while((t->tarea)->duracion) {
-        __asm__ volatile ("call ciclo");
+        __asm__ volatile ("call ciclo_dis");
         ((t->tarea)->duracion)--;
         log_info(main_log, "#%d I/O - %d remaining", t->tid, (t->tarea)->duracion);
     }

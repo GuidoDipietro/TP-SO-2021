@@ -4,6 +4,8 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <math.h>
+
+#include "ciclo.h"
 #include "monitor_tripulante.h"
 #include "ops_tripulante.h"
 #include "logs.h"

@@ -54,9 +54,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         }
 
         //ciclo();
-        __asm__ volatile ("call ciclo"); // Por los memes
-
-        printf("\n\n\nDUR: %d\n\n\n", (t->tarea)->duracion);
+        __asm__ volatile ("call ciclo_dis"); // Por los memes
 
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             mover_tripulante(thread_data);
@@ -84,6 +82,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
 
     final:
         // Avisamos al mi-ram-alta-calidad para que borre el TCB
+        cambiar_estado(t, EXIT);
         send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
         cerrar_conexiones_tripulante(t);
         agregar_lista_exit(t);
@@ -107,7 +106,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         }
 
         //ciclo();
-        __asm__ volatile ("call ciclo"); // Por los memes
+        __asm__ volatile ("call ciclo_dis"); // Por los memes
 
         if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
             desalojar_tripulante(thread_data);
@@ -141,6 +140,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
 
     final:
         // Avisamos al mi-ram-alta-calidad para que borre el TCB
+        cambiar_estado(t, EXIT);
         send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
         cerrar_conexiones_tripulante(t);
         agregar_lista_exit(t);

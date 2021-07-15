@@ -16,7 +16,7 @@ void cerrar_programa(t_log* main_log, t_log* main_log_inv, t_config_disc* cfg) {
     queue_destroy(COLA_NEW);
     queue_destroy(COLA_BLOQUEADOS);
     list_destroy(LISTA_HILOS);
-    list_destroy(COLA_EXIT);
+    //list_destroy(COLA_EXIT);
     list_destroy(LISTA_SABOTAJE);
 
     rl_clear_history();

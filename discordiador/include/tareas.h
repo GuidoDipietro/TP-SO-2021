@@ -5,6 +5,8 @@
 #include <semaphore.h>
 #include <stdbool.h>
 #include <commons/collections/list.h>
+
+#include "ciclo.h"
 #include "ops_tripulante.h"
 #include "monitor_tripulante.h"
 #include "config.h"

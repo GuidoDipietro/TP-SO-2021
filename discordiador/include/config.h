@@ -1,6 +1,7 @@
 #ifndef TP_2021_1C_UNDEFINED_CONFIG_H
 #define TP_2021_1C_UNDEFINED_CONFIG_H
 
+#include <stdint.h>
 typedef struct {
     char* IP_MI_RAM_HQ;
     uint16_t PUERTO_MI_RAM_HQ;
