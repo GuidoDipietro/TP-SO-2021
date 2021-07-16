@@ -91,6 +91,7 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
     list_add_tppatotas(tabla);
 
     bool nuevapag; // ignorable, ver uso en iniciar_tripulante
+    //log_info(logger, "Por appendear data de patota %" PRIu32 " en memoria...", PID);
     uint32_t inicio = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++, &nuevapag);
     free(data);
 
@@ -207,9 +208,8 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
 
     // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
     bool nuevapag;
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
+    //log_info(logger, "Por appendear TCB de %" PRIu32 " en memoria...", tid);
     uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid, &nuevapag);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
     if (inicio == 0xFFFF) {
         log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
@@ -297,7 +297,9 @@ static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
     bool ret;
     if (tabla_patota->tripulantes_inicializados == 0) {
         // ULTIMO TRIPULANTE
+        //log_info(logger, "Borrando patota de TID#%" PRIu32 " (PID#%" PRIu32 ")", tid, pid);
         ret = delete_patota_en_mp(pid); // la borra de MP y estructuras admin.
+
         if (!ret) log_error(logger, "Error TERRIBLE borrando patota de MP");
     }
     else {
@@ -320,18 +322,23 @@ bool borrar_tripulante_de_mp(uint32_t tid) {
 
 static bool actualizar_posicion_tripulante_en_mp_segmentacion(uint32_t tid, t_posicion* destino) {
     // Recuperamos tabla tripulante, TCB y PCB
+    log_info(logger, "TID#%" PRIu32 " se mueve a %" PRIu32 ":%" PRIu32, tid, destino->x, destino->y);
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
     PCB_t* pcb;
-    if (!get_structures_from_tid_segmentacion(tid, &tabla_tripulante, &tcb, &pcb))
+    if (!get_structures_from_tid_segmentacion(tid, &tabla_tripulante, &tcb, &pcb)) {
+        log_error(logger, "Fallo epico recuperando estructuras del TID#%" PRIu32, tid);
         return false;
+    }
     free(pcb); // no lo queria igualmente
 
     // Actualizando TCB y memcpy en MP
     tcb->pos_x = destino->x;
     tcb->pos_y = destino->y;
     void* s_tcb = serializar_tcb(tcb);
+    log_info(logger, "Antes de memcpy_segmento_en_mp...");
     memcpy_segmento_en_mp(tabla_tripulante->tcb->inicio, s_tcb, tabla_tripulante->tcb->tamanio);
+    log_info(logger, "Despues de memcpy_segmento_en_mp...");
     free(s_tcb);
 
     free(tcb);

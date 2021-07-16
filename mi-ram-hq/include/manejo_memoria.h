@@ -6,12 +6,13 @@
 
 #include "init_mrhq.h"
 #include "monitor_memoria.h"
+#include "monitor_tablas.h" // por un debug
 #include "estructuras.h"
 
 // Ver tests para ejemplos :) :D
 
 bool entra_en_mp(uint32_t tamanio);
-bool entra_en_swap(uint32_t tamanio);
+bool entra_en_mp_con_swap(uint32_t tamanio);
 uint32_t paginas_que_entran_en_swap();
 void dump_mp();
 
@@ -39,7 +40,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb);					     // POSIBLE RC
 bool delete_patota_en_mp(uint32_t pid);
 
-uint32_t pagina_a_reemplazar();
+uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina);
 bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina);
 
 #endif

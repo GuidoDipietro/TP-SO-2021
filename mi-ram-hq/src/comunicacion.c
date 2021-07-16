@@ -49,8 +49,13 @@ static void procesar_conexion(void* void_args) {
                     // Tareas       - N bytes           -> ahora
                     // Tripulantes  - 21 bytes cada uno -> cuando el tripulante avise
 
-                    // Si aunque compactemos no entra, denegar
-                    if (!entra_en_mp(8+strlen(tareas)+1+21*n_tripulantes)) {
+                    // Si aunque compactemos no entra, denegar (SEGMENTACION)
+                    const size_t size_patota = 8+strlen(tareas)+1+21*n_tripulantes;
+                    bool cond = cfg->SEG
+                        ? entra_en_mp(size_patota)
+                        : entra_en_mp_con_swap(size_patota);
+
+                    if (!cond) {
                         log_error(logger, "No hay lugar para la patota en memoria");
                         send_ack(cliente_socket, false);
 

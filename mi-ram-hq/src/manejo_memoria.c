@@ -39,8 +39,8 @@ bool entra_en_mp(uint32_t tamanio) {
         : cant_frames_libres() >= cant_paginas(tamanio, &rem);
 }
 
-bool entra_en_swap(uint32_t tamanio) {
-    return tamanio >= espacio_disponible_swap;
+bool entra_en_mp_con_swap(uint32_t tamanio) {
+    return tamanio <= (memoria_disponible + espacio_disponible_swap);
 }
 
 uint32_t paginas_que_entran_en_swap() {
@@ -65,7 +65,8 @@ void dump_mp() {
     else {
         char* str_frames = stringify_tabla_frames();
         data = string_from_format(
-            "\n%s\nDump: %s\n%s\n%s\n\n",
+            "\n%s\n\n%s\nDump: %s\n%s\n%s\n\n",
+            "LOS MARCOS NO LISTADOS ESTAN LIBRES",
             hr, timestamp, str_frames, hr
         );
         free(str_frames);
@@ -394,16 +395,23 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
         // Chequeo y actualizacion de bits
         if (pag->bit_P == 0) {
             // SWAP BUSINESS
-            if (!traer_pagina_de_swap(pid, pagina)) {
+            //log_info(logger, "No esta en RAM... la traigo de SWAP");
+            if (!traer_pagina_de_swap(pid, pagina+p)) {
                 log_error(logger, "Error terrible trayendo pagina de SWAP a MP. Voy a segfaultearme todo.");
                 free(data);
                 return NULL; // aca va tu segfault lince
             }
+            //log_info(logger, "Traida!");
         }
         if (cfg->LRU) pag->TUR   = global_TUR++;
         else          pag->bit_U = 1;
 
+        /*log_info(logger,
+            "Si falla el get_pagina_data (frame %" PRIu32 ") este es el ultimo mensaje...",
+            pag->nro_frame
+        );*/
         void* buf = get_pagina_data(pag->nro_frame);
+        //log_info(logger, "Bueno, no fallo...!");
 
         uint32_t bytes_a_leer = p==0
             ? MIN(cfg->TAMANIO_PAGINA - offset, tamanio) // primera pag
@@ -416,6 +424,10 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
             buf + (p==0? offset : 0),
             bytes_a_leer
         );
+
+        /*for (int i = 0; i < tamanio; i++) {
+            log_info(logger, "%02x", ((unsigned char*) data) [i]);
+        }*/
 
         if (tamanio_restante < bytes_a_leer) tamanio_restante = 0;
         else tamanio_restante -= bytes_a_leer;
@@ -465,26 +477,40 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
     uint32_t inicio;
     uint32_t frame_libre = primer_frame_libre_framo(pid, &inicio);
     //log_info(logger, "Iter (%" PRIu32 "), hubo offset? (%d)", iter, offset);
-    //log_info(logger, "Primer frame libre: %" PRId64 ", inicio %" PRIu32, frame_libre, inicio);
+    //log_info(logger, "Primer frame libre: %" PRIu32 ", inicio %" PRIu32, frame_libre, inicio);
     
     bool en_mp = true;
     if (frame_libre == 0xFFFF) {
         en_mp = false;
+        const uint32_t paginas_swap = cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA;
+        //log_info(logger, "meter_pagina_en_mp: la cargo en swap eh");
         // LA CARGA EN SWAP DIRECTAMENTE
 
         // Busco donde joracas meterla en swap, pagina por el medio o nueva?
         uint32_t frame_libre_swap = 0;
-        while (
-            tabla_frames_swap[frame_libre_swap].pid!=pid ||
-            tabla_frames_swap[frame_libre_swap].inicio==0
-        ) frame_libre_swap++;
-        if (frame_libre_swap == cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA) {
+        for (; frame_libre_swap < paginas_swap; frame_libre_swap++) {
+            /*log_info(logger, "meter_pagina_en_mp: mirando... PID %" PRIu32 " | INICIO %" PRIu32,
+                tabla_frames_swap[frame_libre_swap].pid, tabla_frames_swap[frame_libre_swap].inicio
+            );*/
+            if (
+                tabla_frames_swap[frame_libre_swap].pid==pid &&
+                tabla_frames_swap[frame_libre_swap].inicio!=0 &&
+                tabla_frames_swap[frame_libre_swap].inicio<cfg->TAMANIO_PAGINA
+            ) {
+                break;
+            }
+        }
+
+        if (frame_libre_swap == paginas_swap) {
             // Nueva...
+            //log_info(logger, "meter_pagina_en_mp: es una nueva en swap!");
             frame_libre_swap = 0;
             while (
+                frame_libre_swap < paginas_swap &&
                 tabla_frames_swap[frame_libre_swap].pid!=0
             ) frame_libre_swap++;
         }
+        //log_info(logger, "meter_pagina_en_mp: va en el %" PRIu32 " de swap", frame_libre_swap);
 
         frame_swap_t frame_swap = tabla_frames_swap[frame_libre_swap];
         memcpy(
@@ -494,13 +520,18 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
         );
 
         frame_libre = frame_libre_swap;
+        espacio_disponible_swap += cfg->TAMANIO_PAGINA;
     }
 
     uint32_t nro_frame = frame_libre; // ben
 
-    ocupar_frame_framo(nro_frame, size, pid);                           // admin.
-    memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);           // MP
-    list_add_page_frame_tppatotas(pid, nro_frame, size, en_mp);         // admin.
+    //log_info(logger, "meter_pagina_en_mp: creo que paso todo. Vamos al final");
+
+    if (en_mp) ocupar_frame_framo(nro_frame, size, pid);                  // admin.
+    if (en_mp) memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);  // MP
+    list_add_page_frame_tppatotas(pid, nro_frame, size, en_mp);           // admin.
+
+    print_swap(true);
 
     /*log_info(logger,
         "Ocupe el frame %" PRIu32 " desde el inicio %" PRIu32 " con data de size %zu\n",
@@ -517,11 +548,37 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
 
     // Data de la primera pag libre, para saber si esta por la mitad o que
+    //log_info(logger, "Buscando frame libre... (size %zu)", size);
+    print_framo(true); // debug
+
     uint32_t offset = 0;
     uint32_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);
+    //log_info(logger, "Encontre el %" PRIu32, frame_de_pag_fragmentada);
     if (frame_de_pag_fragmentada == 0xFFFF) {
         // LA CARGA DIRECTAMENTE EN SWAP, se encarga la static bool meter_pagina_en_mp
-        offset = 0;
+        // Puede ser una pagina nueva o una que esta a medias
+        uint32_t ultima_pag_pid = 0;
+        for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
+            if (
+                tabla_frames_swap[i].pid==pid &&
+                tabla_frames_swap[i].nro_pagina > ultima_pag_pid &&
+                tabla_frames_swap[i].inicio < cfg->TAMANIO_PAGINA
+            )
+                ultima_pag_pid = tabla_frames_swap[i].nro_pagina;
+        }
+        for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
+            if (ultima_pag_pid==0) {
+                offset = 0;
+                break;
+            }
+            if (tabla_frames_swap[i].pid==pid && tabla_frames_swap[i].nro_pagina==ultima_pag_pid) {
+                offset = tabla_frames_swap[i].inicio;
+                /*log_info(logger, "Va a swap a donde PID/NRO/INICIO = %d/%d/%d",
+                    tabla_frames_swap[i].pid, tabla_frames_swap[i].nro_pagina, tabla_frames_swap[i].inicio
+                );*/
+                break;
+            }
+        }
     }
     *nuevapag = offset==0; // SIGNIFICA QUE INAUGURA UNA NUEVA PAGINA
 
@@ -553,10 +610,12 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
         else if (offset) memcpy(buf, data+t_pag-offset+(i-1)*t_pag, size_chunk); // completas intermedias o final (hubo offset)
         else             memcpy(buf, data+i*t_pag,                  size_chunk); // completas intermedias o final (no hubo offset)
 
+        //log_info(logger, "Antes de meter_pagina_en_mp");
         if (!meter_pagina_en_mp(buf, size_chunk, pid, i, !!offset)) {
             free(buf);
             return 0xFFFF;
         }
+        //log_info(logger, "Despues de meter_pagina_en_mp");
         free(buf);
     }
 
@@ -627,7 +686,10 @@ bool delete_patota_en_mp(uint32_t pid) {
     t_list* paginas = tabla_patota->paginas;
     t_list_iterator* i_paginas = list_iterator_create(paginas);
     while (list_iterator_has_next(i_paginas)) {
-        entrada_tp_t* pagina = (entrada_tp_t*) list_iterator_next(i_paginas);
+        entrada_tp_t* pagina = list_iterator_next(i_paginas);
+        /*log_info(logger, "Borrando pagina %" PRIu32 " de PID %" PRIu32 " en frame %" PRIu32 " (%d)...",
+            pagina->nro_pagina, pid, pagina->nro_frame, pagina->bit_P
+        );*/
         if (pagina->bit_P) {
             // Esta en MP
             clear_frame_en_mp(pagina->nro_frame);
@@ -636,6 +698,9 @@ bool delete_patota_en_mp(uint32_t pid) {
         else {
             // Esta en SWAP
             memset(area_swap+pagina->nro_frame*cfg->TAMANIO_PAGINA, 0, cfg->TAMANIO_PAGINA);
+            tabla_frames_swap[pagina->nro_frame].pid = 0;
+            tabla_frames_swap[pagina->nro_frame].nro_pagina = 0xFFFF;
+            tabla_frames_swap[pagina->nro_frame].inicio = 0;
         }
     }
     list_iterator_destroy(i_paginas);
@@ -646,7 +711,7 @@ bool delete_patota_en_mp(uint32_t pid) {
 
 // SWAP
 
-static uint32_t pagina_a_reemplazar_LRU() {
+static uint32_t pagina_a_reemplazar_LRU(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {
     uint32_t TUR_minimo = 0xFFFF;
     entrada_tp_t* entrada_victima = NULL;
 
@@ -661,6 +726,8 @@ static uint32_t pagina_a_reemplazar_LRU() {
             if (pagina->bit_P && pagina->TUR<TUR_minimo) {
                 TUR_minimo = pagina->TUR;
                 entrada_victima = pagina;
+                *pid = tabla_patota->pid;
+                *nro_pagina = pagina->nro_pagina;
             }
         }
         list_iterator_destroy(i_paginas);
@@ -668,27 +735,44 @@ static uint32_t pagina_a_reemplazar_LRU() {
     list_iterator_destroy(i_tp_patotas);
 
     entrada_victima->bit_P = 0;
-    return entrada_victima->nro_frame;
+    uint32_t frame = entrada_victima->nro_frame;
+    entrada_victima->nro_frame = frame_a_swap;
+    return frame;
 }
 #define BEN(a,b) b
-static uint32_t pagina_a_reemplazar_CLOCK() {
+static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {
     // "No buscamos eficiencia en el TP", parte 654356
     // 1427 profes de PDP se retuercen del dolor y los ojos les sangran chocolate
 
     // Como tengo las tablas con bit_U en cada tabla de patota... necesito concatenar todas en una lista
+    struct horrible {
+        entrada_tp_t* pagina;
+        uint32_t pid;
+    };
     t_list* frames_presentes = list_create();
+
+    // MIRAR BAJO LA SUPERVISION DE UN ADULTO RESPONSABLE
     t_list_iterator* i_tp_patotas = list_iterator_create(tp_patotas);
     while (list_iterator_has_next(i_tp_patotas)) {
         tp_patota_t* tabla_patota = list_iterator_next(i_tp_patotas);
-        list_add_all(tabla_patota->paginas, frames_presentes);
+
+        t_list_iterator* i_paginas = list_iterator_create(tabla_patota->paginas);
+        while (list_iterator_has_next(i_paginas)) {
+            entrada_tp_t* pagina = list_iterator_next(i_paginas);
+            struct horrible* pagina_patota = malloc(sizeof(struct horrible));
+            pagina_patota->pagina = pagina;
+            pagina_patota->pid = tabla_patota->pid;
+            list_add(frames_presentes, (void*) pagina_patota);
+        }
+        list_iterator_destroy(i_paginas);
     }
     list_iterator_destroy(i_tp_patotas);
 
     // yyy ordenarla por nro de frame
-    bool frame_precede_frame(void* f1, void* f2) {
-        entrada_tp_t* frame1 = f1;
-        entrada_tp_t* frame2 = f2;
-        return frame1->nro_frame < frame2->nro_frame;
+    bool frame_precede_frame(void* e1, void* e2) {
+        struct horrible* entrada1 = e1;
+        struct horrible* entrada2 = e2;
+        return entrada1->pagina->nro_frame < entrada2->pagina->nro_frame;
     }
     list_sort(frames_presentes, &frame_precede_frame);
 
@@ -696,12 +780,15 @@ static uint32_t pagina_a_reemplazar_CLOCK() {
     const uint32_t cant_frames = list_size(frames_presentes);
     uint32_t nro_frame_posible_victima = 0;
     while (BEN(@ RELOJITO @,'@')) { // si no lo obfuscaba, era demasiado buena esta funcion ya
-        entrada_tp_t* posible_victima = list_get(frames_presentes, nro_frame_posible_victima % cant_frames);
-        if (posible_victima->bit_U == 0) {
-            posible_victima->bit_P = 0;
+        struct horrible* posible_victima = list_get(frames_presentes, nro_frame_posible_victima % cant_frames);
+        if (posible_victima->pagina->bit_U == 0) {
+            posible_victima->pagina->bit_P = 0;
+            posible_victima->pagina->nro_frame = frame_a_swap;
+            *pid = posible_victima->pid;
+            *nro_pagina = posible_victima->pagina->nro_pagina;
             break;
         }
-        posible_victima->bit_U = 0;
+        posible_victima->pagina->bit_U = 0;
 
         nro_frame_posible_victima++;
     }
@@ -711,31 +798,52 @@ static uint32_t pagina_a_reemplazar_CLOCK() {
     return nro_frame_posible_victima;
 }
 
-uint32_t pagina_a_reemplazar() {
+uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {
     return cfg->LRU
-        ? pagina_a_reemplazar_LRU()
-        : pagina_a_reemplazar_CLOCK();
+        ? pagina_a_reemplazar_LRU(frame_a_swap, pid, nro_pagina)
+        : pagina_a_reemplazar_CLOCK(frame_a_swap, pid, nro_pagina);
 }
 
 // Se llama cuando bit_P == 0 y necesito leer la pagina
 // Es que yo ya a esta altura no puedo pensar una solucion eficiente y con codigo limpio, lo lamento profundamente
 bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
+    /*log_info(logger, "traer_pagina_de_swap: Voy a buscar cosas para PID: %" PRIu32 " N_P: %" PRIu32,
+        pid, nro_pagina
+    );*/
 
     // Mi pagina deseada esta aca:
+    const uint32_t paginas_swap = cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA;
     long int frame_deseado_swap = 0;
-    while (
-        tabla_frames_swap[frame_deseado_swap].pid != pid ||
-        tabla_frames_swap[frame_deseado_swap].nro_pagina != nro_pagina
-    ) frame_deseado_swap++;
+    for (; frame_deseado_swap < paginas_swap; frame_deseado_swap++) {
+        /*log_info(logger, "traer_pagina_de_swap: mirando PID: %" PRIu32 " N_P: %" PRIu32,
+            tabla_frames_swap[frame_deseado_swap].pid,
+            tabla_frames_swap[frame_deseado_swap].nro_pagina
+        );*/
+        if (
+            tabla_frames_swap[frame_deseado_swap].pid == pid &&
+            tabla_frames_swap[frame_deseado_swap].nro_pagina == nro_pagina
+        ) break;
+    }
+    /*log_info(logger, "traer_pagina_de_swap: parece que es el frame %" PRIu32 " en swap...",
+        frame_deseado_swap
+    );*/
 
-    uint32_t inicio; // ignorable
+    uint32_t inicio; // primero lo ignoramos y despues lo reutilizamos
     uint32_t frame_libre = primer_frame_libre_framo(0xCACA, &inicio); // pid gigante que nunca vamos a tener para que ignore paginas por la mitad
 
     if (frame_libre == 0xFFFF) {
+        //log_info(logger, "traer_pagina_de_swap: No hay frame libre en MP, hacemos cambioloco");
         // NO HAY FRAME LIBRE EN MP
         // Tengo que rajar una pagina (LRU | CLOCK). Cambio esa pagina por la deseada. UN SWAP.
-        frame_libre = pagina_a_reemplazar();
+        uint32_t pid_rajado, pagina_rajada, inicio_frame_victima;
+        frame_libre = pagina_a_reemplazar(frame_deseado_swap, &pid_rajado, &pagina_rajada);
+
+        inicio_frame_victima = tabla_frames[frame_libre].inicio_hueco;
+        inicio = tabla_frames_swap[frame_deseado_swap].inicio;
+        /*log_info(logger, "traer_pagina_de_swap: Resulta que reemplazamos el frame %" PRIu32 " de MP"
+            " donde estaba la pagina %" PRIu32 " de PID#%" PRIu32 " con hueco iniciado en %" PRIu32,
+            frame_libre, pagina_rajada, pid_rajado, inicio_frame_victima
+        );*/
 
         // Data de las paginas
         void* data_pagina_mp = get_pagina_data(frame_libre);
@@ -757,6 +865,12 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
 
         free(data_pagina_mp);
         free(data_pagina_swap);
+
+        tabla_frames_swap[frame_deseado_swap].pid = pid_rajado;
+        tabla_frames_swap[frame_deseado_swap].inicio = inicio_frame_victima;
+        tabla_frames_swap[frame_deseado_swap].nro_pagina = pagina_rajada;
+
+        //log_info(logger, "traer_pagina_de_swap: Fin de la falopa");
     }
     else {
         // HAY FRAME LIBRE EN MP
@@ -768,19 +882,32 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
             area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
             cfg->TAMANIO_PAGINA
         );
+
+        // Limpio frame en swap
         memset(
             area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
             0,
             cfg->TAMANIO_PAGINA
-        ); // esto no hace falta pero asi quedan los bytes en 00
+        );
+        espacio_disponible_swap -= cfg->TAMANIO_PAGINA;
+        tabla_frames_swap[frame_deseado_swap].pid = 0;
 
         // Carga en MP
         memcpy_pagina_en_frame_mp(frame_libre, 0, data, cfg->TAMANIO_PAGINA);
+        free(data);
+
+        inicio = tabla_frames_swap[frame_deseado_swap].inicio;
     }
 
-    // Actualizo estado de pagina en TPPATOTAS
+    // Actualizo estado de pagina en TPPATOTAS y FRAMO (IMPORTANTE!)
+    //log_info(logger, "Framo: frame/inicio/pid %" PRIu32 "/%" PRIu32 "/%" PRIu32 "", frame_libre, inicio, pid);
     list_indicar_pagina_en_frame_tppatotas(pid, nro_pagina, frame_libre);
+    liberar_frame_framo(frame_libre);
+    ocupar_frame_framo(
+        frame_libre,
+        inicio,
+        pid
+    );
 
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
     return true;
 }

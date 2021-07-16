@@ -26,36 +26,41 @@ static uint32_t static_nro_frame;
 
 // romlfoa estas dos antes era una sola funcion y destrozaba todos los structs XD
 static bool ts_patota_has_pid(void* x) {
-    ts_patota_t* elem = (ts_patota_t*) x;
+    ts_patota_t* elem = x;
     return elem->pid == static_pid;
 }
 static bool tp_patota_has_pid(void* x) {
-    tp_patota_t* elem = (tp_patota_t*) x;
+    tp_patota_t* elem = x;
     return elem->pid == static_pid;
 }
 
 static bool has_tid(void* x) {
-    tid_pid_lookup_t* elem = (tid_pid_lookup_t*) x;
+    tid_pid_lookup_t* elem = x;
     return elem->tid == static_tid;
 }
 
 static bool has_nro_pag(void* x) {
-    entrada_tp_t* elem = (entrada_tp_t*) x;
+    entrada_tp_t* elem = x;
     return elem->nro_pagina == static_nro_pag;
 }
 
 static bool has_nro_frame(void* x) {
-    entrada_tp_t* elem = (entrada_tp_t*) x;
-    return elem->nro_frame == static_nro_frame;
+    entrada_tp_t* elem = x;
+    return (elem->nro_frame == static_nro_frame) && (elem->bit_P==1);
+}
+
+static bool has_nro_frame_swap(void* x) {
+    entrada_tp_t* elem = x;
+    return (elem->nro_frame == static_nro_frame) && (elem->bit_P==0);
 }
 
 static bool ts_patota_t_pcb_has_inicio(void* x) {
-    ts_patota_t* elem = (ts_patota_t*) x;
+    ts_patota_t* elem = x;
     return elem->pcb->inicio == static_inicio;
 }
 
 static bool ts_patota_t_tareas_has_inicio(void* x) {
-    ts_patota_t* elem = (ts_patota_t*) x;
+    ts_patota_t* elem = x;
     return elem->tareas->inicio == static_inicio;
 }
 
@@ -213,16 +218,21 @@ tp_patota_t* list_remove_by_pid_tppatotas(uint32_t pid) {
 // Tambien actualiza cantidad total de paginas de la patota
 // Contempla el caso en el que una pagina arranque cargada en SWAP
 void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame, size_t size, bool presente) {
+    /*log_info(logger, "list_add_page...: pid/nro_frame/size %" PRIu32 "/%" PRIu32 "/%" PRIu32 " (P%d)",
+        pid, nro_frame, size, presente
+    );*/
     pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     static_pid = pid;
 
     tp_patota_t* res = list_find(tp_patotas, &tp_patota_has_pid);
 
     static_nro_frame = nro_frame;
-    entrada_tp_t* e_pagina = list_find(res->paginas, &has_nro_frame);
+    entrada_tp_t* e_pagina = presente
+        ? list_find(res->paginas, &has_nro_frame)
+        : list_find(res->paginas, &has_nro_frame_swap);
     if (e_pagina == NULL) {
         // Nuevo frame, nueva pagina!
-        //log_info(logger, "Nuevo frame (%" PRIu32 ")", nro_frame);
+        //log_info(logger, "Nuevo frame (%" PRIu32 ") (P%d)", nro_frame, presente);
         entrada_tp_t* e_pagina_new = malloc(sizeof(entrada_tp_t));
         e_pagina_new->nro_pagina = res->pages;
         e_pagina_new->nro_frame = nro_frame;
@@ -235,6 +245,9 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame, size_t size
         e_pagina_new->bit_P = presente;
 
         list_add(res->paginas, (void*) e_pagina_new);
+        /*log_info(logger, "Agregada esta entrada_tp_t*: %" PRIu32 "|%" PRIu32 "|%d",
+            e_pagina_new->nro_pagina, e_pagina_new->nro_frame, e_pagina_new->bit_P
+        );*/
 
         if (!presente) {
             tabla_frames_swap[nro_frame].pid = pid;
@@ -244,7 +257,11 @@ void list_add_page_frame_tppatotas(uint32_t pid, uint32_t nro_frame, size_t size
 
         res->pages++;
     }
-    // Otherwise, te ignoro, gil
+    else {
+        // No nuevo frame, esta en SWAP
+        //log_info(logger, "Not nuevo frame (%" PRIu32 ") (P%d)", nro_frame, presente);
+        if (!presente) tabla_frames_swap[nro_frame].inicio += size;
+    }
     pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
 }
 
@@ -478,6 +495,7 @@ void print_tid_pid_lookup(bool log) {
 }
 
 void print_swap(bool log) {
+    log_info(logger, "\n\n------ SWAP ------");
     for (signed int i = 0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
         log_info(logger,
             "PID: %" PRIu32 " | NRO_PAG: %" PRIu32 " | INICIO: %" PRIu32,

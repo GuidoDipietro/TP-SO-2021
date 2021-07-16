@@ -56,6 +56,7 @@ void asesinar_tid_pid_lookup();
 void print_tspatotas(bool log);
 void print_tstripulantes(bool log);
 void print_tid_pid_lookup(bool log);
+void print_swap(bool log);
 
 /// Prints (logs)
 #define PRI_MP                 (uint16_t) 0b0000000000000001

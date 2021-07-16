@@ -452,9 +452,10 @@ void liberar_frame_framo(uint32_t index) {
 }
 
 char* stringify_tabla_frames() {
-    const size_t size_line = 45; // sin el \0
+    const size_t size_line = 36; // sin el \0
 
     pthread_mutex_lock(&MUTEX_FRAMO);
+    pthread_mutex_lock(&MUTEX_TP_PATOTAS);
     const size_t size_str = cfg->CANT_PAGINAS * size_line + 1; // rows * size_row + \0
     char* str = malloc(size_str);
     memset(str, 0, size_str);
@@ -469,10 +470,11 @@ char* stringify_tabla_frames() {
         t_list_iterator* i_paginas = list_iterator_create(tabla_patota->paginas);
         for (int j = 0; list_iterator_has_next(i_paginas); j++) {
             entrada_tp_t* pagina = list_iterator_next(i_paginas);
+            if (pagina->bit_P==0) continue;
             frame_t frame = tabla_frames[pagina->nro_frame];
             char* line = string_from_format(
-                "Marco: %3d Libre: %d Proceso: %3d Pagina: %3d\n",
-                pagina->nro_frame, frame.libre, frame.pid_ocupador, pagina->nro_pagina
+                "Marco: %3d Proceso: %3d Pagina: %3d\n",
+                pagina->nro_frame, frame.pid_ocupador, pagina->nro_pagina
             );
             memcpy(str+size_line*lines, line, size_line); // sin el \0
             lines++;
@@ -481,6 +483,7 @@ char* stringify_tabla_frames() {
         list_iterator_destroy(i_paginas);
     }
     list_iterator_destroy(i_tp_patotas);
+    pthread_mutex_unlock(&MUTEX_TP_PATOTAS);
     pthread_mutex_unlock(&MUTEX_FRAMO);
 
     return str;
