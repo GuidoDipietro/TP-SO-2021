@@ -38,6 +38,7 @@ typedef enum {
     CONSUMIR,
     DESCARTAR_BASURA,
     CAMBIO_ESTADO,
+    HANDSHAKE_SABOTAJE,
     DEBUG               = 69,
 } op_code;
 
@@ -124,6 +125,7 @@ bool send_bitacora(int fd, char* bitacora);                 //toma
 bool recv_bitacora(int fd, char** bitacora);                //me llegouna vitacoras
 
 // SABOTAJE //
+bool send_handshake_sabotaje(int fd);
 bool send_sabotaje(int fd, t_posicion* posicion);
 bool recv_sabotaje(int fd, t_posicion** posicion);
 

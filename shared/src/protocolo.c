@@ -431,6 +431,9 @@ bool recv_sabotaje(int fd, t_posicion** posicion) {
     free(stream);
     return true;
 }
+bool send_handshake_sabotaje(int fd) {
+    return send_codigo_op(fd, HANDSHAKE_SABOTAJE);
+}
 
 
 // no necesita serializar
