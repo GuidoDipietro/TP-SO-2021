@@ -39,6 +39,15 @@ int main() {
 
 /*
 
+//crear_bitacora("Tripulante1.ims");
+bitacora_t* bit = cargar_bitacora("Tripulante1.ims");
+//char* content = "Se mueve de la concha a la reconcha";
+//write_to_bitacora(bit, content, strlen(content));
+//cerrar_bitacora(bit);
+char* ret = recuperar_bitacora(bit);
+fwrite(ret, bit->size, 1, stdout);
+fflush(stdout);
+
 CODIGO DE COMO OPERAR CON ARCHIVOS
 LO GUARDO POR LAS DUDAS PARA DESPUES
 

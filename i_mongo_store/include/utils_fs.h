@@ -30,5 +30,6 @@ extern pthread_t HILO_SINCRONIZADOR;
 
 char* concatenar_montaje(char* str);
 char* concatenar_montaje_files(char* filename);
+char* concatenar_montaje_bitacora(char* filename);
 
 #endif

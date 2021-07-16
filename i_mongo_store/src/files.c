@@ -281,7 +281,6 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
     file->size += len;
 
     pthread_mutex_unlock(&(file_data->mutex_file));
-
 }
 
 void cerrar_archivo(open_file_t* file_data) {
