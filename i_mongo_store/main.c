@@ -31,10 +31,10 @@ int main() {
     iniciar_sincronizador();
     set_signal_handlers();
 
-    bitacora_t* bit = cargar_bitacora("Tripulante1.ims");
-    char* ret = recuperar_bitacora(bit);
-    fwrite(ret, bit->size, 1, stdout);
-    fflush(stdout);
+    //bitacora_t* bit = cargar_bitacora("Tripulante1.ims");
+    //char* ret = recuperar_bitacora(bit);
+    //fwrite(ret, bit->size, 1, stdout);
+    //fflush(stdout);
 
     // Envio y recepcion de mensajes perenne
     while (server_escuchar(SERVERNAME, server_fd));

@@ -83,6 +83,14 @@ void iterar_cola_new(void (*function)(void*)) {
     pthread_mutex_unlock(&MUTEX_LISTA_NEW);
 }
 
+t_running_thread* buscar_cola_new(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_LISTA_NEW);
+    obj_tid = tid;
+    t_running_thread* ret = list_find(COLA_NEW->elements, filter_t_running_thread_by_tid);
+    pthread_mutex_unlock(&MUTEX_LISTA_NEW);
+    return ret;
+}
+
 void* remover_cola_new(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_LISTA_NEW);
     obj_tid = tid;
@@ -111,6 +119,14 @@ t_running_thread* pop_cola_bloqueados() {
     t_running_thread* t = queue_pop(COLA_BLOQUEADOS);
     pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
     return t;
+}
+
+t_running_thread* buscar_cola_bloqueados(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_COLA_BLOQUEADOS);
+    obj_tid = tid;
+    t_running_thread* ret = list_find(COLA_BLOQUEADOS->elements, filter_t_running_thread_by_tid);
+    pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
+    return ret;
 }
 
 void iterar_cola_bloqueados(void (*f)(void*)) {
@@ -189,10 +205,10 @@ void iterar_lista_hilos(void (*f)(void*)) {
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
 }
 
-void* buscar_lista_hilos(uint32_t tid) {
+t_running_thread* buscar_lista_hilos(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_LISTA_HILOS);
     obj_tid = tid;
-    void* p = list_find(LISTA_HILOS, filter_t_running_thread_by_tid);
+    t_running_thread* p = list_find(LISTA_HILOS, filter_t_running_thread_by_tid);
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
     return p;
 }
@@ -234,4 +250,12 @@ void iterar_lista_exit(void (*f)(void*)) {
     pthread_mutex_lock(&MUTEX_COLA_EXIT);
     list_iterate(COLA_EXIT, f);
     pthread_mutex_unlock(&MUTEX_COLA_EXIT);
+}
+
+t_tripulante* obtener_lista_exit(uint32_t tid) {
+    pthread_mutex_lock(&MUTEX_COLA_EXIT);
+    obj_tid = tid;
+    void* p = list_find(COLA_EXIT, filter_by_tid);
+    pthread_mutex_unlock(&MUTEX_COLA_EXIT);
+    return p;
 }

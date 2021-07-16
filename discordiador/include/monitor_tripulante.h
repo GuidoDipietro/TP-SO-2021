@@ -49,6 +49,8 @@ void push_cola_new(t_running_thread*);
 t_running_thread* pop_cola_new();
 void iterar_cola_new(void (*f)(void*));
 uint16_t largo_cola_new();
+t_running_thread* buscar_cola_new(uint32_t tid);
+void* remover_cola_new(uint32_t tid);
 
 // Bloqueados E/S
 
@@ -57,6 +59,7 @@ extern t_queue* COLA_BLOQUEADOS;
 void push_cola_bloqueados(t_running_thread* thread);
 t_running_thread* pop_cola_bloqueados();
 void iterar_cola_bloqueados(void (*f)(void*));
+t_running_thread* buscar_cola_bloqueados(uint32_t tid);
 
 // Cola tripulantes
 
@@ -78,7 +81,7 @@ void iniciar_mutex();
 void monitor_add_lista_hilos(void*); 
 void* monitor_remove_by_condition_lista_hilos(bool (*f)(void*));
 uint16_t largo_lista_hilos();
-void* buscar_lista_hilos(uint32_t);
+t_running_thread* buscar_lista_hilos(uint32_t tid);
 void* remover_lista_hilos(uint32_t);
 void iterar_lista_hilos(void (*f)(void*));
 
@@ -92,9 +95,9 @@ void desbloquear_tripulantes();
 extern t_list* COLA_EXIT;
 
 void agregar_lista_exit(void*);
-void* remover_lista_exit(uint32_t);
 void iterar_lista_exit(void (*f)(void*));
-void* remover_cola_new(uint32_t tid);
+void* remover_lista_exit(uint32_t tid);
+t_tripulante* obtener_lista_exit(uint32_t tid);
 
 // Cola BLOCKED SABOTAJE
 

@@ -109,3 +109,26 @@ void completar_bitacora(char* nombre, void* content, uint32_t len) {
     sem_post(&DISCO_LIBRE);
     log_info(logger, "Escrita bitacora %s", nombre);
 }
+
+char* obtener_bitacora(char* nombre) {
+    sem_t sem;
+    sem_init(&sem, 0, 0);
+    agregar_controlador_disco(&sem);
+    sem_wait(&sem);
+
+    bitacora_t* bit = cargar_bitacora(nombre);
+    
+    if(bit == NULL)
+        return strdup("");
+    
+    char* ret = recuperar_bitacora(bit);
+
+    ret = realloc(ret, bit->size + 1);
+    ret[bit->size] = '\0';
+
+    sem_destroy(&sem);
+    sem_post(&DISCO_LIBRE);
+    log_info(logger, "Recuperada bitacora %s", nombre);
+
+    return ret;
+}

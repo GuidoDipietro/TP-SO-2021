@@ -26,7 +26,20 @@ static void procesar_conexion(void* void_args) {
             case DEBUG:;
                 log_info(logger, "Me llego el debug!");
                 break;
-            case OBTENER_BITACORA:
+            case OBTENER_BITACORA: {
+                uint32_t id_tripulante;
+                if(recv_tripulante(cliente_socket, &id_tripulante)) {
+                    char* file = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = obtener_bitacora(file);
+                    send_bitacora(cliente_socket, content);
+                    free(content);
+                    free(file);
+                } else {
+                    log_error(logger, "Error recibiendo OBTENER_BITACORA");
+                }
+
+                break;
+            }
             case MOVIMIENTO: {
                 uint32_t id_tripulante;
                 t_posicion *origen, *destino;
@@ -46,7 +59,7 @@ static void procesar_conexion(void* void_args) {
                     free(content);
                 }
                 else {
-                    log_error(logger, "Error recibiendo movimiento");
+                    log_error(logger, "Error recibiendo MOVIMIENTO");
                 }
                 break;
             }
@@ -66,7 +79,7 @@ static void procesar_conexion(void* void_args) {
                     free(nombre_tarea);
                     free(content);
                 } else
-                    log_error(logger, "Error recibiendo el aviso de inicio de tarea");
+                    log_error(logger, "Error recibiendo INICIO_TAREA");
                 break;
             }
             case FIN_TAREA: {
@@ -85,7 +98,7 @@ static void procesar_conexion(void* void_args) {
                     free(nombre_tarea);
                     free(content);
                 } else
-                    log_error(logger, "Error recibiendo el aviso de fin de tarea");
+                    log_error(logger, "Error recibiendo FIN_TAREA");
                 break;
             }
             case ATENCION_SABOTAJE:
@@ -97,7 +110,7 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Tarea de generar recursos recibida");
                     tarea_generar(tipo, cantidad);
                 } else{
-                    log_error(logger, "Error fatal recibiendo instruccion de generar recursos");
+                    log_error(logger, "Error recibiendo GENERAR");
                 }
                 break;
             }
@@ -109,7 +122,7 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Tarea de consumir recursos recibida");
                     tarea_consumir(tipo, cantidad);
                 } else{
-                    log_error(logger, "Error fatal recibiendo instruccion de consumir recursos");
+                    log_error(logger, "Error recibieno CONSUMIR");
                 }
                 break;
             }

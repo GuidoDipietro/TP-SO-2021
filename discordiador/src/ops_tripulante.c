@@ -149,9 +149,13 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);
         // si el tripulante esta en exit, el mi-ram-alta-calidad ya borro el TCB, por lo que no hace falta avisarle
         sem_destroy(&(((t_running_thread*) p)->sem_pause));
+        cerrar_conexiones_tripulante(((t_running_thread*) p)->t);
         free((t_running_thread*) p);
-    } else
+    } else {
         trip = p;
+        if(trip->fd_i_mongo_store)
+            close(trip->fd_i_mongo_store);
+    }
 
     free_t_tripulante(trip);
 
