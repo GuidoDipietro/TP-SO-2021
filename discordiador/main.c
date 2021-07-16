@@ -37,7 +37,6 @@ int main() {
     LISTA_SABOTAJE = list_create();
     COLA_BLOQUEADOS = queue_create();
     iniciar_mutex();
-    set_signal_handlers();
 
     main_log = log_create("discordiador.log", "DISCORDIADOR", true, LOG_LEVEL_INFO);
     main_log_inv = log_create("discordiador.log", "DISCORDIADOR", false, LOG_LEVEL_TRACE);
@@ -51,12 +50,22 @@ int main() {
     }
 
     pthread_t THREAD_IO;
-    if(!pthread_create(&THREAD_IO, NULL, (void*) controlador_es, NULL)) {
+    if(!pthread_create(&THREAD_IO, NULL, (void*) controlador_es, NULL))
         pthread_detach(THREAD_IO);
-        menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
-    } else
+    else {
         log_error(main_log, "ERROR CRITICO INICIANDO EL DISCORDIADOR. NO SE PUDO CREAR EL HILO DEL CONTROLADOR DE E/S. ABORTANDO.");
-    
+        return EXIT_FAILURE;
+    }
+
+    pthread_t LISTENER_SABOTAJE;
+     if(!pthread_create(&LISTENER_SABOTAJE, NULL, (void*) listener_sabotaje, NULL))
+        pthread_detach(LISTENER_SABOTAJE);
+    else {
+        log_error(main_log, "ERROR CRITICO INICIANDO EL DISCORDIADOR. NO SE PUDO CREAR EL HILO DEL LISTENER DE SABOTAJES. ABORTANDO.");
+        return EXIT_FAILURE;
+    }
+
+    menu_start(&i_mongo_store_fd, &mi_ram_hq_fd);
     
     cerrar_programa(main_log, main_log_inv, DISCORDIADOR_CFG);
 

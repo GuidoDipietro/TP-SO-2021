@@ -12,6 +12,7 @@ void iniciar_semaforos() {
     sem_init(&OPERACIONES_PENDIENTES, 0, 0);
     sem_init(&DISCO_LIBRE, 0, 0);
     sem_init(&sem_sabotaje, 0, 0);
+    sem_init(&sem_inicio_fsck, 0, 0);
 }
 
 void iniciar_sincronizador() {

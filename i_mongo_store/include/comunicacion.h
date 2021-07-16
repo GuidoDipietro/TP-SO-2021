@@ -8,6 +8,7 @@
 #include <commons/config.h>
 
 #include "tareas.h"
+#include "sabotajes.h"
 
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"

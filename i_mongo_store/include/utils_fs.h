@@ -31,6 +31,7 @@ extern pthread_t HILO_SINCRONIZADOR;
 
 extern bool saboteado;
 extern sem_t sem_sabotaje;
+extern sem_t sem_inicio_fsck;
 
 char* concatenar_montaje(char* str);
 char* concatenar_montaje_files(char* filename);
