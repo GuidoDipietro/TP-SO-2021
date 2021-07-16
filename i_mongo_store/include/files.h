@@ -7,6 +7,7 @@
 
 #include "monitor_lista_archivos.h"
 #include "utils_fs.h"
+#include "md5.h"
 
 void escribir_archivo(char* nombre, file_t* file);
 void crear_archivo(char* nombre, char c);

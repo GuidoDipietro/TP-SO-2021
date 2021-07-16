@@ -1,10 +1,13 @@
 #ifndef TAREAS_H
 #define TAREAS_H
 
-#include "files.h"
+#include <semaphore.h>
 
-void tarea_generar(char* nombre, char c, uint32_t cantidad);
-void tarea_consumir(char* nombre, uint32_t cantidad);
+#include "files.h"
+#include "controlador.h"
+
+void tarea_generar(tipo_item tipo, uint32_t cantidad);
+void tarea_consumir(tipo_item tipo, uint32_t cantidad);
 void descartar_basura();
 
 #endif

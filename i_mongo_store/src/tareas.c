@@ -1,6 +1,24 @@
 #include "../include/tareas.h"
 
-void tarea_generar(char* nombre, char c, uint32_t cantidad) {
+void tarea_generar(tipo_item tipo, uint32_t cantidad) {
+    sem_t sem;
+    sem_init(&sem, 0, 0);
+    agregar_controlador_disco(&sem);
+    sem_wait(&sem);
+
+    char c;
+    char* nombre;
+    if(tipo == OXIGENO) {
+        c = 'O';
+        nombre = "Oxigeno.ims";
+    } else if(tipo == COMIDA) {
+        c = 'C';
+        nombre = "Comida.ims";
+    } else if(tipo == BASURA) {
+        c = 'B';
+        nombre = "Basura.ims";
+    }
+
     open_file_t* file_data = obtener_archivo(nombre); // Esta abierto ya?
 
     if(file_data == NULL) {
@@ -15,9 +33,23 @@ void tarea_generar(char* nombre, char c, uint32_t cantidad) {
     }
     generar_recurso(file_data, cantidad);
     cerrar_archivo(file_data);
+
+    sem_destroy(&sem);
+    sem_post(&DISCO_LIBRE);
 }
 
-void tarea_consumir(char* nombre, uint32_t cantidad) {
+void tarea_consumir(tipo_item tipo, uint32_t cantidad) {
+    sem_t sem;
+    sem_init(&sem, 0, 0);
+    agregar_controlador_disco(&sem);
+    sem_wait(&sem);
+
+    char* nombre;
+    if(tipo == OXIGENO)
+        nombre = "Oxigeno.ims";
+    else if(tipo == COMIDA)
+        nombre = "Comida.ims";
+
     open_file_t* file_data = obtener_archivo(nombre);
 
     if(file_data == NULL) {
@@ -30,10 +62,18 @@ void tarea_consumir(char* nombre, uint32_t cantidad) {
     }
     consumir_recurso(file_data, cantidad);
     cerrar_archivo(file_data);
+
+    sem_destroy(&sem);
+    sem_post(&DISCO_LIBRE);
 }
 
 
 void descartar_basura() {
+    sem_t sem;
+    sem_init(&sem, 0, 0);
+    agregar_controlador_disco(&sem);
+    sem_wait(&sem);
+
     open_file_t* file_data = obtener_archivo("Basura.ims");
 
     if(file_data == NULL) {
@@ -45,4 +85,7 @@ void descartar_basura() {
         }
     }
     eliminar_archivo(file_data);
+
+    sem_destroy(&sem);
+    sem_post(&DISCO_LIBRE);
 }

@@ -22,6 +22,10 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    pthread_t HILO_CONTROLADOR;
+    pthread_create(&HILO_CONTROLADOR, NULL, (void*) controlador_disco, NULL);
+    pthread_detach(HILO_CONTROLADOR);
+
     cargar_superbloque();
     cargar_bloques();
     iniciar_sincronizador();

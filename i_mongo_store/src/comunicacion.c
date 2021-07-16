@@ -37,19 +37,7 @@ static void procesar_conexion(void* void_args) {
                 uint16_t cantidad;
                 if(recv_item_cantidad(cliente_socket, &tipo, &cantidad)) {
                     log_info(logger, "Tarea de generar recursos recibida");
-                    char c;
-                    char* archivo;
-                    if(tipo == OXIGENO) {
-                        c = 'O';
-                        archivo = "Oxigeno.ims";
-                    } else if(tipo == COMIDA) {
-                        c = 'C';
-                        archivo = "Comida.ims";
-                    } else if(tipo == BASURA) {
-                        c = 'B';
-                        archivo = "Basura.ims";
-                    }
-                    tarea_generar(archivo, c, cantidad);
+                    tarea_generar(tipo, cantidad);
                 } else{
                     log_error(logger, "Error fatal recibiendo instruccion de generar recursos");
                 }
@@ -61,13 +49,7 @@ static void procesar_conexion(void* void_args) {
                 uint16_t cantidad;
                 if(recv_item_cantidad(cliente_socket, &tipo, &cantidad)) {
                     log_info(logger, "Tarea de consumir recursos recibida");
-                    char* archivo;
-                    if(tipo == OXIGENO)
-                        archivo = "Oxigeno.ims";
-                    else if(tipo == COMIDA)
-                        archivo = "Comida.ims";
-
-                    tarea_consumir(archivo, cantidad);
+                    tarea_consumir(tipo, cantidad);
                 } else{
                     log_error(logger, "Error fatal recibiendo instruccion de consumir recursos");
                 }

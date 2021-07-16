@@ -10,7 +10,7 @@ typedef struct {
     uint32_t block_count;
     t_list* blocks;
     char caracter_llenado;
-    char md5[16];
+    char* md5; // Siempre de 32 caracteres
 } file_t;
 
 typedef struct {

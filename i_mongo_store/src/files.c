@@ -32,6 +32,7 @@ void escribir_archivo(char* nombre, file_t* file) {
     fwrite(&(file->size), sizeof(uint32_t), 1, f);
     fwrite(&(file->block_count), sizeof(uint32_t), 1, f);
     fwrite(&(file->caracter_llenado), sizeof(char), 1, f);
+    fwrite(file->md5, 32, 1, f);
     if(file->block_count > 0)
         for(uint32_t i = 0; i < file->block_count; i++) {
             uint32_t* d = list_get(file->blocks, i);
@@ -48,10 +49,13 @@ void crear_archivo(char* nombre, char c) {
     file->block_count = 0;
     file->blocks = list_create();
     file->caracter_llenado = c;
+    file->md5 = calloc(32, sizeof(char));
+    //memset(file->md5, 0x00, 32);
     char* path = concatenar_montaje_files(nombre);
     escribir_archivo(nombre, file);
     free(path);
     list_destroy(file->blocks);
+    free(file->md5);
     free(file);
     log_info(logger, "Archivo creado - %s - Se llena con el caracter \'%c\'", nombre, c);
 }
@@ -89,14 +93,12 @@ void* recuperar_archivo(open_file_t* file_data) {
 }
 
 void print_file_t(file_t* file) {
-    printf("\n");
-    printf("SIZE: %d\nBLOCK_COUNT: %d | %d\nCARACTER_LLENADO: %c\n",
+    printf("\nSIZE: %d\nBLOCK_COUNT: %d | %d\nCARACTER_LLENADO: %c\n",
         file->size,
         file->block_count,
         list_is_empty(file->blocks) ? 0 : list_size(file->blocks),
         file->caracter_llenado
     );
-    printf("\n\n");
 }
 
 void print_open_file_t(open_file_t* file_data) {
@@ -122,6 +124,8 @@ open_file_t* cargar_archivo(char* nombre) {
 
     fread(&(file->caracter_llenado), sizeof(char), 1, f);
     //fread(blocks, sizeof(uint32_t), block_count, f); 
+    file->md5 = malloc(32);
+    fread(file->md5, 32, 1, f);
 
     uint32_t* blocks[file->block_count];
     for(uint32_t i = 0; i < file->block_count; i++) {
@@ -158,7 +162,7 @@ void generar_recurso(open_file_t* file_data, uint32_t cantidad) {
     memset(c, (file_data->file)->caracter_llenado, cantidad);
     write_to_file(file_data, c, cantidad);
     free(c);
-    log_info(logger, "Se generaron %ld recursos en %s", cantidad, file_data->nombre);
+    log_info(logger, "Se generaron %ld recursos en %s - Recursos disponibles: %d", cantidad, file_data->nombre, (file_data->file)->size);
 }
 
 void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
@@ -220,6 +224,9 @@ void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
         originales,
         file->size
     );
+
+    void* content = recuperar_archivo(file_data);
+    file->md5 = md5sum(content, file->size);
 }
 
 void write_to_file(open_file_t* file_data, void* content, uint32_t len) {

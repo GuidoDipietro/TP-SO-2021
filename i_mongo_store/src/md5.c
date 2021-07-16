@@ -7,8 +7,7 @@ static char* md5gen(char* path) {
 
   FILE* f = popen(cmd, "r");
   char* str = malloc(34);
-  fgets(str, 33, f);
-  str[33] = '\0';
+  fgets(str, 32, f);
 
   pclose(f);
   free(cmd);

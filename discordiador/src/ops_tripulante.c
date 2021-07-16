@@ -195,7 +195,7 @@ uint8_t solicitar_tarea(t_tripulante* t) {
 
     // Si le llega la tarea NULL, no hay mas
     if (t->tarea->tipo == NULL_T) {
-        printf("No hay mas tareas para TID#%" PRIu32 "\n", t->tid);
+        log_info(main_log, "No hay mas tareas para TID#%" PRIu32 "\n", t->tid);
         return 1;
     }
     else {

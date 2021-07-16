@@ -72,7 +72,6 @@ void iniciar_sabotaje(int signum) {
         sem_wait(&TRIPULANTE_LISTA_HILOS_PAUSADO); // Esperamos a que todos los hilos avisen que ya frenaron
     int a;
     sem_getvalue(&TRIPULANTES_EN_COLA, &a);
-    printf("\n\n%d - %d\n\n", largo_lista_hilos(), a);
 
     list_sort(LISTA_HILOS, sort_by_tid); // Ordenamos la lista de hilos
     list_sort(COLA_TRIPULANTES->elements, sort_by_tid); // Ordenamos la cola de tripulantes
