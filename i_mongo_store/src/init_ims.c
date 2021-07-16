@@ -11,6 +11,7 @@ void iniciar_semaforos() {
     pthread_mutex_init(&MUTEX_COLA_OPERACIONES, NULL);
     sem_init(&OPERACIONES_PENDIENTES, 0, 0);
     sem_init(&DISCO_LIBRE, 0, 0);
+    sem_init(&sem_sabotaje, 0, 0);
 }
 
 void iniciar_sincronizador() {

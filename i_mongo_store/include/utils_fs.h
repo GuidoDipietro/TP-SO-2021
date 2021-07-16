@@ -6,6 +6,7 @@
 #include <commons/log.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "init_ims.h"
 
@@ -28,8 +29,12 @@ extern uint8_t* mem_cpy;
 
 extern pthread_t HILO_SINCRONIZADOR;
 
+extern bool saboteado;
+extern sem_t sem_sabotaje;
+
 char* concatenar_montaje(char* str);
 char* concatenar_montaje_files(char* filename);
 char* concatenar_montaje_bitacora(char* filename);
+char* path_bitacora(); // Devuelve el path de los archivos de bitacoras
 
 #endif

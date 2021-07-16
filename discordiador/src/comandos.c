@@ -256,6 +256,12 @@ void obtener_bitacora(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
     if(fd > 0) {
         send_obtener_bitacora(fd, tid);
         char* bitacora;
+        op_code cop;
+        if(recv(fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            free(args_arr);
+            return;
+        }
+
         recv_bitacora(fd, &bitacora);
         log_info(main_log, "Recibida bitacora del tripulante %d", tid);
         log_info(main_log, "\n%s", bitacora);

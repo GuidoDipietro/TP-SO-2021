@@ -19,3 +19,9 @@ char* concatenar_montaje_bitacora(char* filename) {
     string_append(&path, filename);
     return path;
 }
+
+char* path_bitacora() {
+    char* path = strdup(cfg->PUNTO_MONTAJE);
+    string_append(&path, "Bitacoras");
+    return path;
+}
