@@ -1,7 +1,5 @@
 #include "../include/controlador.h"
 
-#include <stdio.h>
-
 t_queue* COLA_OPERACIONES;
 sem_t OPERACIONES_PENDIENTES;
 sem_t DISCO_LIBRE;
@@ -11,6 +9,9 @@ void controlador_disco() {
     log_info(logger, "Controlador de disco iniciado.");
     COLA_OPERACIONES = queue_create();
     while(1) {
+        if(saboteado)
+            sem_wait(&sem_sabotaje);
+
         sem_wait(&OPERACIONES_PENDIENTES);
         sem_t* sem = remover_controlador_disco();
         sem_post(sem);

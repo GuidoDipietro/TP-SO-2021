@@ -227,7 +227,47 @@ void obtener_bitacora(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd) {
         mensaje_error_con_args("OBTENER_BITACORA", "<int>");
         return;
     }
+    uint32_t tid = atoi(args_arr);
+    int fd = -1;
 
-    printf("\nComando OBTENER_BITACORA\n");
+    t_tripulante* t = obtener_lista_exit(tid);
+
+    if(t == NULL) {
+        t_running_thread* r_t = buscar_cola_bloqueados(tid);
+
+        if(r_t == NULL) {
+            r_t = buscar_cola_new(tid);
+
+            if(r_t == NULL) {
+                r_t = buscar_cola_tripulante(tid);
+
+                if(r_t == NULL)
+                    r_t = buscar_lista_hilos(tid);
+            }
+        }
+
+        if(r_t == NULL) {
+            log_info(main_log, "No existe el tripulante %d. No se puede recuperar la bitacora.", tid);
+        } else
+            fd = (r_t->t)->fd_i_mongo_store;
+    } else
+        fd = t->fd_i_mongo_store;
+
+    if(fd > 0) {
+        send_obtener_bitacora(fd, tid);
+        char* bitacora;
+        op_code cop;
+        if(recv(fd, &cop, sizeof(op_code), 0) != sizeof(op_code)) {
+            free(args_arr);
+            return;
+        }
+
+        recv_bitacora(fd, &bitacora);
+        log_info(main_log, "Recibida bitacora del tripulante %d", tid);
+        log_info(main_log, "\n%s", bitacora);
+        free(bitacora);
+    }
+    
+
     free(args_arr);
 }

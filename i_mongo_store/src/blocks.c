@@ -35,6 +35,18 @@ void* leer_bloque(uint32_t nro_bloque) {
     return ret;
 }
 
+uint32_t size_bloque(uint32_t nro_bloque, char c) {
+    pthread_mutex_lock(&MUTEX_BLOCKS);
+    uint32_t inside_offset = 0;
+    uint32_t block_pos = superbloque->block_size * nro_bloque;
+
+    while(inside_offset < superbloque->block_size && mem_cpy[block_pos + inside_offset] == c)
+        inside_offset++;
+
+    pthread_mutex_unlock(&MUTEX_BLOCKS);
+    return inside_offset;
+}
+
 void quitar_de_bloque(uint32_t nro_bloque, uint32_t size_bloque,  uint32_t cantidad) {
     pthread_mutex_lock(&MUTEX_BLOCKS);
     memset(

@@ -26,10 +26,81 @@ static void procesar_conexion(void* void_args) {
             case DEBUG:;
                 log_info(logger, "Me llego el debug!");
                 break;
-            case OBTENER_BITACORA:
-            case MOVIMIENTO:
-            case INICIO_TAREA:
-            case FIN_TAREA:
+            case OBTENER_BITACORA: {
+                uint32_t id_tripulante;
+                if(recv_tripulante(cliente_socket, &id_tripulante)) {
+                    char* file = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = obtener_bitacora(file);
+                    send_bitacora(cliente_socket, content);
+                    free(content);
+                    free(file);
+                } else {
+                    log_error(logger, "Error recibiendo OBTENER_BITACORA");
+                }
+
+                break;
+            }
+            case MOVIMIENTO: {
+                uint32_t id_tripulante;
+                t_posicion *origen, *destino;
+                if (recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
+                    log_info(logger, "Recibido movimiento de tripulante.");
+                    char* nombre = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = string_from_format(
+                        "Tripulante 1 se mueve de %d|%d a %d|%d\n",
+                        id_tripulante,
+                        origen->x, origen->y,
+                        destino->x, destino->y
+                    );
+                    completar_bitacora(nombre, content, strlen(content));
+                    free_t_posicion(origen);
+                    free_t_posicion(destino);
+                    free(nombre);
+                    free(content);
+                }
+                else {
+                    log_error(logger, "Error recibiendo MOVIMIENTO");
+                }
+                break;
+            }
+            case INICIO_TAREA: {
+                uint32_t id_tripulante;
+                char* nombre_tarea;
+                if(recv_tripulante_nombretarea(cliente_socket, &id_tripulante, &nombre_tarea)) {
+                    log_info(logger, "Recibido inicio de tarea.");
+                    char* nombre = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = string_from_format(
+                        "El tripulante %d inicia la tarea %s\n",
+                        id_tripulante,
+                        nombre_tarea
+                    );
+                    completar_bitacora(nombre, content, strlen(content));
+                    free(nombre);
+                    free(nombre_tarea);
+                    free(content);
+                } else
+                    log_error(logger, "Error recibiendo INICIO_TAREA");
+                break;
+            }
+            case FIN_TAREA: {
+                uint32_t id_tripulante;
+                char* nombre_tarea;
+                if(recv_tripulante_nombretarea(cliente_socket, &id_tripulante, &nombre_tarea)) {
+                    log_info(logger, "Recibido fin de tarea.");
+                    char* nombre = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = string_from_format(
+                        "El tripulante %d finaliza la tarea %s\n",
+                        id_tripulante,
+                        nombre_tarea
+                    );
+                    completar_bitacora(nombre, content, strlen(content));
+                    free(nombre);
+                    free(nombre_tarea);
+                    free(content);
+                } else
+                    log_error(logger, "Error recibiendo FIN_TAREA");
+                break;
+            }
             case ATENCION_SABOTAJE:
             case RESOLUCION_SABOTAJE:
             case GENERAR: {
@@ -39,7 +110,7 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Tarea de generar recursos recibida");
                     tarea_generar(tipo, cantidad);
                 } else{
-                    log_error(logger, "Error fatal recibiendo instruccion de generar recursos");
+                    log_error(logger, "Error recibiendo GENERAR");
                 }
                 break;
             }
@@ -51,7 +122,7 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Tarea de consumir recursos recibida");
                     tarea_consumir(tipo, cantidad);
                 } else{
-                    log_error(logger, "Error fatal recibiendo instruccion de consumir recursos");
+                    log_error(logger, "Error recibieno CONSUMIR");
                 }
                 break;
             }
@@ -101,5 +172,9 @@ bool send_iniciar_fsck(int fd);
 bool send_generar_consumir(int fd, tipo_item item, uint16_t cant, op_code cop);
 bool recv_item_cantidad(int fd, tipo_item* item, uint16_t* cant);
 bool send_descartar_basura(int fd); // solo op code
+
+bool send_inicio_tarea(int fd, uint32_t id_tripulante, char* nombre_tarea);
+bool send_fin_tarea(int fd, uint32_t id_tripulante, char* nombre_tarea);
+bool recv_tripulante_nombretarea(int fd, uint32_t* id_tripulante, char** nombre_tarea);
 
 */

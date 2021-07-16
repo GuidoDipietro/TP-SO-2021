@@ -59,9 +59,11 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             mover_tripulante(thread_data);
         } else {
+            send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
             if((t->tarea)->tipo != OTRO_T) {
                     tarea_io(thread_data, t);
                     
+                send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                 if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     goto final;
@@ -71,6 +73,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
             } else if((t->tarea)->duracion)
                 correr_tarea_generica(thread_data);
             else {
+                send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                  if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     goto final;
@@ -84,7 +87,8 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         // Avisamos al mi-ram-alta-calidad para que borre el TCB
         cambiar_estado(t, EXIT);
         send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
-        cerrar_conexiones_tripulante(t);
+        if(t->fd_mi_ram_hq)
+            close(t->fd_mi_ram_hq);
         agregar_lista_exit(t);
         sem_destroy(&(thread_data->sem_pause));
         free(thread_data);
@@ -115,9 +119,11 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                 mover_tripulante(thread_data);
                 (thread_data->quantum)++;
             } else {
+                send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                 if((t->tarea)->tipo != OTRO_T) {
                     tarea_io(thread_data, t);
                     
+                    send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                     if(replanificar_tripulante(thread_data, t)) {
                         log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                         goto final;
@@ -128,6 +134,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                     correr_tarea_generica(thread_data);
                     (thread_data->quantum)++;
                 } else {
+                    send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                     if(replanificar_tripulante(thread_data, t)) {
                         log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                         goto final;
@@ -142,7 +149,8 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         // Avisamos al mi-ram-alta-calidad para que borre el TCB
         cambiar_estado(t, EXIT);
         send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
-        cerrar_conexiones_tripulante(t);
+        if(t->fd_mi_ram_hq)
+            close(t->fd_mi_ram_hq);
         agregar_lista_exit(t);
         sem_destroy(&(thread_data->sem_pause));
         free(thread_data);
@@ -190,13 +198,21 @@ void mover_tripulante(t_running_thread* r_t) {
     }
 
     // Le avisamos al MRH que actualice la GUI
-    int ret_code = send_movimiento(
+    int ret_code1 = send_movimiento(
         t->fd_mi_ram_hq,
         t->tid,
         origen,
         t->pos
     );
-    if (ret_code == -1) {
+
+    int ret_code2 = send_movimiento(
+        t->fd_i_mongo_store,
+        t->tid,
+        origen,
+        t->pos
+    );
+
+    if (ret_code1 == -1 || ret_code2 == -1) {
         log_error(main_log, "Error enviando movimiento del tripulante %d", t->tid);
     }
 
