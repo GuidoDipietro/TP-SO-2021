@@ -91,7 +91,7 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
     list_add_tppatotas(tabla);
 
     bool nuevapag; // ignorable, ver uso en iniciar_tripulante
-    //log_info(logger, "Por appendear data de patota %" PRIu32 " en memoria...", PID);
+    log_info(logger, "Por appendear data de patota %" PRIu32 " en memoria...", PID);
     uint32_t inicio = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++, &nuevapag);
     free(data);
 
@@ -208,7 +208,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
 
     // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
     bool nuevapag;
-    //log_info(logger, "Por appendear TCB de %" PRIu32 " en memoria...", tid);
+    log_info(logger, "Por appendear TCB de %" PRIu32 " en memoria...", tid);
     uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid, &nuevapag);
 
     if (inicio == 0xFFFF) {

@@ -452,7 +452,7 @@ static void print_tppatota(void* x) {
             elem->pid, elem->tripulantes_totales, elem->tripulantes_inicializados, elem->tamanio_tareas, elem->pages
         );
         list_iterate(elem->paginas, &print_entrada_tp_t);
-        list_iterate(elem->posiciones, &print_t_posicion1);
+        //list_iterate(elem->posiciones, &print_t_posicion1);
     }
     else {
         printf(
@@ -460,7 +460,7 @@ static void print_tppatota(void* x) {
             elem->pid, elem->tripulantes_totales, elem->tripulantes_inicializados, elem->tamanio_tareas, elem->pages
         );
         list_iterate(elem->paginas, &print_entrada_tp_t);
-        list_iterate(elem->posiciones, &print_t_posicion1);
+        //list_iterate(elem->posiciones, &print_t_posicion1);
     }
 }
 void print_tppatotas(bool log) {

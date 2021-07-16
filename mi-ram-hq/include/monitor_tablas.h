@@ -55,6 +55,7 @@ void asesinar_tid_pid_lookup();
 
 void print_tspatotas(bool log);
 void print_tstripulantes(bool log);
+void print_tppatotas(bool log);
 void print_tid_pid_lookup(bool log);
 void print_swap(bool log);
 

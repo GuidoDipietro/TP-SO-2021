@@ -454,7 +454,7 @@ bool RACE_get_structures_from_tid_paginacion
     }*/
 
     TCB_t* tcb = deserializar_tcb(s_tcb);
-    //log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
+    log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
     *p_tcb = tcb;
     free(s_tcb);
 
@@ -531,7 +531,7 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
     if (en_mp) memcpy_pagina_en_frame_mp(nro_frame, inicio, data, size);  // MP
     list_add_page_frame_tppatotas(pid, nro_frame, size, en_mp);           // admin.
 
-    print_swap(true);
+    //print_swap(true);
 
     /*log_info(logger,
         "Ocupe el frame %" PRIu32 " desde el inicio %" PRIu32 " con data de size %zu\n",
@@ -549,7 +549,8 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 
     // Data de la primera pag libre, para saber si esta por la mitad o que
     //log_info(logger, "Buscando frame libre... (size %zu)", size);
-    print_framo(true); // debug
+    print_framo(true);     // debug
+    print_tppatotas(true); // debug
 
     uint32_t offset = 0;
     uint32_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);
@@ -630,7 +631,17 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
 
     // Recupero entrada_tp_t de la primera pagina del TCB
     tid_pid_lookup_t* lookup = list_tid_pid_lookup_find_by_tid(tcb->tid);
+    if (lookup==NULL) {
+        log_error(logger, "Error (1) actualizando TCB de TID#%" PRIu32, tcb->tid);
+        free(s_tcb);
+        return false;
+    }
     tp_patota_t* tabla_patota = list_find_by_pid_tppatotas(pid);
+    if (tabla_patota==NULL) {
+        log_error(logger, "Error (2) actualizando TCB de TID#%" PRIu32, tcb->tid);
+        free(s_tcb);
+        return false;
+    }
     t_list* paginas = tabla_patota->paginas;
 
     bool has_page_number(void* x) {
@@ -759,6 +770,7 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
         t_list_iterator* i_paginas = list_iterator_create(tabla_patota->paginas);
         while (list_iterator_has_next(i_paginas)) {
             entrada_tp_t* pagina = list_iterator_next(i_paginas);
+            if (pagina->bit_P==0) continue;
             struct horrible* pagina_patota = malloc(sizeof(struct horrible));
             pagina_patota->pagina = pagina;
             pagina_patota->pid = tabla_patota->pid;
@@ -793,9 +805,9 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
         nro_frame_posible_victima++;
     }
 
-    list_destroy(frames_presentes);
+    list_destroy_and_destroy_elements(frames_presentes, (void*) free);
 
-    return nro_frame_posible_victima;
+    return nro_frame_posible_victima % (cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA);
 }
 
 uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {
@@ -837,6 +849,7 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
         // Tengo que rajar una pagina (LRU | CLOCK). Cambio esa pagina por la deseada. UN SWAP.
         uint32_t pid_rajado, pagina_rajada, inicio_frame_victima;
         frame_libre = pagina_a_reemplazar(frame_deseado_swap, &pid_rajado, &pagina_rajada);
+        log_info(logger, "Frame libre: %" PRIu32, frame_libre);
 
         inicio_frame_victima = tabla_frames[frame_libre].inicio_hueco;
         inicio = tabla_frames_swap[frame_deseado_swap].inicio;
