@@ -2,15 +2,18 @@
 
 bool saboteado = false;
 sem_t sem_sabotaje;
+int fd_sabotajes = -1;
+sem_t sem_inicio_fsck;
 
 void verificar_integridad_archivo(char* nombre) {
     open_file_t* file_data = cargar_archivo(nombre);
-    file_t* file = file_data->file;
 
     if(file_data == NULL) {
         log_info(logger, "No existe %s. No se verifica su integridad", nombre);
         return;
     }
+
+    file_t* file = file_data->file;
 
     // SIZE
 
@@ -28,8 +31,10 @@ void verificar_integridad_archivo(char* nombre) {
     cerrar_archivo(file_data);
 }
 
-void bloquear_fs() {
+void fsck() {
     saboteado = true;
+
+    sem_wait(&sem_inicio_fsck);
 
     char* path;
     // CANTIDAD DE BLOQUES
@@ -87,6 +92,7 @@ void bloquear_fs() {
             }
             closedir(d);
         }
+        log_info(logger, "Verificada la integridad del bitmap");
     }
     
 

@@ -10,5 +10,8 @@
 #include "bitacora.h"
 #include "monitor_bitarray.h"
 
+extern int fd_sabotajes;
+
+void fsck();
 
 #endif

@@ -131,6 +131,12 @@ static void procesar_conexion(void* void_args) {
                 descartar_basura();
                 break;
             case INICIO_FSCK:
+                sem_post(&sem_inicio_fsck);
+                log_info(logger, "Recibido inicio del protocolo FSCK");
+                break;
+            case HANDSHAKE_SABOTAJE:
+                fd_sabotajes = cliente_socket;
+                log_info(logger, "Recibido el handshake de sabotajes");
                 break;
             // Errores
             case -1:

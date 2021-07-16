@@ -47,21 +47,8 @@ static bool comparator_remover_encargado(void* p) {
     return p == encargado;
 }
 
-static t_tarea* sabotaje_simulado() {
-    t_tarea* t = malloc(sizeof(t_tarea));
-    t->nombre = "Sabotaje epico";
-    t->tipo = OTRO_T;
-    t->duracion = DISCORDIADOR_CFG->DURACION_SABOTAJE;
-    t_posicion* pos = malloc(sizeof(t_posicion));
-    pos->x = 2;
-    pos->y = 7;
-    t->pos = pos;
-    t->param = 0;
-    return t;
-}
-
 // Esto es Haskell o C? Nadie lo sabe
-void iniciar_sabotaje(int signum) {
+void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     // Al estar todo pausado no deberiamos de preocuparnos por condiciones de carrera
     log_info(main_log, "Sabotaje detectado. Comenzando bloqueo por sabotaje.");
     SABOTAJE_ACTIVO = true; // Iniciamos todas las rutinas de sabotaje
@@ -70,8 +57,8 @@ void iniciar_sabotaje(int signum) {
 
     for(uint8_t i = 0; i < largo_lista_hilos(); i++)
         sem_wait(&TRIPULANTE_LISTA_HILOS_PAUSADO); // Esperamos a que todos los hilos avisen que ya frenaron
-    int a;
-    sem_getvalue(&TRIPULANTES_EN_COLA, &a);
+    //int a;
+    //sem_getvalue(&TRIPULANTES_EN_COLA, &a);
 
     list_sort(LISTA_HILOS, sort_by_tid); // Ordenamos la lista de hilos
     list_sort(COLA_TRIPULANTES->elements, sort_by_tid); // Ordenamos la cola de tripulantes
@@ -94,33 +81,44 @@ void iniciar_sabotaje(int signum) {
     // Ahora pasamos a resolver el sabotaje
 
     encargado = list_get_minimum(LISTA_SABOTAJE, comparar_cercania_a_sabotaje);
-    list_remove_by_condition(LISTA_SABOTAJE, comparator_remover_encargado); // Sacamos al encargado de esta lista
+    if(!list_is_empty(LISTA_SABOTAJE)) {
+        list_remove_by_condition(LISTA_SABOTAJE, comparator_remover_encargado); // Sacamos al encargado de esta lista
 
-    pthread_mutex_unlock(&MUTEX_LISTA_SABOTAJE); // Aca ya podemos liberar la LISTA_SABOTAJE
+        log_info(main_log, "El tripulante %d es el encargado de resolver el sabotaje", (encargado->t)->tid);
 
-    log_info(main_log, "El tripulante %d es el encargado de resolver el sabotaje", (encargado->t)->tid);
+        t_tarea* anterior = (encargado->t)->tarea;
+        (encargado->t)->tarea = tarea_sabotaje;
+        //(encargado->t)->status = EXEC;
+        cambiar_estado(encargado->t, EXEC);
+        monitor_add_lista_hilos(encargado);
 
-    t_tarea* anterior = (encargado->t)->tarea;
-    (encargado->t)->tarea = sabotaje_simulado();
-    //(encargado->t)->status = EXEC;
-    cambiar_estado(encargado->t, EXEC);
-    monitor_add_lista_hilos(encargado);
+        t_tripulante* t = encargado->t;
 
-    while(((encargado->t)->tarea)->duracion) {
-        ciclo_dis();
-        correr_tarea_generica(encargado);
+        while(((encargado->t)->tarea)->duracion) {
+            ciclo_dis();
+            if(!posiciones_iguales(t->pos, (t->tarea)->pos))
+                mover_tripulante(encargado);
+            else {
+                send_iniciar_fsck(fd_sabotajes);
+                correr_tarea_generica(encargado);
+            }
+        }
+
+        log_info(main_log, "Sabotaje resuelto");
+        (encargado->t)->tarea = anterior;
+    } else {
+        send_iniciar_fsck(fd_sabotajes);
+        log_info(main_log, "No hay tripulantes disponibles para resolver los sabotajes. Salteando sabotaje");
     }
-
-    log_info(main_log, "Sabotaje resuelto");
+    
+    pthread_mutex_unlock(&MUTEX_LISTA_SABOTAJE); // Aca ya podemos liberar la LISTA_SABOTAJE
 
     //free_t_tarea((encargado->t)->tarea);
     // Volvemos a meter al encargado en la cola de bloqueados
     remover_lista_hilos(((encargado)->t)->tid);
-    (encargado->t)->tarea = anterior;
     //(encargado->t)->status = BLOCKEDSAB;
     cambiar_estado(encargado->t, BLOCKEDSAB);
     list_add(LISTA_SABOTAJE, encargado);
-
 
     finalizar_sabotaje();
 }
@@ -138,9 +136,32 @@ void finalizar_sabotaje() {
 
     pthread_mutex_unlock(&MUTEX_LISTA_SABOTAJE);
     sem_post(&BLOQUEAR_PLANIFICADOR); // Dejamos que el planificador vuelva a funcionar
-
 }
 
-void set_signal_handlers() {
-    signal(SIG_SABOTAJE, iniciar_sabotaje);
+void listener_sabotaje() {
+    char* port_i_mongo_store = string_itoa(DISCORDIADOR_CFG->PUERTO_I_MONGO_STORE);
+    int fd = crear_conexion(
+            main_log,
+            "I_MONGO_STORE",
+            DISCORDIADOR_CFG->IP_I_MONGO_STORE,
+            port_i_mongo_store
+    );
+    free(port_i_mongo_store);
+    send_handshake_sabotaje(fd);
+
+    log_info(main_log, "Inicializado el listener de sabotajes.");
+
+    while(1) {
+        t_posicion* pos_sabotaje;
+        t_tarea* tarea_sabotaje = malloc(sizeof(t_tarea));
+        tarea_sabotaje->nombre = strdup("Sabotaje");
+        tarea_sabotaje->param = 0;
+        tarea_sabotaje->duracion = DISCORDIADOR_CFG->DURACION_SABOTAJE;
+        tarea_sabotaje->tipo = OTRO_T;
+        recv_sabotaje(fd, &pos_sabotaje); // Nos quedamos esperando a que llegue un sabotaje
+        tarea_sabotaje->pos = pos_sabotaje;
+        iniciar_sabotaje(tarea_sabotaje, fd);
+        free_t_tarea(tarea_sabotaje);
+        finalizar_sabotaje();
+    }
 }

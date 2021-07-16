@@ -1,6 +1,6 @@
 #include "../include/tareas.h"
 
-static bool posiciones_iguales(t_posicion* p1, t_posicion* p2) {
+bool posiciones_iguales(t_posicion* p1, t_posicion* p2) {
     return p1->x == p2->x && p1->y == p2->y;
 }
 

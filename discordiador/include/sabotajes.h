@@ -18,8 +18,8 @@
 
 extern bool SABOTAJE_ACTIVO;
 
-void iniciar_sabotaje(int signum);
+void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes);
 void finalizar_sabotaje();
-void set_signal_handlers();
+void listener_sabotaje();
 
 #endif
