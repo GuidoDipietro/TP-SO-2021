@@ -190,13 +190,21 @@ void mover_tripulante(t_running_thread* r_t) {
     }
 
     // Le avisamos al MRH que actualice la GUI
-    int ret_code = send_movimiento(
+    int ret_code1 = send_movimiento(
         t->fd_mi_ram_hq,
         t->tid,
         origen,
         t->pos
     );
-    if (ret_code == -1) {
+
+    int ret_code2 = send_movimiento(
+        t->fd_i_mongo_store,
+        t->tid,
+        origen,
+        t->pos
+    );
+
+    if (ret_code1 == -1 || ret_code2 == -1) {
         log_error(main_log, "Error enviando movimiento del tripulante %d", t->tid);
     }
 

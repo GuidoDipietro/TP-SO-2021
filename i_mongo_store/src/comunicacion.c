@@ -27,7 +27,32 @@ static void procesar_conexion(void* void_args) {
                 log_info(logger, "Me llego el debug!");
                 break;
             case OBTENER_BITACORA:
-            case MOVIMIENTO:
+            case MOVIMIENTO: {
+                uint32_t id_tripulante;
+                t_posicion *origen, *destino;
+                if (recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
+                    log_info(logger, "Recibido movimiento de tripulante.");
+                    printf("\nA\n");
+                    char* nombre = string_from_format("Tripulante%d.ims", id_tripulante);
+                    printf("\nB\n");
+                    char* content = string_from_format(
+                        "Tripulante 1 se mueve de %d|%d a %d|%d\n",
+                        id_tripulante,
+                        origen->x, origen->y,
+                        destino->x, destino->y
+                    );
+                    printf("\nC\n");
+                    completar_bitacora(nombre, content, strlen(content));
+                    free_t_posicion(origen);
+                    free_t_posicion(destino);
+                    free(nombre);
+                    free(content);
+                }
+                else {
+                    log_error(logger, "Error recibiendo movimiento");
+                }
+                break;
+            }
             case INICIO_TAREA:
             case FIN_TAREA:
             case ATENCION_SABOTAJE:

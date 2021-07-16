@@ -89,3 +89,23 @@ void descartar_basura() {
     sem_destroy(&sem);
     sem_post(&DISCO_LIBRE);
 }
+
+void completar_bitacora(char* nombre, void* content, uint32_t len) {
+    sem_t sem;
+    sem_init(&sem, 0, 0);
+    agregar_controlador_disco(&sem);
+    sem_wait(&sem);
+
+    bitacora_t* bit = cargar_bitacora(nombre);
+
+    if(bit == NULL) {
+        crear_bitacora(nombre);
+        bit = cargar_bitacora(nombre);
+    }
+    write_to_bitacora(bit, content, len);
+    escribir_bitacora(bit);
+    cerrar_bitacora(bit);
+    sem_destroy(&sem);
+    sem_post(&DISCO_LIBRE);
+    log_info(logger, "Escrita bitacora %s", nombre);
+}
