@@ -153,8 +153,6 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         free((t_running_thread*) p);
     } else {
         trip = p;
-        if(trip->fd_i_mongo_store)
-            close(trip->fd_i_mongo_store);
     }
 
     free_t_tripulante(trip);
