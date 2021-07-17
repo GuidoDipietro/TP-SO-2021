@@ -225,7 +225,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
             tid_base += tabla_patota->tripulantes_totales;
     }
 
-    log_info(logger, "cant_paginas_antes: %" PRIu32 ", nuevapag: %d", cant_paginas_antes, nuevapag);
+    //log_info(logger, "cant_paginas_antes: %" PRIu32 ", nuevapag: %d", cant_paginas_antes, nuevapag);
 
     // Agregar entrada lookup de PID
     tid_pid_lookup_t* lookup = malloc(sizeof(tid_pid_lookup_t));
@@ -336,7 +336,7 @@ bool borrar_tripulante_de_mp(uint32_t tid) {
 
 static bool actualizar_posicion_tripulante_en_mp_segmentacion(uint32_t tid, t_posicion* destino) {
     // Recuperamos tabla tripulante, TCB y PCB
-    log_info(logger, "TID#%" PRIu32 " se mueve a %" PRIu32 ":%" PRIu32, tid, destino->x, destino->y);
+    //log_info(logger, "TID#%" PRIu32 " se mueve a %" PRIu32 ":%" PRIu32, tid, destino->x, destino->y);
     ts_tripulante_t* tabla_tripulante;
     TCB_t* tcb;
     PCB_t* pcb;
@@ -408,7 +408,7 @@ static bool actualizar_estado_tripulante_en_mp_segmentacion(uint32_t tid, char n
 }
 static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nuevo_estado) {
     // Recuperamos tabla, TCB, PCB
-    log_info(logger, "Actualizando estado de TID#%" PRIu32 "->%c", tid, nuevo_estado);
+    //log_info(logger, "Actualizando estado de TID#%" PRIu32 "->%c", tid, nuevo_estado);
     tid_pid_lookup_t* tabla;
     TCB_t* tcb;
     PCB_t* pcb;
@@ -507,7 +507,7 @@ static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
 }
 static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     // Estructuras relacionadas al TID
-    log_info(logger, "Buscando tarea para TID#%" PRIu32 "...", tid);
+    //log_info(logger, "Buscando tarea para TID#%" PRIu32 "...", tid);
 
     /*char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
     char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
