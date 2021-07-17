@@ -28,16 +28,15 @@ void bloquear_planificacion() {
     sem_post(&ACTIVE_THREADS);
     sem_post(&TRIPULANTES_EN_COLA);
 
+    log_info(main_log, "Planificacion bloqueada");
+}
+
+void reanudar_planificacion() {
     sem_destroy(&TRIPULANTES_EN_COLA);
     sem_init(&TRIPULANTES_EN_COLA, 0, largo_cola());
     
     sem_destroy(&ACTIVE_THREADS);
     sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA - largo_lista_hilos());
-
-    log_info(main_log, "Planificacion bloqueada");
-}
-
-void reanudar_planificacion() {
     PLANIFICACION_BLOQUEADA = false;
     iterar_lista_hilos(reanudar_hilo);
 
@@ -46,6 +45,7 @@ void reanudar_planificacion() {
         //(r_t->t)->status = READY;
         push_cola_tripulante(r_t);
     }
+    sem_post(&BLOQUEAR_PLANIFICADOR);
     log_info(main_log, "Planificacion desbloqueada");
 }
 
