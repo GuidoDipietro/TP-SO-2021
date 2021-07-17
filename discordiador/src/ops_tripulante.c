@@ -148,7 +148,7 @@ uint8_t op_expulsar_tripulante(uint32_t tid) {
         //free((t_running_thread*) p);
         //printf("\n%p - %d\n", p, sizeof(t_running_thread));
         cambiar_estado(
-            (((t_running_thread*) p)->t)->fd_mi_ram_hq,
+            ((t_running_thread*) p)->t,
             EXIT
         );
         send_tripulante(trip->fd_mi_ram_hq, trip->tid, EXPULSAR_TRIPULANTE);

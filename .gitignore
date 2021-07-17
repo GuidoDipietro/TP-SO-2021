@@ -9,6 +9,8 @@
 
 discordiador/*.txt
 discordiador/tareas/a-mongos-pruebas
+*.ims
+*.bin
 
 # Linker output
 *.ilk

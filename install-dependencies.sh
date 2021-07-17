@@ -22,3 +22,6 @@ cd ..
 
 cd $original
 make build
+mkdir i_mongo_store/fs
+mkdir i_mongo_store/fs/Files
+mkdir i_mongo_store/fs/Files/Bitacoras
