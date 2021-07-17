@@ -20,11 +20,20 @@ uint32_t generar_tid() {
 
 static void reanudar_hilo(void* r_t) {
     sem_post(&(((t_running_thread*) r_t)->sem_pause));
-    sem_post(&BLOQUEAR_PLANIFICADOR);
 }
 
 void bloquear_planificacion() {
     PLANIFICACION_BLOQUEADA = true;
+
+    sem_post(&ACTIVE_THREADS);
+    sem_post(&TRIPULANTES_EN_COLA);
+
+    sem_destroy(&TRIPULANTES_EN_COLA);
+    sem_init(&TRIPULANTES_EN_COLA, 0, largo_cola());
+    
+    sem_destroy(&ACTIVE_THREADS);
+    sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA - largo_lista_hilos());
+
     log_info(main_log, "Planificacion bloqueada");
 }
 
