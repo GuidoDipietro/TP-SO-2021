@@ -1,4 +1,1 @@
-- [ ] Implementar dump para paginación
-- [ ] Implementar SWAP sin vomitar
-- [ ] MORIR
-- [ ] No romper todo el TP
+- [ ] No recibir la señal 11 en la entrega

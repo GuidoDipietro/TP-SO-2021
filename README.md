@@ -5,4 +5,5 @@
 | Cristóbal Szkutnik | ***REMOVED*** |
 | Guido Dipietro     | ***REMOVED*** |
 
-![Locura](locura.png)
+![Locura](demencia/locura.png)  
+![Locura2](demencia/locura2.PNG)
