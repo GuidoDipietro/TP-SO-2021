@@ -8,6 +8,9 @@ extern sem_t SEM_INICIAR_SELF_EN_PATOTA;
 
 extern pthread_mutex_t MUTEX_MP_BUSY;
 
+extern void* memoria_principal;
+extern void* area_swap;
+
 //////
 
 static uint32_t tid_base = 0;
@@ -222,6 +225,8 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
             tid_base += tabla_patota->tripulantes_totales;
     }
 
+    log_info(logger, "cant_paginas_antes: %" PRIu32 ", nuevapag: %d", cant_paginas_antes, nuevapag);
+
     // Agregar entrada lookup de PID
     tid_pid_lookup_t* lookup = malloc(sizeof(tid_pid_lookup_t));
     lookup->tid = tid;
@@ -229,6 +234,13 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     lookup->nro_pagina = cant_paginas_antes-1 + nuevapag;
     lookup->inicio = inicio;
     list_add_tid_pid_lookup(lookup);
+
+    /*char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
+    char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
+    log_info(logger, "%s", dumpcito);
+    log_info(logger, "\n---Swap---\n%s", dumpswap);
+    free(dumpcito);
+    free(dumpswap);*/
 
     free(s_tcb);
     free(tcb);
@@ -299,7 +311,7 @@ static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
     bool ret;
     if (tabla_patota->tripulantes_inicializados == 0) {
         // ULTIMO TRIPULANTE
-        log_info(logger, "Borrando patota de TID#%" PRIu32 " (PID#%" PRIu32 ")", tid, pid);
+        //log_info(logger, "Borrando patota de TID#%" PRIu32 " (PID#%" PRIu32 ")", tid, pid);
         ret = delete_patota_en_mp(pid); // la borra de MP y estructuras admin.
 
         if (!ret) log_error(logger, "Error TERRIBLE borrando patota de MP");
@@ -338,9 +350,9 @@ static bool actualizar_posicion_tripulante_en_mp_segmentacion(uint32_t tid, t_po
     tcb->pos_x = destino->x;
     tcb->pos_y = destino->y;
     void* s_tcb = serializar_tcb(tcb);
-    log_info(logger, "Antes de memcpy_segmento_en_mp...");
+    //log_info(logger, "Antes de memcpy_segmento_en_mp...");
     memcpy_segmento_en_mp(tabla_tripulante->tcb->inicio, s_tcb, tabla_tripulante->tcb->tamanio);
-    log_info(logger, "Despues de memcpy_segmento_en_mp...");
+    //log_info(logger, "Despues de memcpy_segmento_en_mp...");
     free(s_tcb);
 
     free(tcb);
@@ -396,10 +408,17 @@ static bool actualizar_estado_tripulante_en_mp_segmentacion(uint32_t tid, char n
 }
 static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nuevo_estado) {
     // Recuperamos tabla, TCB, PCB
-    //log_info(logger, "Actualizando estado de TID#%" PRIu32 "->%c", tid, nuevo_estado);
+    log_info(logger, "Actualizando estado de TID#%" PRIu32 "->%c", tid, nuevo_estado);
     tid_pid_lookup_t* tabla;
     TCB_t* tcb;
     PCB_t* pcb;
+
+    /*char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
+    char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
+    log_info(logger, "%s", dumpcito);
+    log_info(logger, "\n---Swap---\n%s", dumpswap);
+    free(dumpcito);
+    free(dumpswap);*/
 
     bool ret = RACE_get_structures_from_tid_paginacion(tid, &tabla, &tcb, &pcb);
     if (!ret) return false;
@@ -407,6 +426,13 @@ static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nue
     tcb->estado = nuevo_estado;
 
     bool success = RACE_actualizar_tcb_en_mp(pcb->pid, tcb);
+
+    /*dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
+    dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
+    log_info(logger, "%s", dumpcito);
+    log_info(logger, "\n---Swap---\n%s", dumpswap);
+    free(dumpcito);
+    free(dumpswap);*/
 
     free(tcb);
     free(pcb);
@@ -481,7 +507,17 @@ static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
 }
 static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     // Estructuras relacionadas al TID
-    // log_info(logger, "Buscando tarea para TID#%" PRIu32 "...", tid);
+    log_info(logger, "Buscando tarea para TID#%" PRIu32 "...", tid);
+
+    /*char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
+    char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
+    log_info(logger, "%s", dumpcito);
+    log_info(logger, "\n---Swap---\n%s", dumpswap);
+    free(dumpcito);
+    free(dumpswap);*/
+
+    print_tid_pid_lookup(true);
+
     tid_pid_lookup_t* tabla = NULL;
     TCB_t* tcb = NULL;
     PCB_t* pcb = NULL;
@@ -512,6 +548,13 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
 
     free(tcb);
     free(pcb);
+
+    /*dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
+    dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
+    log_info(logger, "%s", dumpcito);
+    log_info(logger, "\n---Swap---\n%s", dumpswap);
+    free(dumpcito);
+    free(dumpswap);*/
 
     return tarea;
 }
