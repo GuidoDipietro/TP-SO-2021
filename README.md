@@ -4,3 +4,5 @@
 |--------------------|-----------|
 | Cristóbal Szkutnik | ***REMOVED*** |
 | Guido Dipietro     | ***REMOVED*** |
+
+![Locura](locura.png)
