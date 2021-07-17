@@ -47,6 +47,9 @@ void reanudar_planificacion() {
     }
     sem_post(&BLOQUEAR_PLANIFICADOR);
     log_info(main_log, "Planificacion desbloqueada");
+
+    if(SABOTAJE_ACTIVO)
+        sem_post(&wait_sabotaje_plan_bloqueada);
 }
 
 static t_tripulante* init_tripulante(t_posicion* pos, uint32_t pid) {

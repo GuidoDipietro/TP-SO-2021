@@ -9,6 +9,7 @@
 #include "logs.h"
 #include "config.h"
 #include "monitor_tripulante.h"
+#include "sabotajes"
 
 #include "../../shared/include/protocolo.h"
 #include "../../shared/include/frees.h"

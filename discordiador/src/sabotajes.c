@@ -161,6 +161,7 @@ void listener_sabotaje() {
 
     log_info(main_log, "Inicializado el listener de sabotajes.");
     send_handshake_sabotaje(fd);
+    sem_init(&wait_sabotaje_plan_bloqueada, 0, 0);
 
     while(1) {
         t_posicion* pos_sabotaje;
@@ -173,6 +174,10 @@ void listener_sabotaje() {
         recv(fd, &cop, sizeof(cop), 0);
         recv_sabotaje(fd, &pos_sabotaje); // Nos quedamos esperando a que llegue un sabotaje
         tarea_sabotaje->pos = pos_sabotaje;
+
+        if(PLANIFICACION_BLOQUEADA)
+            sem_wait(&wait_sabotaje_plan_bloqueada);
+
         iniciar_sabotaje(tarea_sabotaje, fd);
         free_t_tarea(tarea_sabotaje);
     }

@@ -197,10 +197,10 @@ void iniciar_planificacion(char* args, int* i_mongo_store_fd, int* mi_ram_hq_fd)
         return;
     }
 
-    if(SABOTAJE_ACTIVO) {
-        log_error(main_log, "SABOTAJE ACTIVO. No se puede reanudar la planificacion.");
-        return;
-    }
+    //if(SABOTAJE_ACTIVO) {
+    //    log_error(main_log, "SABOTAJE ACTIVO. No se puede reanudar la planificacion.");
+    //    return;
+    //}
 
     if(PLANIFICACION_BLOQUEADA)
         reanudar_planificacion();
