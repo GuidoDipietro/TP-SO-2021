@@ -510,13 +510,18 @@ void print_swap(bool log) {
 ////// prints (logs)
 
 void log_structures(uint16_t options) {
+    if (options == PRI_AUTO)
+        options = cfg->SEG? PRI_ALL_SEGMENTACION : PRI_ALL_PAGINACION;
+
     if (options & PRI_MP) {
         char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
-        char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
         log_info(logger, "%s", dumpcito);
-        log_info(logger, "\n---Swap---\n%s", dumpswap);
         free(dumpcito);
-        free(dumpswap);
+        if (!cfg->SEG) {
+            char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
+            log_info(logger, "\n---Swap---\n%s", dumpswap);
+            free(dumpswap);
+        }
     }
     if (options & PRI_SEGLIB)            LOGPRINT            (seglib);
     if (options & PRI_SEGUS)             LOGPRINT             (segus);

@@ -70,6 +70,7 @@ void print_swap(bool log);
 #define PRI_ALL_SEGMENTACION   (uint16_t) 0b0000000000011111
 #define PRI_NONE               (uint16_t) 0b0000000000000000
 #define PRI_ALL_PAGINACION     (uint16_t) 0b0000000111100001
+#define PRI_AUTO               (uint16_t) 0b1000000000000000
 #define LOGPRINT(_)            print_ ## _ (true)
 void log_structures(uint16_t options);
 
