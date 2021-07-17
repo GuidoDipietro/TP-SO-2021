@@ -1,6 +1,7 @@
 #include "../include/sabotajes.h"
 
 bool SABOTAJE_ACTIVO = false;
+sem_t wait_sabotaje_plan_bloqueada;
 
 t_running_thread* encargado;
 pthread_t HILO_PLANIFICADOR;
@@ -35,8 +36,12 @@ static bool comparator_remover_encargado(void* p) {
 // Esto es Haskell o C? Nadie lo sabe
 void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     // Al estar todo pausado no deberiamos de preocuparnos por condiciones de carrera
-    log_info(main_log, "Sabotaje detectado. Comenzando bloqueo por sabotaje.");
     SABOTAJE_ACTIVO = true; // Iniciamos todas las rutinas de sabotaje
+
+	if(PLANIFICACION_BLOQUEADA)
+            sem_wait(&wait_sabotaje_plan_bloqueada);
+
+    log_info(main_log, "Sabotaje detectado. Comenzando bloqueo por sabotaje.");
     sem_post(&ACTIVE_THREADS);
     sem_post(&TRIPULANTES_EN_COLA);
 
@@ -175,8 +180,6 @@ void listener_sabotaje() {
         recv_sabotaje(fd, &pos_sabotaje); // Nos quedamos esperando a que llegue un sabotaje
         tarea_sabotaje->pos = pos_sabotaje;
 
-        if(PLANIFICACION_BLOQUEADA)
-            sem_wait(&wait_sabotaje_plan_bloqueada);
 
         iniciar_sabotaje(tarea_sabotaje, fd);
         free_t_tarea(tarea_sabotaje);
