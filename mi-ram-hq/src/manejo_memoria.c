@@ -386,7 +386,7 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
         /*log_info(logger, "Leyendo pagina %" PRIu32 "+%d (>>%" PRIu32 ") de proceso %" PRIu32,
             pagina, p, offset, pid
         );*/
-        print_tppatotas(true);
+        //print_tppatotas(true);
         bool has_page_number(void* x) {
             entrada_tp_t* elem = (entrada_tp_t*) x;
             return elem->nro_pagina == pagina+p;
@@ -455,9 +455,9 @@ bool RACE_get_structures_from_tid_paginacion
         tabla->pid, tabla->nro_pagina, tabla->inicio, 21
     );
 
-    for (int i = 0; i < 21; i++) {
+    /*for (int i = 0; i < 21; i++) {
         log_info(logger, "%02x", ((unsigned char*) s_tcb) [i]);
-    }
+    }*/
 
     TCB_t* tcb = deserializar_tcb(s_tcb);
     log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
@@ -555,8 +555,8 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 
     // Data de la primera pag libre, para saber si esta por la mitad o que
     //log_info(logger, "Buscando frame libre... (size %zu)", size);
-    print_framo(true);     // debug
-    print_tppatotas(true); // debug
+    //print_framo(true);     // debug
+    //print_tppatotas(true); // debug
 
     uint32_t offset = 0;
     uint32_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);

@@ -516,7 +516,7 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     free(dumpcito);
     free(dumpswap);*/
 
-    print_tid_pid_lookup(true);
+    //print_tid_pid_lookup(true);
 
     tid_pid_lookup_t* tabla = NULL;
     TCB_t* tcb = NULL;
