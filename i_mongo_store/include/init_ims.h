@@ -5,6 +5,7 @@
 #include <commons/collections/list.h>
 #include <commons/config.h>
 #include <pthread.h>
+#include <dirent.h>
 
 #include "../../shared/include/utils.h"
 #include "../../shared/include/sockets.h"

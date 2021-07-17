@@ -25,3 +25,9 @@ char* path_bitacora() {
     string_append(&path, "Files/Bitacoras");
     return path;
 }
+
+char* path_files() {
+    char* path = strdup(cfg->PUNTO_MONTAJE);
+    string_append(&path, "Files");
+    return path;
+}

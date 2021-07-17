@@ -20,8 +20,20 @@ void iniciar_sincronizador() {
     pthread_detach(HILO_SINCRONIZADOR);
 }
 
+bool existe_directorio(char* path) {
+    DIR* dir = opendir(path);
+    if(dir) {
+        closedir(dir);
+        return true;
+    } else {
+        log_error(logger, "No existe el directorio %s", path);
+        return false;
+    }
+}
+
 uint8_t cargar_configuracion() {
     iniciar_semaforos();
+
     t_config* cfg_file = config_create("i_mongo_store.config");
 
     if(cfg_file == NULL) {
@@ -47,6 +59,12 @@ uint8_t cargar_configuracion() {
     }
 
     cfg->PUNTO_MONTAJE = strdup(config_get_string_value(cfg_file, "PUNTO_MONTAJE"));
+
+    char* p1 = path_bitacora();
+    char* p2 = path_files();
+    if(!existe_directorio(cfg->PUNTO_MONTAJE) || !existe_directorio(p2) || !existe_directorio(p1))
+        return 0;
+
     cfg->PUERTO = config_get_int_value(cfg_file, "PUERTO");
     cfg->TIEMPO_SINCRONIZACION = config_get_long_value(cfg_file, "TIEMPO_SINCRONIZACION");
     cfg->BLOCKS = config_get_int_value(cfg_file, "BLOCKS");

@@ -17,7 +17,6 @@ int main() {
     logger = log_create("i_mongo_store.log", MODULENAME, true, LOG_LEVEL_INFO);
 
     if(!cargar_configuracion() || !crear_servidor(&server_fd, SERVERNAME)) {
-        cerrar_programa();
         liberar_conexion(&server_fd);
         return EXIT_FAILURE;
     }

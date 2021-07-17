@@ -37,5 +37,6 @@ char* concatenar_montaje(char* str);
 char* concatenar_montaje_files(char* filename);
 char* concatenar_montaje_bitacora(char* filename);
 char* path_bitacora(); // Devuelve el path de los archivos de bitacoras
+char* path_files();
 
 #endif
