@@ -111,6 +111,7 @@ t_tripulante* iniciar_tripulante(t_posicion* pos, uint32_t pid) {
         free_t_tripulante(t);
         return NULL;
     }
+    send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
 
     return t;
 }

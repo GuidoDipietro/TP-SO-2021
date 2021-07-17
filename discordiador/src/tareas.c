@@ -24,9 +24,7 @@ void planificador() {
         if(SABOTAJE_ACTIVO)
             continue;
 
-        printf("\nA\n");
         t_running_thread* new = pop_cola_tripulante();
-        printf("\nB\n");
         // Preparamos el hilo para correr
         //(new->t)->status = EXEC;
         if(new == NULL)
@@ -68,10 +66,8 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             mover_tripulante(thread_data);
         } else {
-            send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
             if((t->tarea)->tipo != OTRO_T) {
-                    tarea_io(thread_data, t);
-                    
+                tarea_io(thread_data, t);
                 send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                 if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
@@ -86,8 +82,10 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
                  if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     goto final;
-                } else
+                } else {
+                    send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                     log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                }
             }
         }
     }
@@ -127,7 +125,6 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                 mover_tripulante(thread_data);
                 (thread_data->quantum)++;
             } else {
-                send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                 if((t->tarea)->tipo != OTRO_T) {
                     tarea_io(thread_data, t);
                     
@@ -146,8 +143,10 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                     if(replanificar_tripulante(thread_data, t)) {
                         log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                         goto final;
-                    } else
+                    } else {
+                        send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                         log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                    }
                 }
             }
         }

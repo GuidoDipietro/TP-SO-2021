@@ -70,7 +70,7 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Recibido inicio de tarea.");
                     char* nombre = string_from_format("Tripulante%d.ims", id_tripulante);
                     char* content = string_from_format(
-                        "El tripulante %d inicia la tarea %s\n",
+                        "Al tripulante %d se le asigna la tarea %s\n",
                         id_tripulante,
                         nombre_tarea
                     );
@@ -101,8 +101,37 @@ static void procesar_conexion(void* void_args) {
                     log_error(logger, "Error recibiendo FIN_TAREA");
                 break;
             }
-            case ATENCION_SABOTAJE:
-            case RESOLUCION_SABOTAJE:
+            case ATENCION_SABOTAJE: {
+                uint32_t id_tripulante;
+                if(recv_tripulante(cliente_socket, &id_tripulante)) {
+                    char* file = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = string_from_format(
+                        "Tripulante %d va a resolver el sabotaje\n",
+                        id_tripulante
+                    );
+                    completar_bitacora(file, content, strlen(content));
+                    free(content);
+                } else {
+                    log_error(logger, "Error recibiendo ATENCION_SABOTAJE");
+                }
+                break;
+            }
+                
+            case RESOLUCION_SABOTAJE: {
+                uint32_t id_tripulante;
+                if(recv_tripulante(cliente_socket, &id_tripulante)) {
+                    char* file = string_from_format("Tripulante%d.ims", id_tripulante);
+                    char* content = string_from_format(
+                        "Tripulante %d resolvio el sabotaje\n",
+                        id_tripulante
+                    );
+                    completar_bitacora(file, content, strlen(content));
+                    free(content);
+                } else {
+                    log_error(logger, "Error recibiendo RESOLUCION_SABOTAJE");
+                }
+                break;
+            }
             case GENERAR: {
                 tipo_item tipo;
                 uint16_t cantidad;

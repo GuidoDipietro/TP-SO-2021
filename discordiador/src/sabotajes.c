@@ -25,7 +25,7 @@ static void cambiar_status(void* p) {
 static void cambiar_status_ready(void* p) {
     //(((t_running_thread*) p)->t)->status = READY;
     cambiar_estado(((t_running_thread*) p)->t, READY);
-    ((t_running_thread*) p)->blocked = false;
+    //((t_running_thread*) p)->blocked = false;
 }
 
 static bool comparator_remover_encargado(void* p) {
@@ -81,6 +81,7 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     }
 
     encargado = list_get_minimum(LISTA_SABOTAJE, comparar_cercania_a_sabotaje);
+    send_tripulante((encargado->t)->fd_i_mongo_store, (encargado->t)->tid, ATENCION_SABOTAJE);
     if(!list_is_empty(LISTA_SABOTAJE)) {
         list_remove_by_condition(LISTA_SABOTAJE, comparator_remover_encargado); // Sacamos al encargado de esta lista
 
@@ -119,6 +120,7 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     //(encargado->t)->status = BLOCKEDSAB;
     cambiar_estado(encargado->t, BLOCKEDSAB);
     list_add(LISTA_SABOTAJE, encargado);
+    send_tripulante((encargado->t)->fd_i_mongo_store, (encargado->t)->tid, RESOLUCION_SABOTAJE);
 
     finalizar_sabotaje();
 }
