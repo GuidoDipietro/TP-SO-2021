@@ -86,7 +86,7 @@ bool crear_servidor(int* fd, char* name) {
     *fd = iniciar_servidor(
             logger,
             name,
-            "127.0.0.1",
+            "0.0.0.0",
             puerto
     );
     free(puerto);

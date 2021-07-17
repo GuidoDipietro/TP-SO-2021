@@ -46,7 +46,7 @@ int main() {
 
     // ****** CREACION DEL SERVIDOR ******
     char* puerto = string_itoa(cfg->PUERTO);
-    mrh_server = iniciar_servidor(logger, SERVERNAME, "127.0.0.1", puerto);
+    mrh_server = iniciar_servidor(logger, SERVERNAME, "0.0.0.0", puerto);
     free(puerto);
 
     // ****** INICIALIZACION DE LA GUI ******
