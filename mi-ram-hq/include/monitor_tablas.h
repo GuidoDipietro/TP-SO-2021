@@ -10,8 +10,6 @@
 #include "init_mrhq.h"
 #include "estructuras.h"
 
-extern void* memoria_principal; // solo por un print
-
 /// TS PATOTAS
 void list_add_tspatotas(ts_patota_t* elem);
 void list_delete_by_pid_tspatotas(uint32_t pid);

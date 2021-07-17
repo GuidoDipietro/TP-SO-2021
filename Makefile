@@ -15,7 +15,8 @@ clean:
 	make clean -C mi-ram-hq
 	make clean -C tests
 
-# Esto tambien borra todos los archivos de log
+# Esto tambien borra todos los archivos de log y el FS de mongus
 recontra:
 	make clean
+	make limpiar_fs -C i_mongo_store
 	find . -name "*.log" -type f -delete

@@ -22,6 +22,9 @@ static uint32_t static_inicio;
 static uint32_t static_nro_pag;
 static uint32_t static_nro_frame;
 
+extern void* memoria_principal; // solo por un print
+extern void* area_swap;         // solo por un print
+
 /// TS PATOTAS
 
 // romlfoa estas dos antes era una sola funcion y destrozaba todos los structs XD
@@ -509,8 +512,11 @@ void print_swap(bool log) {
 void log_structures(uint16_t options) {
     if (options & PRI_MP) {
         char* dumpcito = mem_hexstring(memoria_principal, cfg->TAMANIO_MEMORIA);
+        char* dumpswap = mem_hexstring(area_swap, cfg->TAMANIO_SWAP);
         log_info(logger, "%s", dumpcito);
+        log_info(logger, "\n---Swap---\n%s", dumpswap);
         free(dumpcito);
+        free(dumpswap);
     }
     if (options & PRI_SEGLIB)            LOGPRINT            (seglib);
     if (options & PRI_SEGUS)             LOGPRINT             (segus);

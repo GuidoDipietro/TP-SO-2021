@@ -1,3 +1,6 @@
+// "Me c@g0 en la region critica minima"
+// -Barack Ogama
+
 #include "../include/comunicacion.h"
 
 extern NIVEL* among_nivel;
@@ -125,7 +128,10 @@ static void procesar_conexion(void* void_args) {
                 t_posicion *origen, *destino;
                 if (recv_movimiento(cliente_socket, &id_tripulante, &origen, &destino)) {
                     // MP
-                    if (!actualizar_posicion_tripulante_en_mp(id_tripulante, destino)) {
+                    pthread_mutex_lock(&MUTEX_MP_BUSY);
+                    bool ret = actualizar_posicion_tripulante_en_mp(id_tripulante, destino);
+                    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+                    if (!ret) {
                         log_error(logger, "Fallo actualizando posicion de tripulante en mp");
                         free(origen);
                         free(destino);
@@ -183,7 +189,9 @@ static void procesar_conexion(void* void_args) {
                 else {
                     // log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
 
+                    pthread_mutex_lock(&MUTEX_MP_BUSY);
                     t_tarea* tarea = fetch_tarea(tid);
+                    pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
                     if (!send_tarea(cliente_socket, tarea)) {
                         log_error(logger, "Error enviando la tarea a TID#%" PRIu32, tid);
@@ -197,7 +205,11 @@ static void procesar_conexion(void* void_args) {
                 uint32_t id_tripulante;
                 t_status estado;
                 if (recv_cambio_estado(cliente_socket, &id_tripulante, &estado)) {
-                    if (!actualizar_estado_tripulante_en_mp(id_tripulante, estado)) {
+                    pthread_mutex_lock(&MUTEX_MP_BUSY);
+                    bool ret = actualizar_estado_tripulante_en_mp(id_tripulante, estado);
+                    pthread_mutex_unlock(&MUTEX_MP_BUSY);
+
+                    if (!ret) {
                         log_error(logger,
                             "Error actualizando estado de tripulante TID#%" PRIu32 "en MP a %c",
                             id_tripulante, estado

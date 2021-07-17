@@ -91,7 +91,7 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
     list_add_tppatotas(tabla);
 
     bool nuevapag; // ignorable, ver uso en iniciar_tripulante
-    log_info(logger, "Por appendear data de patota %" PRIu32 " en memoria...", PID);
+    //log_info(logger, "Por appendear data de patota %" PRIu32 " en memoria...", PID);
     uint32_t inicio = append_data_to_patota_en_mp(data, strlen(tareas)+1+8, PID++, &nuevapag);
     free(data);
 
@@ -170,6 +170,7 @@ static bool iniciar_tripulante_en_mp_segmentacion(uint32_t tid, uint32_t pid) {
 }
 static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
     // Posicion para ese tripulante
+    //log_info(logger, "Inicializando tripulante TID#%" PRIu32, tid);
     tp_patota_t* tabla_patota = list_find_by_pid_plus_plus_tppatotas(pid);
     if (tabla_patota == NULL) {
         return false;
@@ -208,11 +209,12 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
 
     // Meto el TCB al final de lo que ya tengo cargado (sease, TAREAS + PCB)
     bool nuevapag;
-    log_info(logger, "Por appendear TCB de %" PRIu32 " en memoria...", tid);
+    //log_info(logger, "Por appendear TCB de %" PRIu32 " en memoria...", tid);
     uint32_t inicio = append_data_to_patota_en_mp(s_tcb, 21, pid, &nuevapag);
 
     if (inicio == 0xFFFF) {
         log_error(logger, "Error CATASTROFICO inicializando tripulante %" PRIu32, tid);
+        1+1;
     }
     else {
         // Si es el ultimo de la patota, actualizar tid_base
@@ -297,7 +299,7 @@ static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
     bool ret;
     if (tabla_patota->tripulantes_inicializados == 0) {
         // ULTIMO TRIPULANTE
-        //log_info(logger, "Borrando patota de TID#%" PRIu32 " (PID#%" PRIu32 ")", tid, pid);
+        log_info(logger, "Borrando patota de TID#%" PRIu32 " (PID#%" PRIu32 ")", tid, pid);
         ret = delete_patota_en_mp(pid); // la borra de MP y estructuras admin.
 
         if (!ret) log_error(logger, "Error TERRIBLE borrando patota de MP");
@@ -346,21 +348,18 @@ static bool actualizar_posicion_tripulante_en_mp_segmentacion(uint32_t tid, t_po
 }
 static bool actualizar_posicion_tripulante_en_mp_paginacion(uint32_t tid, t_posicion* destino) {
     // Recuperamos tabla, TCB, PCB
+    //log_info(logger, "Actualizando posicion de TID#%" PRIu32 "->(%" PRIu32 ",%" PRIu32 ")",tid,destino->x,destino->y);
     tid_pid_lookup_t* tabla;
     TCB_t* tcb;
     PCB_t* pcb;
 
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
     bool ret = RACE_get_structures_from_tid_paginacion(tid, &tabla, &tcb, &pcb);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
     if (!ret) return false;
 
     tcb->pos_x = destino->x;
     tcb->pos_y = destino->y;
     
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
     bool success = RACE_actualizar_tcb_en_mp(pcb->pid, tcb);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
     free(tcb);
     free(pcb);
@@ -397,20 +396,17 @@ static bool actualizar_estado_tripulante_en_mp_segmentacion(uint32_t tid, char n
 }
 static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nuevo_estado) {
     // Recuperamos tabla, TCB, PCB
+    //log_info(logger, "Actualizando estado de TID#%" PRIu32 "->%c", tid, nuevo_estado);
     tid_pid_lookup_t* tabla;
     TCB_t* tcb;
     PCB_t* pcb;
 
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
     bool ret = RACE_get_structures_from_tid_paginacion(tid, &tabla, &tcb, &pcb);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
     if (!ret) return false;
 
     tcb->estado = nuevo_estado;
 
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
     bool success = RACE_actualizar_tcb_en_mp(pcb->pid, tcb);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
     free(tcb);
     free(pcb);
@@ -485,15 +481,12 @@ static t_tarea* fetch_tarea_segmentacion(uint32_t tid) {
 }
 static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     // Estructuras relacionadas al TID
+    // log_info(logger, "Buscando tarea para TID#%" PRIu32 "...", tid);
     tid_pid_lookup_t* tabla = NULL;
     TCB_t* tcb = NULL;
     PCB_t* pcb = NULL;
 
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
-    bool success = RACE_get_structures_from_tid_paginacion(tid, &tabla, &tcb, &pcb);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
-
-    if (!success) {
+    if (!RACE_get_structures_from_tid_paginacion(tid, &tabla, &tcb, &pcb)) {
         // exploto todo
         log_error(logger, "Error MUY FEO recuperando tarea para TID#%" PRIu32, tid);
         free(tcb); free(pcb);
@@ -503,11 +496,9 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     // LEO TAREAS DE MP
     tp_patota_t* tabla_patota = list_find_by_pid_tppatotas(pcb->pid);
 
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
     char* tareas = (char*) RACE_read_from_mp_pid_pagina_offset_tamanio(
         pcb->pid, pcb->dl_tareas>>16, pcb->dl_tareas&0x00FF, tabla_patota->tamanio_tareas
     );
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
 
     // Obtenemos la tarea numero N si existe
     t_tarea* tarea = tarea_numero_n_si_existe(tareas, tcb->id_sig_tarea);
@@ -515,13 +506,9 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
 
     // Actualizamos TCB (id sig tarea + 1 'persistido' en RAM)
     tcb->id_sig_tarea = tcb->id_sig_tarea + 1;
-    pthread_mutex_lock(&MUTEX_MP_BUSY);
-    bool ret = RACE_actualizar_tcb_en_mp(pcb->pid, tcb);
-    pthread_mutex_unlock(&MUTEX_MP_BUSY);
-    if (!ret) {
+    if (!RACE_actualizar_tcb_en_mp(pcb->pid, tcb)) {
         log_error(logger, "Fallo actualizando TCB en memoria para TID#%" PRIu32, tid);
     }
-    // TODO
 
     free(tcb);
     free(pcb);

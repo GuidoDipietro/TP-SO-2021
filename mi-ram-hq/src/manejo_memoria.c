@@ -419,13 +419,18 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
         ;
 
         // !!! THIS SHIT DOESN'T WORK!! WHY? HAS I EVER?
+        /*log_info(logger, "Misc: tamanio/t_restante/p/offset/bytes_a_leer"
+            " - %" PRIu32 "/%" PRIu32 "/%d/%" PRIu32 "/%" PRIu32,
+            tamanio, tamanio_restante, p, offset, bytes_a_leer
+        );*/
         memcpy(
             data + (tamanio - tamanio_restante),
             buf + (p==0? offset : 0),
             bytes_a_leer
         );
 
-        /*for (int i = 0; i < tamanio; i++) {
+        /*log_info(logger, "Iteracion %d, leidos %" PRIu32 " de %" PRIu32, p, bytes_a_leer, tamanio);
+        for (int i = 0; i < tamanio; i++) {
             log_info(logger, "%02x", ((unsigned char*) data) [i]);
         }*/
 
@@ -454,7 +459,7 @@ bool RACE_get_structures_from_tid_paginacion
     }*/
 
     TCB_t* tcb = deserializar_tcb(s_tcb);
-    log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
+    //log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
     *p_tcb = tcb;
     free(s_tcb);
 
@@ -625,6 +630,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 
 // ESTA FUNCION PODRIA TENER CONDICIONES DE CARRERA CON SWAP
 // POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
+// Esta va para vos, Terry
 bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
     const size_t size_tcb = 21;
     void* s_tcb = serializar_tcb(tcb);
@@ -651,6 +657,7 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
 
     retry:; // hacker
     entrada_tp_t* pagina = list_find(paginas, &has_page_number); // posible condicion de RAZA
+    entrada_tp_t* pagina_2 = NULL;
 
     if (pagina->bit_P) {
         // Presente en RAM
@@ -660,17 +667,20 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
             size_t segundo_size = size_tcb - primer_size;
 
             bool has_page_number(void* x) {
-                entrada_tp_t* elem = (entrada_tp_t*) x;
+                entrada_tp_t* elem = x;
                 return elem->nro_pagina == lookup->nro_pagina + 1;
             }
-            entrada_tp_t* pagina_2 = list_find(paginas, &has_page_number); // posible condicion de RAZA
-            
+            bed:;
+            pagina_2 = list_find(paginas, &has_page_number); // posible condicion de RAZA
+            if (pagina_2->bit_P==0) goto bringme;
+
             memcpy_segmento_en_mp(
                 pagina->nro_frame*cfg->TAMANIO_PAGINA + lookup->inicio, s_tcb, primer_size
             );
             memcpy_segmento_en_mp(
                 pagina_2->nro_frame*cfg->TAMANIO_PAGINA, s_tcb+primer_size, segundo_size
             );
+
         }
         else {
             // 1 pagina
@@ -681,13 +691,16 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
     }
     else {
         // SWAP
-        log_info(logger, "Leyendo pagina %" PRIu32 " de SWAP", pagina->nro_pagina);
         traer_pagina_de_swap(pid, pagina->nro_pagina);
+
         goto retry;
     }
-
     free(s_tcb);
     return true;
+
+    bringme:; // https://www.youtube.com/watch?v=3YxaaGgTQYM
+    if (pagina_2) traer_pagina_de_swap(pid, pagina_2->nro_pagina);
+    goto bed;
 }
 
 bool delete_patota_en_mp(uint32_t pid) {
@@ -825,11 +838,12 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
 
     // Mi pagina deseada esta aca:
     const uint32_t paginas_swap = cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA;
-    long int frame_deseado_swap = 0;
+    uint32_t frame_deseado_swap = 0;
     for (; frame_deseado_swap < paginas_swap; frame_deseado_swap++) {
-        /*log_info(logger, "traer_pagina_de_swap: mirando PID: %" PRIu32 " N_P: %" PRIu32,
+        /*log_info(logger, "traer_pagina_de_swap: mirando PID: %" PRIu32 " N_P: %" PRIu32 " INICIO: %" PRIu32,
             tabla_frames_swap[frame_deseado_swap].pid,
-            tabla_frames_swap[frame_deseado_swap].nro_pagina
+            tabla_frames_swap[frame_deseado_swap].nro_pagina,
+            tabla_frames_swap[frame_deseado_swap].inicio
         );*/
         if (
             tabla_frames_swap[frame_deseado_swap].pid == pid &&
@@ -849,7 +863,7 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
         // Tengo que rajar una pagina (LRU | CLOCK). Cambio esa pagina por la deseada. UN SWAP.
         uint32_t pid_rajado, pagina_rajada, inicio_frame_victima;
         frame_libre = pagina_a_reemplazar(frame_deseado_swap, &pid_rajado, &pagina_rajada);
-        log_info(logger, "Frame libre: %" PRIu32, frame_libre);
+        //log_info(logger, "Frame a reemplazar (MP): %" PRIu32, frame_libre);
 
         inicio_frame_victima = tabla_frames[frame_libre].inicio_hueco;
         inicio = tabla_frames_swap[frame_deseado_swap].inicio;
@@ -862,6 +876,7 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
         void* data_pagina_mp = get_pagina_data(frame_libre);
 
         void* data_pagina_swap = malloc(cfg->TAMANIO_PAGINA);
+        memset(data_pagina_swap, 0b0, cfg->TAMANIO_PAGINA);
         memcpy(
             data_pagina_swap,
             area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
@@ -869,6 +884,7 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
         );
 
         // CAMBIO CAMBIO CAMBIOOOO DOLAR EURO CAMBIOOO SWAP SWAP SWAP SWAP SWAP stroke
+        clear_frame_en_mp(frame_libre);
         memcpy_pagina_en_frame_mp(frame_libre, 0, data_pagina_swap, cfg->TAMANIO_PAGINA);
         memcpy(
             area_swap+frame_deseado_swap*cfg->TAMANIO_PAGINA,
@@ -906,6 +922,7 @@ bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
         tabla_frames_swap[frame_deseado_swap].pid = 0;
 
         // Carga en MP
+        clear_frame_en_mp(frame_libre);
         memcpy_pagina_en_frame_mp(frame_libre, 0, data, cfg->TAMANIO_PAGINA);
         free(data);
 
