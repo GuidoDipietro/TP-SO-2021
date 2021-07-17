@@ -81,11 +81,12 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
                 send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                  if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                    sem_post(&ACTIVE_THREADS);
                     goto final;
                 } else {
-                    sem_post(&ACTIVE_THREADS);
                     send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                     log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                    sem_post(&ACTIVE_THREADS);
                 }
             }
         }
@@ -141,13 +142,14 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                     (thread_data->quantum)++;
                 } else {
                     send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
-                    sem_post(&ACTIVE_THREADS);
                     if(replanificar_tripulante(thread_data, t)) {
                         log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                        sem_post(&ACTIVE_THREADS);
                         goto final;
                     } else {
                         send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                         log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                        sem_post(&ACTIVE_THREADS);
                     }
                 }
             }
