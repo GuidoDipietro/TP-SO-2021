@@ -4,14 +4,25 @@ sem_t SEM_IO_LIBRE;
 
 // Esto es basicamente un planificador, pero de e/s
 // Esta funcion, una vez iniciada, no deberia frenar nunca
+
+t_queue* COLA;
+pthread_mutex_t MUTEX;
+
 void controlador_es() {
     log_info(main_log, "Controlador de E/S iniciado correctamente");
     sem_init(&SEM_IO_LIBRE, 0, 1);
+    pthread_mutex_init(&MUTEX, NULL);
+    COLA = queue_create();
     while (1) {
         sem_wait(&SEM_IO_LIBRE);
         sem_wait(&TRIPULANTE_EN_BLOQUEADOS);
-        t_running_thread* thread = pop_cola_bloqueados();
-        sem_post(&(thread->sem_pause));
+        pop_cola_bloqueados();
+        pthread_mutex_lock(&MUTEX);
+        sem_t* sem = queue_pop(COLA);
+        pthread_mutex_unlock(&MUTEX);
+        sem_post(sem);
+        //sem_post(&(thread->sem_pause));
+        //printf("\n\nIO LIBERADO\n\n");
     } 
     sem_destroy(&SEM_IO_LIBRE);
 }
@@ -28,14 +39,23 @@ void controlador_es() {
 
 void tarea_io(t_running_thread* thread, t_tripulante* t) {
     log_info(main_log, "El tripulante %d se ha bloqueado por I/O", t->tid);
-    thread->blocked = true;
+    //thread->blocked = true;
     remover_lista_hilos(t->tid);
     sem_post(&ACTIVE_THREADS);
     cambiar_estado(t, BLOCKED);
+
+    sem_t block_sem;
+    sem_init(&block_sem, 0, 0);
+    pthread_mutex_lock(&MUTEX);
+    queue_push(COLA, &block_sem);
+    pthread_mutex_unlock(&MUTEX);
+
     push_cola_bloqueados(thread);
     sem_post(&TRIPULANTE_EN_BLOQUEADOS);
 
-    sem_wait(&(thread->sem_pause));
+    log_info(main_log, "Tripulante %d espera su IO de %d", t->tid, (t->tarea)->duracion);
+    
+    sem_wait(&block_sem);
     log_info(main_log, "El tripulante %d comenzo su I/O", t->tid);
     
     t_tarea* tarea = t->tarea;
@@ -66,6 +86,8 @@ void tarea_io(t_running_thread* thread, t_tripulante* t) {
         log_info(main_log, "#%d I/O - %d remaining", t->tid, (t->tarea)->duracion);
     }
 
-    sem_post(&SEM_IO_LIBRE); // Libero el dispositivo de I/O
     log_info(main_log, "El tripulante %d finalizo su I/O", t->tid);
+    sem_post(&SEM_IO_LIBRE); // Libero el dispositivo de I/O
+    sem_destroy(&block_sem);
+    //thread->blocked = false;
 }
