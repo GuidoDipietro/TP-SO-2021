@@ -386,6 +386,7 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
         /*log_info(logger, "Leyendo pagina %" PRIu32 "+%d (>>%" PRIu32 ") de proceso %" PRIu32,
             pagina, p, offset, pid
         );*/
+        //print_tppatotas(true);
         bool has_page_number(void* x) {
             entrada_tp_t* elem = (entrada_tp_t*) x;
             return elem->nro_pagina == pagina+p;
@@ -429,8 +430,8 @@ void* RACE_read_from_mp_pid_pagina_offset_tamanio
             bytes_a_leer
         );
 
-        /*log_info(logger, "Iteracion %d, leidos %" PRIu32 " de %" PRIu32, p, bytes_a_leer, tamanio);
-        for (int i = 0; i < tamanio; i++) {
+        //log_info(logger, "Iteracion %d, leidos %" PRIu32 " de %" PRIu32, p, bytes_a_leer, tamanio);
+        /*for (int i = 0; i < tamanio; i++) {
             log_info(logger, "%02x", ((unsigned char*) data) [i]);
         }*/
 
@@ -459,7 +460,7 @@ bool RACE_get_structures_from_tid_paginacion
     }*/
 
     TCB_t* tcb = deserializar_tcb(s_tcb);
-    //log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
+    log_info(logger, "TID#%" PRIu32 " TCB->DL_PCB: 0x%08" PRIx32, tid, tcb->dl_pcb);
     *p_tcb = tcb;
     free(s_tcb);
 
@@ -554,8 +555,8 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 
     // Data de la primera pag libre, para saber si esta por la mitad o que
     //log_info(logger, "Buscando frame libre... (size %zu)", size);
-    print_framo(true);     // debug
-    print_tppatotas(true); // debug
+    //print_framo(true);     // debug
+    //print_tppatotas(true); // debug
 
     uint32_t offset = 0;
     uint32_t frame_de_pag_fragmentada = primer_frame_libre_framo(pid, &offset);
@@ -563,17 +564,19 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
     if (frame_de_pag_fragmentada == 0xFFFF) {
         // LA CARGA DIRECTAMENTE EN SWAP, se encarga la static bool meter_pagina_en_mp
         // Puede ser una pagina nueva o una que esta a medias
-        uint32_t ultima_pag_pid = 0;
+        int64_t ultima_pag_pid = -1;
         for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
             if (
                 tabla_frames_swap[i].pid==pid &&
                 tabla_frames_swap[i].nro_pagina > ultima_pag_pid &&
                 tabla_frames_swap[i].inicio < cfg->TAMANIO_PAGINA
-            )
+            ) {
                 ultima_pag_pid = tabla_frames_swap[i].nro_pagina;
+            }
         }
+        //ultima_pag_pid==-1? log_info(logger, "Pagina nueva en SWAP") : log_info(logger, "Pagina existente en SWAP");
         for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
-            if (ultima_pag_pid==0) {
+            if (ultima_pag_pid == -1) {
                 offset = 0;
                 break;
             }
