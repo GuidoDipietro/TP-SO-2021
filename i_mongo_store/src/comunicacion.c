@@ -47,7 +47,7 @@ static void procesar_conexion(void* void_args) {
                     log_info(logger, "Recibido movimiento de tripulante.");
                     char* nombre = string_from_format("Tripulante%d.ims", id_tripulante);
                     char* content = string_from_format(
-                        "Tripulante 1 se mueve de %d|%d a %d|%d\n",
+                        "Tripulante %d se mueve de %d|%d a %d|%d\n",
                         id_tripulante,
                         origen->x, origen->y,
                         destino->x, destino->y

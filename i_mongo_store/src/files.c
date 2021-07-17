@@ -66,29 +66,42 @@ void* recuperar_archivo(open_file_t* file_data) {
     if(file->size == 0)
         return NULL;
 
+    //printf("\nA\n");
     void* content = malloc(file->size);
 
-    uint32_t* block_num;
-    void* block_content;
-    for(uint32_t i = 0; i < file->block_count - 1; i++) {
-        block_num = list_get(file->blocks, i);
+    //printf("\n~ 6 - %d - %d - %d ~\n", file->size, file->block_count, list_size(file->blocks));
+
+    //printf("\nB\n");
+    if(file->size > 0) {
+        uint32_t* block_num;
+        void* block_content;
+        for(uint32_t i = 0; i < file->block_count - 1; i++) {
+            block_num = list_get(file->blocks, i);
+            block_content = leer_bloque(*block_num);
+            memcpy(
+                content + superbloque->block_size * i,
+                block_content,
+                superbloque->block_size
+            );
+        }
+        //printf("\nC\n");
+        
+        //printf("\nD\n");
+        block_num = list_get(file->blocks, file->block_count - 1);
+        //printf("\nE\n");
+        //printf("\n\nBLOCK NUM: %d\n\n", *block_num);
         block_content = leer_bloque(*block_num);
+        //printf("\nF\n");
+        //uint32_t content_size = superbloque->block_size - ((superbloque->block_size * file->block_count) - size);
+        uint32_t content_size = (1 - file->block_count) * superbloque->block_size + file->size;
         memcpy(
-            content + superbloque->block_size * i,
+            content + superbloque->block_size * (file->block_count - 1),
             block_content,
-            superbloque->block_size
+            content_size
         );
     }
-    
-    block_num = list_get(file->blocks, file->block_count - 1);
-    block_content = leer_bloque(*block_num);
-    //uint32_t content_size = superbloque->block_size - ((superbloque->block_size * file->block_count) - size);
-    uint32_t content_size = (1 - file->block_count) * superbloque->block_size + file->size;
-    memcpy(
-        content + superbloque->block_size * (file->block_count - 1),
-        block_content,
-        content_size
-    );
+    //printf("\nE\n");
+
     return content;
 }
 
@@ -127,16 +140,21 @@ open_file_t* cargar_archivo(char* nombre) {
     file->md5 = malloc(32);
     fread(file->md5, 32, 1, f);
 
-    uint32_t* blocks[file->block_count];
+    /*uint32_t* blocks[file->block_count];
     for(uint32_t i = 0; i < file->block_count; i++) {
         blocks[i] = malloc(sizeof(uint32_t));
         fread(blocks[i], sizeof(uint32_t), 1, f);
-    }
+    }*/
 
     file->blocks = list_create();
+    for(uint32_t i = 0; i < file->block_count; i++) {
+        uint32_t* temp  = malloc(sizeof(uint32_t));
+        fread(temp, sizeof(uint32_t), 1, f);
+        list_add(file->blocks, temp);
+    }
 
-    for(uint32_t i = 0; i < block_count; i++)
-        list_add(file->blocks, (void*) blocks[i]);
+    //for(uint32_t i = 0; i < block_count; i++)
+    //    list_add(file->blocks, (void*) blocks[i]);
 
     open_file_t* file_data = malloc(sizeof(open_file_t));
     file_data->file = file;
@@ -165,8 +183,14 @@ void generar_recurso(open_file_t* file_data, uint32_t cantidad) {
     log_info(logger, "Se generaron %ld recursos en %s - Recursos disponibles: %d", cantidad, file_data->nombre, (file_data->file)->size);
 }
 
+void printear_bloques(uint16_t* t) { printf(" %d ", *t); }
+
 void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
     file_t* file = file_data->file;
+
+    //printf("\n\n^^ %d - %d ^^", file->size, cantidad);
+
+    //("\n1 - %d - %d", file->size, file->block_count);
 
     if(cantidad >= file->size) { // Liberamos todo
         log_warning(
@@ -182,40 +206,57 @@ void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
             liberar_bloque(*n);
             free(n);
         }
-        list_clean_and_destroy_elements(file->blocks, free);
+        list_clean_and_destroy_elements(file->blocks, (void*) liberar_bloque_lista);
         return;
     }
 
     uint32_t originales = cantidad;
 
     uint32_t size_ultimo_bloque = file->size - superbloque->block_size * (file->block_count - 1);
-    uint32_t* nro_bloque = list_get(file->blocks, file->block_count - 1);
+    uint32_t* nro_bloque = list_remove(file->blocks, file->block_count - 1);
 
-    if(cantidad > size_ultimo_bloque) {
+    //printf("\n2 - %d - %d - %d", file->size, file->block_count, size_ultimo_bloque);
+
+    if(cantidad >= size_ultimo_bloque) {
         liberar_bloque(*nro_bloque);
-        list_remove(file->blocks, file->block_count - 1);
-        (file->block_count)--;
-    } else
-        quitar_de_bloque(*nro_bloque, size_ultimo_bloque, size_ultimo_bloque);
-    
-    file->size -= size_ultimo_bloque;
-    cantidad -= size_ultimo_bloque;
-
-    uint32_t a_eliminar = floor(cantidad / ((double) superbloque->block_size));
-
-    for(uint32_t i = 0; i < a_eliminar; i++) {
-        nro_bloque = list_remove(file->blocks, file->block_count - 1);
-        liberar_bloque(*nro_bloque);
-        (file->block_count)--;
+        file->block_count = file->block_count - 1;
+        file->size -= size_ultimo_bloque;
+    } else {
+        //printf("\n\nACA\n\n");
+        quitar_de_bloque(*nro_bloque, size_ultimo_bloque, cantidad);
+        list_add(file->blocks, nro_bloque);
+        file->size -= cantidad;
     }
-    file->size -= a_eliminar * superbloque->block_size;
-    cantidad -= superbloque->block_size * a_eliminar;
+    
+    //file->size = cantidad >= file->size ? 0 : file->size - cantidad;
+    cantidad = cantidad <= size_ultimo_bloque ? 0 : cantidad - size_ultimo_bloque;
+
+    uint32_t a_eliminar = (uint32_t) (cantidad / ((double) superbloque->block_size));
+
+    //printf("\n3 - %d - %d - %d - %d", file->size, file->block_count, cantidad, a_eliminar);
+
+    if(cantidad > superbloque->block_size) {
+        for(uint32_t i = 0; i < a_eliminar; i++) {
+            nro_bloque = list_remove(file->blocks, file->block_count - 1);
+            //printf("\n\nSacamos bloque");
+            //list_iterate(file->blocks, printear_bloques);
+            liberar_bloque(*nro_bloque);
+            file->block_count = file->block_count - 1;
+        }
+        file->size -= a_eliminar * superbloque->block_size;
+        cantidad -= superbloque->block_size * a_eliminar;
+    }
+    
+
+    //printf("\n4 - %d - %d", file->size, file->block_count);
 
     if(cantidad > 0) {
         nro_bloque = list_get(file->blocks, file->block_count - 1);
         quitar_de_bloque(*nro_bloque, superbloque->block_size, cantidad);
         file->size -= cantidad;
     }
+
+    //printf("\n5 - %d - %d", file->size, file->block_count);
 
     log_info(
         logger,
@@ -225,8 +266,15 @@ void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
         file->size
     );
 
+    //("\n\n");
+    //list_iterate(file->blocks, printear_bloques);
+    //printf("\n\n");
+    file->block_count = list_size(file->blocks);
+
     void* content = recuperar_archivo(file_data);
     file->md5 = md5sum(content, file->size);
+    //file->md5 = strdup("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    free(content);
 }
 
 void write_to_file(open_file_t* file_data, void* content, uint32_t len) {

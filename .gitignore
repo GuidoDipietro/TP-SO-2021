@@ -7,6 +7,9 @@
 *.obj
 *.elf
 
+discordiador/*.txt
+discordiador/tareas/a-mongos-pruebas
+
 # Linker output
 *.ilk
 *.map

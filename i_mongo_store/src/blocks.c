@@ -24,12 +24,12 @@ void append_to_block(void* content, uint32_t nro_bloque, uint64_t offset, uint64
 
     memcpy(mem_cpy + superbloque->block_size * nro_bloque + offset, content, size);
     pthread_mutex_unlock(&MUTEX_BLOCKS);
-    log_info(logger, "Appended %d bytes to block %ld with offset %ld", size, nro_bloque, offset);
+    log_info(logger, "Appended %d bytes to block %d with offset %ld", size, nro_bloque, offset);
 }
 
 void* leer_bloque(uint32_t nro_bloque) {
     pthread_mutex_lock(&MUTEX_BLOCKS);
-    void* ret = malloc(sizeof(superbloque->block_size));
+    void* ret = malloc(superbloque->block_size);
     memcpy(ret, mem_cpy + superbloque->block_size * nro_bloque, superbloque->block_size);
     pthread_mutex_unlock(&MUTEX_BLOCKS);
     return ret;
