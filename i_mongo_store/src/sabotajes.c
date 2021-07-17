@@ -5,6 +5,40 @@ sem_t sem_sabotaje;
 int fd_sabotajes = -1;
 sem_t sem_inicio_fsck;
 
+void verificar_blocks_archivo(open_file_t* file_data, file_t* file) {
+    char* content = recuperar_archivo(file_data);
+    char* md5 = md5sum(content, file->size);
+
+    if(strcmp(md5, file->md5) == 0) {
+        log_info(logger, "Hash MD5 de %s coincide.", file_data->nombre);
+        free(content);
+        free(md5);
+        return;
+    }
+
+    // No coincide el MD5. Restauramos los bloques.
+
+    for(uint32_t i = 0; i < file->block_count - 1; i++) {
+        uint32_t* num_bloque = list_get(file->blocks, i);
+        char* content = malloc(superbloque->block_size);
+        memset(content, file->caracter_llenado, superbloque->block_size);
+        escribir_bloque(content, *num_bloque, superbloque->block_size);
+    }
+
+    uint32_t restante = file->size - superbloque->block_size * (file->block_count - 1);
+
+    if(restante > 0) {
+        uint32_t* num_bloque = list_get(file->blocks, file->block_count - 1);
+        char* content = malloc(restante);
+        memset(content, file->caracter_llenado, restante);
+        escribir_bloque(content, *num_bloque, restante);
+    }
+    log_info(logger, "%s restaurado", file_data->nombre);
+
+    free(content);
+    free(md5);
+}
+
 void verificar_integridad_archivo(char* nombre) {
     open_file_t* file_data = cargar_archivo(nombre);
 
@@ -26,7 +60,7 @@ void verificar_integridad_archivo(char* nombre) {
     file->block_count = list_size(file->blocks);
 
     // Blocks
-    // TODO: Arreglar blocks
+    verificar_blocks_archivo(file_data, file);
 
     cerrar_archivo(file_data);
 }

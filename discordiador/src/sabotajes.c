@@ -25,22 +25,7 @@ static void cambiar_status(void* p) {
 static void cambiar_status_ready(void* p) {
     //(((t_running_thread*) p)->t)->status = READY;
     cambiar_estado(((t_running_thread*) p)->t, READY);
-}
-
-static t_posicion pos_sabotaje = {6, 2}; // Temporal. Hasta que este implementado el i-Mongo-Store
-
-// no existe una libreria estandar para numeros de punto flotante :(
-static float calcular_distancia_a_sabotaje(void* p) {
-    t_posicion* pos = (((t_running_thread*) p)->t)->pos;
-    uint16_t difx = abs(pos_sabotaje.x - pos->x);
-    uint16_t dify = abs(pos_sabotaje.y - pos->y);
-    return sqrt(difx*difx+dify*dify);
-}
-
-static void* comparar_cercania_a_sabotaje(void* p1, void* p2) {
-    float d1 = calcular_distancia_a_sabotaje(p1);
-    float d2 = calcular_distancia_a_sabotaje(p2);
-    return d1 < d2 ? p1 : p2;
+    ((t_running_thread*) p)->blocked = false;
 }
 
 static bool comparator_remover_encargado(void* p) {
@@ -52,6 +37,8 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     // Al estar todo pausado no deberiamos de preocuparnos por condiciones de carrera
     log_info(main_log, "Sabotaje detectado. Comenzando bloqueo por sabotaje.");
     SABOTAJE_ACTIVO = true; // Iniciamos todas las rutinas de sabotaje
+    sem_post(&ACTIVE_THREADS);
+    sem_post(&TRIPULANTES_EN_COLA);
 
     iterar_lista_hilos(bloquear_hilo); // Pausamos todos los hilos que esten corriendo
 
@@ -63,8 +50,8 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     list_sort(LISTA_HILOS, sort_by_tid); // Ordenamos la lista de hilos
     list_sort(COLA_TRIPULANTES->elements, sort_by_tid); // Ordenamos la cola de tripulantes
 
-    for(uint16_t i = 0; i < largo_cola(); i++) // Marcamos que no hay tripulantes en cola
-        sem_wait(&TRIPULANTES_EN_COLA);
+    //for(uint16_t i = 0; i < largo_cola(); i++) // Marcamos que no hay tripulantes en cola
+    //    sem_wait(&TRIPULANTES_EN_COLA);
 
     // Bloqueando la LISTA_SABOTAJE nos aseguramos que los tripulantes que vuelven de IO entren ultimos
     pthread_mutex_lock(&MUTEX_LISTA_SABOTAJE);
@@ -79,6 +66,19 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     log_info(main_log, "Bloqueo por sabotaje finalizado.");
 
     // Ahora pasamos a resolver el sabotaje
+
+    float calcular_distancia_a_sabotaje(void* p) {
+        t_posicion* pos = (((t_running_thread*) p)->t)->pos;
+        uint16_t difx = abs(tarea_sabotaje->pos->x - pos->x);
+        uint16_t dify = abs(tarea_sabotaje->pos->y - pos->y);
+        return sqrt(difx*difx+dify*dify);
+    }
+
+    void* comparar_cercania_a_sabotaje(void* p1, void* p2) {
+        float d1 = calcular_distancia_a_sabotaje(p1);
+        float d2 = calcular_distancia_a_sabotaje(p2);
+        return d1 < d2 ? p1 : p2;
+    }
 
     encargado = list_get_minimum(LISTA_SABOTAJE, comparar_cercania_a_sabotaje);
     if(!list_is_empty(LISTA_SABOTAJE)) {
@@ -99,10 +99,10 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
             if(!posiciones_iguales(t->pos, (t->tarea)->pos))
                 mover_tripulante(encargado);
             else {
-                send_iniciar_fsck(fd_sabotajes);
                 correr_tarea_generica(encargado);
             }
         }
+        send_iniciar_fsck(fd_sabotajes);
 
         log_info(main_log, "Sabotaje resuelto");
         (encargado->t)->tarea = anterior;
@@ -129,12 +129,21 @@ void finalizar_sabotaje() {
     COLA_TRIPULANTES->elements = LISTA_SABOTAJE;
     LISTA_SABOTAJE = list_create();
     iterar_cola_ready(cambiar_status_ready);
-    SABOTAJE_ACTIVO = false;
 
-    for(uint16_t i = 0; i < largo_cola(); i++)
-        sem_post(&TRIPULANTES_EN_COLA);
-
+    // Por las dudas, despues se van a reiniciar
+    sem_post(&ACTIVE_THREADS);
+    sem_post(&TRIPULANTES_EN_COLA);
+    //for(uint16_t i = 0; i < largo_cola(); i++)
+    //    sem_post(&TRIPULANTES_EN_COLA);
+    sem_destroy(&TRIPULANTES_EN_COLA);
+    sem_init(&TRIPULANTES_EN_COLA, 0, largo_cola());
     pthread_mutex_unlock(&MUTEX_LISTA_SABOTAJE);
+
+    // Reiniciamos los semaforos
+    sem_destroy(&ACTIVE_THREADS);
+    sem_init(&ACTIVE_THREADS, 0, DISCORDIADOR_CFG->GRADO_MULTITAREA);
+
+    SABOTAJE_ACTIVO = false;
     sem_post(&BLOQUEAR_PLANIFICADOR); // Dejamos que el planificador vuelva a funcionar
 }
 
@@ -147,9 +156,9 @@ void listener_sabotaje() {
             port_i_mongo_store
     );
     free(port_i_mongo_store);
-    send_handshake_sabotaje(fd);
 
     log_info(main_log, "Inicializado el listener de sabotajes.");
+    send_handshake_sabotaje(fd);
 
     while(1) {
         t_posicion* pos_sabotaje;
@@ -158,10 +167,11 @@ void listener_sabotaje() {
         tarea_sabotaje->param = 0;
         tarea_sabotaje->duracion = DISCORDIADOR_CFG->DURACION_SABOTAJE;
         tarea_sabotaje->tipo = OTRO_T;
+        op_code cop;
+        recv(fd, &cop, sizeof(cop), 0);
         recv_sabotaje(fd, &pos_sabotaje); // Nos quedamos esperando a que llegue un sabotaje
         tarea_sabotaje->pos = pos_sabotaje;
         iniciar_sabotaje(tarea_sabotaje, fd);
         free_t_tarea(tarea_sabotaje);
-        finalizar_sabotaje();
     }
 }

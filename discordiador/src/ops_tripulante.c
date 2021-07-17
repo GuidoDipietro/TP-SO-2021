@@ -202,7 +202,7 @@ uint8_t solicitar_tarea(t_tripulante* t) {
     }
     else {
         printf("Tarea de TID#%" PRIu32 "\n", t->tid);
-        print_t_tarea(t->tarea);
+        //print_t_tarea(t->tarea);
     }
 
     return!! 0;

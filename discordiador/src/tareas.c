@@ -17,12 +17,21 @@ void planificador() {
     while (1) {
         if (PLANIFICACION_BLOQUEADA || SABOTAJE_ACTIVO)
             sem_wait(&BLOQUEAR_PLANIFICADOR);
+
         sem_wait(&ACTIVE_THREADS);
         sem_wait(&TRIPULANTES_EN_COLA);
 
+        if(SABOTAJE_ACTIVO)
+            continue;
+
+        printf("\nA\n");
         t_running_thread* new = pop_cola_tripulante();
+        printf("\nB\n");
         // Preparamos el hilo para correr
         //(new->t)->status = EXEC;
+        if(new == NULL)
+            continue;
+
         cambiar_estado(new->t, EXEC);
         new->blocked = false;
         monitor_add_lista_hilos((void*) new);
