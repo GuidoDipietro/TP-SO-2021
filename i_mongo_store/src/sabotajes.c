@@ -51,9 +51,14 @@ void verificar_integridad_archivo(char* nombre) {
 
     // SIZE
 
+    //void print_bloques(uint32_t* b) { printf(" %d ", *b); }
+
     uint32_t size_file = 0;
     void sumar_size(uint32_t* n) { size_file += size_bloque(*n, file->caracter_llenado); }
+    //list_iterate(file->blocks, print_bloques);
+    list_iterate(file->blocks, (void*) sumar_size);
     file->size = size_file;
+    log_info(logger, "Size de %s verificado. SIZE %d - BLOCK COUNT %d", file_data->nombre, file->size, file->block_count);
 
     // block_count y blocks
 
