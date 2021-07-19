@@ -106,11 +106,11 @@ void* recuperar_archivo(open_file_t* file_data) {
 }
 
 void print_file_t(file_t* file) {
-    printf("\nSIZE: %d\nBLOCK_COUNT: %d | %d\nCARACTER_LLENADO: %c\n",
+    printf("\nSIZE: %d\nBLOCK_COUNT: %d | %d\nCARACTER_LLENADO: %c\nMD5: %s\n",
         file->size,
-        file->block_count,
-        list_is_empty(file->blocks) ? 0 : list_size(file->blocks),
-        file->caracter_llenado
+        file->block_count, list_size(file->blocks),
+        file->caracter_llenado,
+        file->md5
     );
 }
 
@@ -327,6 +327,10 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
         file->block_count += bloques_a_pedir;
     }
     file->size += len;
+
+    void* end_content = recuperar_archivo(file_data);
+    file->md5 = md5sum(end_content, file->size);
+    free(end_content);
 
     pthread_mutex_unlock(&(file_data->mutex_file));
 }

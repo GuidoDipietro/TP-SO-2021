@@ -3,7 +3,7 @@
 void set_signal_handlers() {
     signal(SIGINT, close_signal_handler);
     signal(SIGQUIT, close_signal_handler);
-    signal(SIGSEGV, segfault_signal_handler);
+    //signal(SIGSEGV, segfault_signal_handler);
     signal(SIGUSR1, sabotaje_signal_handler);
 }
 
