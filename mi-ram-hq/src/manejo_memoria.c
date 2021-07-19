@@ -131,6 +131,8 @@ bool get_structures_from_tid_segmentacion
 // Si se llama a esta func es porque ya se sabe que entra
 // Devuelve la Dir fisica del segmento, o INICIO_INVALIDO si explota (no deberia pasar)
 uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo) {
+    log_info(logger, "Metiendo segmento tipo %d (size %" PRIu32 ") en memoria", tipo, size);
+
     segmento_t* hueco_victima = (*proximo_hueco)(size);
     if (hueco_victima == NULL) {
         if (!compactar_mp()) {
@@ -138,7 +140,7 @@ uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo) {
             return INICIO_INVALIDO;
         }
 
-        log_warning(logger, "Compacte todos!");
+        log_info(logger, "Compacte todos!");
 
         hueco_victima = (*proximo_hueco)(size);
         if (hueco_victima == NULL)
@@ -166,6 +168,8 @@ uint32_t meter_segmento_en_mp(void* data, uint32_t size, tipo_segmento_t tipo) {
 }
 
 bool eliminar_segmento_de_mp(uint32_t inicio) {
+    log_info(logger, "Eliminando segmento con inicio en %" PRIu32 " de memoria", inicio);
+
     segmento_t* segmento = list_find_by_inicio_segus(inicio);
     if (segmento == NULL) return false;
 
@@ -550,6 +554,7 @@ static bool meter_pagina_en_mp(void* data, size_t size, uint32_t pid, uint32_t i
 // O si la ultima del proceso esta por la mitad, empieza por ahi
 // Esta funcion nunca deberia llamarse si no hay espacio para meter la data (ni en SWAP)
 uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool* nuevapag) {
+    log_info(logger, "Agregando data (size %zu) a patota PID#%" PRIu32 " en memoria", size, pid);
     void* buf;
     uint32_t t_pag = cfg->TAMANIO_PAGINA;
 
@@ -635,6 +640,7 @@ uint32_t append_data_to_patota_en_mp(void* data, size_t size, uint32_t pid, bool
 // POCO PROBABLE, PERO POR LAS DUDAS USAR CON MUTEX_MP_BUSY
 // Esta va para vos, Terry
 bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
+    log_info(logger, "Actualizando TCB de TID#%" PRIu32 " en memoria", tcb->tid);
     const size_t size_tcb = 21;
     void* s_tcb = serializar_tcb(tcb);
 
@@ -707,6 +713,8 @@ bool RACE_actualizar_tcb_en_mp(uint32_t pid, TCB_t* tcb) {
 }
 
 bool delete_patota_en_mp(uint32_t pid) {
+    log_info(logger, "Eliminando patota PID#%" PRIu32 " de memoria", pid);
+
     tp_patota_t* tabla_patota = list_remove_by_pid_tppatotas(pid);
     if (tabla_patota == NULL) return false;
 
@@ -827,6 +835,7 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
 }
 
 uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {
+    log_info(logger, "Buscando pagina para reemplazar...");
     return cfg->LRU
         ? pagina_a_reemplazar_LRU(frame_a_swap, pid, nro_pagina)
         : pagina_a_reemplazar_CLOCK(frame_a_swap, pid, nro_pagina);
@@ -835,6 +844,7 @@ uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro
 // Se llama cuando bit_P == 0 y necesito leer la pagina
 // Es que yo ya a esta altura no puedo pensar una solucion eficiente y con codigo limpio, lo lamento profundamente
 bool traer_pagina_de_swap(uint32_t pid, uint32_t nro_pagina) {
+    log_info(logger, "Trayendo pagina de SWAP a RAM");
     /*log_info(logger, "traer_pagina_de_swap: Voy a buscar cosas para PID: %" PRIu32 " N_P: %" PRIu32,
         pid, nro_pagina
     );*/

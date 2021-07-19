@@ -187,7 +187,7 @@ static void procesar_conexion(void* void_args) {
                     log_error(logger, "Error recibiendo TID en tarea solicitada");
                 }
                 else {
-                    // log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
+                    log_info(logger, "Tripulante TID#%" PRIu32 " pide tarea.", tid);
 
                     pthread_mutex_lock(&MUTEX_MP_BUSY);
                     t_tarea* tarea = fetch_tarea(tid);

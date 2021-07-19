@@ -27,8 +27,9 @@ static void log_t_posicion(void* x) {
 
 ////// INICIAR PATOTA
 
+static uint32_t PID = 1;
 static bool iniciar_patota_en_mp_segmentacion(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
-    static uint32_t PID = 1;
+    //static uint32_t PID = 1;
     // list_iterate(posiciones, &log_t_posicion); // debug
 
     // Meto el segmento TAREAS
@@ -68,7 +69,7 @@ static bool iniciar_patota_en_mp_segmentacion(uint32_t n_tripulantes, char* tare
     return true;
 }
 static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
-    static uint32_t PID = 1;
+    //static uint32_t PID = 1;
 
     // Primero TAREAS, despues PCB
     void* data = malloc(strlen(tareas) + 1 + 8);
@@ -101,6 +102,7 @@ static bool iniciar_patota_en_mp_paginacion(uint32_t n_tripulantes, char* tareas
     return inicio!=0xFFFF;
 }
 bool iniciar_patota_en_mp(uint32_t n_tripulantes, char* tareas, t_list* posiciones) {
+    log_info(logger, "Iniciando patota %" PRIu32 " en memoria (TAREAS y PCB)", PID);
     bool success = cfg->SEG
         ? iniciar_patota_en_mp_segmentacion(n_tripulantes, tareas, posiciones)
         : iniciar_patota_en_mp_paginacion  (n_tripulantes, tareas, posiciones);
@@ -249,7 +251,7 @@ static bool iniciar_tripulante_en_mp_paginacion(uint32_t tid, uint32_t pid) {
 }
 bool iniciar_tripulante_en_mp(uint32_t tid, uint32_t pid) {
     sem_wait(&SEM_INICIAR_SELF_EN_PATOTA);
-    // log_warning(logger, "Al fin mi PAPU me dejo inicializarme! Soy TID#%" PRIu32 "tid", tid);
+    log_info(logger, "Iniciando tripulante TID#%" PRIu32 " en memoria (TCB)", tid);
 
     bool success = cfg->SEG
         ? iniciar_tripulante_en_mp_segmentacion(tid, pid)
@@ -325,6 +327,7 @@ static bool borrar_tripulante_de_mp_paginacion(uint32_t tid) {
     return ret;
 }
 bool borrar_tripulante_de_mp(uint32_t tid) {
+    log_info(logger, "Borrando tripulante TID#%" PRIu32, tid);
     bool success = cfg->SEG
         ? borrar_tripulante_de_mp_segmentacion(tid)
         : borrar_tripulante_de_mp_paginacion  (tid);
@@ -379,6 +382,9 @@ static bool actualizar_posicion_tripulante_en_mp_paginacion(uint32_t tid, t_posi
     return success;
 }
 bool actualizar_posicion_tripulante_en_mp(uint32_t tid, t_posicion* destino) {
+    log_info(logger, "Actualizando posicion de TID#%" PRIu32 " a %" PRIu32 "|%" PRIu32,
+        tid, destino->x, destino->y
+    );
     bool success = cfg->SEG
         ? actualizar_posicion_tripulante_en_mp_segmentacion(tid, destino)
         : actualizar_posicion_tripulante_en_mp_paginacion  (tid, destino);
@@ -440,6 +446,7 @@ static bool actualizar_estado_tripulante_en_mp_paginacion(uint32_t tid, char nue
     return success;
 }
 bool actualizar_estado_tripulante_en_mp(uint32_t tid, char nuevo_estado) {
+    log_info(logger, "Actualizando estado de TID#%" PRIu32 " a %c", tid, nuevo_estado);
     bool success = cfg->SEG
         ? actualizar_estado_tripulante_en_mp_segmentacion(tid, nuevo_estado)
         : actualizar_estado_tripulante_en_mp_paginacion  (tid, nuevo_estado);
@@ -559,6 +566,7 @@ static t_tarea* fetch_tarea_paginacion(uint32_t tid) {
     return tarea;
 }
 t_tarea* fetch_tarea(uint32_t tid) {
+    log_info(logger, "Buscando proxima tarea para TID#%" PRIu32, tid);
     t_tarea* tarea = cfg->SEG
         ? fetch_tarea_segmentacion(tid)
         : fetch_tarea_paginacion  (tid);

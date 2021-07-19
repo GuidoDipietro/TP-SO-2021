@@ -140,14 +140,26 @@ uint8_t cargar_memoria() {
         global_TUR = 0;
         
         tp_patotas = list_create();
+        if (tp_patotas == NULL) {
+            log_error(logger, "Fallo creando tp_patotas");
+            return 0;
+        }
 
         tabla_frames = malloc(cfg->CANT_PAGINAS * sizeof(frame_t));
+        if (tabla_frames == NULL) {
+            log_error(logger, "Fallo creando tabla_frames");
+            return 0;
+        }
         for (int i=0; i<cfg->CANT_PAGINAS; i++) {
             tabla_frames[i].bytes = 0;
             tabla_frames[i].libre = 1;
         }
 
         tabla_frames_swap = malloc((sizeof(frame_swap_t) * cfg->TAMANIO_SWAP) / cfg->TAMANIO_PAGINA);
+        if (tabla_frames_swap == NULL) {
+            log_error(logger, "Fallo creando tabla_frames_swap");
+            return 0;
+        }
         for (int i=0; i<cfg->TAMANIO_SWAP/cfg->TAMANIO_PAGINA; i++) {
             tabla_frames_swap[i].pid = 0;
             tabla_frames_swap[i].nro_pagina = 0xFFFF;
@@ -155,6 +167,10 @@ uint8_t cargar_memoria() {
         }
 
         tid_pid_lookup = list_create();
+        if (tid_pid_lookup == NULL) {
+            log_error(logger, "Fallo creando tid_pid_lookup");
+            return 0;
+        }
 
         // Swap
         espacio_disponible_swap = cfg->TAMANIO_SWAP;
@@ -163,6 +179,8 @@ uint8_t cargar_memoria() {
 }
 
 void cerrar_programa() {
+    log_info(logger, "Finalizando programa...");
+
     // rip lucas spigariol
     bool segmentacion = strcmp(cfg->ESQUEMA_MEMORIA, "SEGMENTACION")==0;
     bool paginacion = strcmp(cfg->ESQUEMA_MEMORIA, "PAGINACION")==0;
