@@ -42,9 +42,9 @@ valgrind: debug build
 	valgrind --leak-check=full --track-origins=yes --log-file=valgrind.log ./$(OUT_NAME)
 
 limpiar_fs:
-	rm -rf cde/*.ims
-	rm -rf cde/Files/*.ims
-	rm -rf cde/Bitacoras/*.ims
+	rm -rf fs/*.ims
+	rm -rf fs/Files/*.ims
+	rm -rf fs/Files/Bitacoras/*.ims
 
 clean:
 	rm -rf obj

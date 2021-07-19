@@ -12,14 +12,17 @@ static void crear_superbloque() {
 
     uint32_t* p = malloc(sizeof(uint32_t));
     *p = cfg->BLOCKS;
+    //fwrite("BLOCKS=", sizeof(char), 7, f);
     fwrite(p, sizeof(uint32_t), 1, f);
     *p = cfg->BLOCK_SIZE;
+    //fwrite("BLOCK_SIZE=", sizeof(char), 11, f);
     fwrite(p, sizeof(uint32_t), 1, f);
     free(p);
 
     uint32_t bytes = ceil(cfg->BLOCKS / 8.0);
     raw_bitmap_t b = malloc(bytes);
     memset(b, 0x00, bytes);
+    //fwrite("BITMAP=", sizeof(char), 7, f);
     fwrite(b, 1, bytes, f);
     free(b);
     fclose(f);
@@ -41,8 +44,10 @@ void cargar_superbloque() {
 
     uint32_t* temp = malloc(sizeof(uint32_t));
 
+    //fseek(f, 7, SEEK_CUR); // BLOCKS=
     fread(temp, sizeof(uint32_t), 1, f);
     superbloque->blocks = *temp;
+    //fseek(f, 11, SEEK_CUR); // BLOCK_SIZE=
     fread(temp, sizeof(uint32_t), 1, f);
     superbloque->block_size = *temp;
     free(temp);
@@ -52,9 +57,10 @@ void cargar_superbloque() {
 
     if(nuevo_superbloque) crear_bloques();
 
-    //printf("\n%d - %d - bytes: %d\n", superbloque->blocks, superbloque->block_size, superbloque->bytes_bitarray);
+    printf("\n%d - %d\n", superbloque->blocks, superbloque->block_size);
 
     // Pasamos a cargar el bitmap a memoria
+    //fseek(f, 7, SEEK_CUR); // BITMAP=
     raw_bitmap_t raw_bitmap = malloc(superbloque->bytes_bitarray);
     fread(raw_bitmap, superbloque->bytes_bitarray, 1, f);
     superbloque->bitarray = bitarray_create(raw_bitmap, superbloque->bytes_bitarray);

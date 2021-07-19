@@ -4,7 +4,9 @@ void escribir_bitacora(bitacora_t* bitacora) {
     char* path = concatenar_montaje_bitacora(bitacora->nombre);
     FILE* f = fopen(path, "wb");
     free(path);
+    fwrite("SIZE=", sizeof(char), 5, f);
     fwrite(&(bitacora->size), sizeof(uint32_t), 1, f);
+    fwrite("BLOCKS=", sizeof(char), 7, f);
     if(bitacora->block_count > 0)
         for(uint32_t i = 0; i < bitacora->block_count; i++) {
             uint32_t* ptr = list_get(bitacora->blocks, i);
@@ -40,7 +42,9 @@ bitacora_t* cargar_bitacora(char* nombre) {
         return NULL;
 
     bitacora_t* ret = malloc(sizeof(bitacora_t));
+    fseek(f, 5, SEEK_CUR); // SIZE=
     fread(&(ret->size), sizeof(uint32_t), 1, f);
+    fseek(f, 7, SEEK_CUR); // BLOCKS=
     ret->blocks = list_create();
     ret->nombre = strdup(nombre);
     ret->block_count = ceil(ret->size / ((double) superbloque->block_size));

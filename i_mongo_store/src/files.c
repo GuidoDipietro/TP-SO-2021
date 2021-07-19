@@ -29,10 +29,15 @@ void escribir_archivo(char* nombre, file_t* file) {
     char* path = concatenar_montaje_files(nombre);
     FILE* f = fopen(path, "wb");
     free(path);
+    fwrite("SIZE=", sizeof(char), 5, f);
     fwrite(&(file->size), sizeof(uint32_t), 1, f);
+    fwrite("BLOCK_COUNT=", sizeof(char), 12, f);
     fwrite(&(file->block_count), sizeof(uint32_t), 1, f);
+    fwrite("CARACTER_LLENADO", sizeof(char), 16, f);
     fwrite(&(file->caracter_llenado), sizeof(char), 1, f);
+    fwrite("MD5=", sizeof(char), 4, f);
     fwrite(file->md5, 32, 1, f);
+    fwrite("BLOCKS=", sizeof(char), 7, f);
     if(file->block_count > 0)
         for(uint32_t i = 0; i < file->block_count; i++) {
             uint32_t* d = list_get(file->blocks, i);
@@ -66,12 +71,8 @@ void* recuperar_archivo(open_file_t* file_data) {
     if(file->size == 0)
         return NULL;
 
-    //printf("\nA\n");
     void* content = malloc(file->size);
 
-    //printf("\n~ 6 - %d - %d - %d ~\n", file->size, file->block_count, list_size(file->blocks));
-
-    //printf("\nB\n");
     if(file->size > 0) {
         uint32_t* block_num;
         void* block_content;
@@ -84,15 +85,9 @@ void* recuperar_archivo(open_file_t* file_data) {
                 superbloque->block_size
             );
         }
-        //printf("\nC\n");
-        
-        //printf("\nD\n");
         block_num = list_get(file->blocks, file->block_count - 1);
-        //printf("\nE\n");
-        //printf("\n\nBLOCK NUM: %d\n\n", *block_num);
         block_content = leer_bloque(*block_num);
-        //printf("\nF\n");
-        //uint32_t content_size = superbloque->block_size - ((superbloque->block_size * file->block_count) - size);
+
         uint32_t content_size = (1 - file->block_count) * superbloque->block_size + file->size;
         memcpy(
             content + superbloque->block_size * (file->block_count - 1),
@@ -130,13 +125,17 @@ open_file_t* cargar_archivo(char* nombre) {
 
     file_t* file = malloc(sizeof(file_t));
 
+    fseek(f, 5, SEEK_CUR); // SIZE=
     fread(&(file->size), sizeof(uint32_t), 1, f);
+    fseek(f, 12, SEEK_CUR); // BLOCK_COUNT=
     uint32_t block_count;
     fread(&block_count, sizeof(uint32_t), 1, f);
     file->block_count = block_count;
 
-    fread(&(file->caracter_llenado), sizeof(char), 1, f);
+    fseek(f, 16, SEEK_CUR);
+    fread(&(file->caracter_llenado), sizeof(char), 1, f); // CARACTER_LLENADO=
     //fread(blocks, sizeof(uint32_t), block_count, f); 
+    fseek(f, 4, SEEK_CUR); // MD5=
     file->md5 = malloc(32);
     fread(file->md5, 32, 1, f);
 
@@ -145,6 +144,7 @@ open_file_t* cargar_archivo(char* nombre) {
         blocks[i] = malloc(sizeof(uint32_t));
         fread(blocks[i], sizeof(uint32_t), 1, f);
     }*/
+    fseek(f, 7, SEEK_CUR); // BLOCKS=
 
     file->blocks = list_create();
     for(uint32_t i = 0; i < file->block_count; i++) {
