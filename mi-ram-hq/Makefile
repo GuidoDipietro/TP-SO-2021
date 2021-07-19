@@ -45,6 +45,7 @@ clean:
 	rm -rf obj
 	rm -rf *.out
 	rm -rf *.dmp
+	rm -rf *.bin
 	make clean -C ../shared
 
 remake:
