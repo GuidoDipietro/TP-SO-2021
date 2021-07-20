@@ -120,9 +120,21 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         //ciclo();
         __asm__ volatile ("call ciclo_dis"); // Por los memes
 
-        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM)
-            desalojar_tripulante(thread_data);
-        else {
+
+
+        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM) {
+            if((t->tarea)->duracion)
+                desalojar_tripulante(thread_data);
+            else { // El acto de replanificar incluye desalojarlo
+                if(replanificar_tripulante(thread_data, t)) {
+                    log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                    sem_post(&ACTIVE_THREADS);
+                    goto final;
+                } else
+                    log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                    sem_post(&ACTIVE_THREADS);
+            }
+        } else {
             if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
                 mover_tripulante(thread_data);
                 (thread_data->quantum)++;
@@ -136,7 +148,6 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                         goto final;
                     } else
                         log_info(main_log, "El tripulante %d fue replanificado", t->tid);
-
                 } else if((t->tarea)->duracion) {
                     correr_tarea_generica(thread_data);
                     (thread_data->quantum)++;
