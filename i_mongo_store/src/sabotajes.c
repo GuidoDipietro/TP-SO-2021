@@ -100,6 +100,7 @@ void fsck() {
 
     // BITMAP
     {
+        void iterar_blocks(uint32_t* n) { printf(" %d ", *n); }
         void cargar_en_bitarray(uint32_t* bloque) { monitor_bitarray_set_bit(*bloque); }
         void abrir_archivo_y_cargar_en_bitarray(char* nombre) {
             open_file_t* file_data = cargar_archivo(nombre);
@@ -107,8 +108,9 @@ void fsck() {
             if(file_data == NULL)
                 return;
 
+            list_iterate((file_data->file)->blocks, iterar_blocks);
             list_iterate(
-                ((file_data)->file)->blocks,
+                (file_data->file)->blocks,
                 (void*) cargar_en_bitarray
             );
             cerrar_archivo(file_data);
