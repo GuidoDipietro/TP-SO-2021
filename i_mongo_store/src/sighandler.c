@@ -35,7 +35,7 @@ void sabotaje_signal_handler() {
     pthread_create(&HILO_FSCK, NULL, (void*) fsck, NULL);
     pthread_detach(HILO_FSCK);
     send_sabotaje(fd_sabotajes, pos);
-    free_t_posicion(pos);
+    //free_t_posicion(pos);
 }
 
 void close_signal_handler() {
