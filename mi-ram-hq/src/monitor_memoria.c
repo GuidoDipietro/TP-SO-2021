@@ -520,10 +520,10 @@ void print_segmento_t(void* s) {
     segmento_t* seg = (segmento_t*) s;
     log ? log_info(
         logger,
-        "(%d) #%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        "(%d) #%" PRIu32 " -- INICIO: 0x%04" PRIx32 " | TAMAN: %5" PRIu32 "\n",
         seg->tipo, seg->nro_segmento, seg->inicio, seg->tamanio
     )   : printf(
-        "(%d) #%" PRIu32 " -- INICIO: %5" PRIu32 " | TAMAN: %5" PRIu32 "\n",
+        "(%d) #%" PRIu32 " -- INICIO: 0x%04" PRIx32 " | TAMAN: %5" PRIu32 "\n",
         seg->tipo, seg->nro_segmento, seg->inicio, seg->tamanio
     );
 }
