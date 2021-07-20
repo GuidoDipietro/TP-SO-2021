@@ -85,9 +85,9 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
         return d1 < d2 ? p1 : p2;
     }
 
-    encargado = list_get_minimum(LISTA_SABOTAJE, comparar_cercania_a_sabotaje);
-    send_tripulante((encargado->t)->fd_i_mongo_store, (encargado->t)->tid, ATENCION_SABOTAJE);
     if(!list_is_empty(LISTA_SABOTAJE)) {
+        encargado = list_get_minimum(LISTA_SABOTAJE, comparar_cercania_a_sabotaje);
+        send_tripulante((encargado->t)->fd_i_mongo_store, (encargado->t)->tid, ATENCION_SABOTAJE);
         list_remove_by_condition(LISTA_SABOTAJE, comparator_remover_encargado); // Sacamos al encargado de esta lista
 
         log_info(main_log, "El tripulante %d es el encargado de resolver el sabotaje", (encargado->t)->tid);
@@ -115,6 +115,7 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     } else {
         send_iniciar_fsck(fd_sabotajes);
         log_info(main_log, "No hay tripulantes disponibles para resolver los sabotajes. Salteando sabotaje");
+        goto finalizar;
     }
     
     pthread_mutex_unlock(&MUTEX_LISTA_SABOTAJE); // Aca ya podemos liberar la LISTA_SABOTAJE
@@ -127,7 +128,8 @@ void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes) {
     list_add(LISTA_SABOTAJE, encargado);
     send_tripulante((encargado->t)->fd_i_mongo_store, (encargado->t)->tid, RESOLUCION_SABOTAJE);
 
-    finalizar_sabotaje();
+    finalizar:
+        finalizar_sabotaje();
 }
 
 void finalizar_sabotaje() {
