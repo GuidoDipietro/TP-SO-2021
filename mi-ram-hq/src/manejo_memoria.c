@@ -284,12 +284,13 @@ static bool compactar_mp_iteracion(uint32_t i) {
 }
 bool compactar_mp() {
     if (cfg->SEG) {
+        unificar_huecos_seglib(); // merge de huecos contiguos                                            (pasar de esquema meme a esquema sensato)
+        
         if (list_is_empty_segus()) {
             return true;
         }
 
         log_info(logger, "Compactando memoria...");
-        unificar_huecos_seglib(); // merge de huecos contiguos                                            (pasar de esquema meme a esquema sensato)
         uint32_t segmentos = list_size_segus();
         for (int i=0; i<segmentos; i++) {
             // log_warning(logger, "Compactando segmento [%d] de %d...", i, segmentos);
