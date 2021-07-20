@@ -8,10 +8,19 @@ void set_signal_handlers() {
 }
 
 t_posicion* pos_sabotaje() {
-    if(list_is_empty(cfg->POSICIONES_SABOTAJE))
+    /*if(list_is_empty(cfg->POSICIONES_SABOTAJE))
         return NULL;
 
-    return list_remove(cfg->POSICIONES_SABOTAJE, 0);
+    return list_remove(cfg->POSICIONES_SABOTAJE, 0);*/
+    static uint16_t i = 0;
+
+    if(i == list_size(cfg->POSICIONES_SABOTAJE))
+        i = 0;
+
+    t_posicion* ret = list_get(cfg->POSICIONES_SABOTAJE, i);
+    
+    i++;
+    return ret;
 }
 
 void sabotaje_signal_handler() {
