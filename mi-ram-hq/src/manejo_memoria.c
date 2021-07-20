@@ -175,19 +175,7 @@ bool eliminar_segmento_de_mp(uint32_t inicio) {
 
     // Nuevo hueco
     segmento_t* hueco_generado = new_segmento(0, 0, segmento->inicio, segmento->tamanio);
-    segmento_t* hueco_posterior = list_find_first_by_inicio_seglib(hueco_generado->inicio+hueco_generado->tamanio);
-    segmento_t* hueco_anterior = list_find_first_by_inicio_seglib(hueco_generado->inicio-1);
-    if (hueco_posterior) {
-        hueco_generado->tamanio += hueco_posterior->tamanio;
-        hueco_posterior->tamanio = 0;
-        remove_zero_sized_gap_seglib();
-    }
-    if (hueco_anterior) {
-        hueco_generado->inicio = hueco_anterior->inicio;
-        hueco_generado->tamanio += hueco_anterior->tamanio;
-        hueco_anterior->tamanio = 0;
-        remove_zero_sized_gap_seglib();
-    }
+    // ACA ESTABA EL MERGE CON HUECO ANTERIOR Y POSTERIOR, SE FUE
     list_add_seglib(hueco_generado);
 
     // Importante
@@ -301,6 +289,7 @@ bool compactar_mp() {
         }
 
         log_info(logger, "Compactando memoria...");
+        unificar_huecos_seglib(); // merge de huecos contiguos                                            (pasar de esquema meme a esquema sensato)
         uint32_t segmentos = list_size_segus();
         for (int i=0; i<segmentos; i++) {
             // log_warning(logger, "Compactando segmento [%d] de %d...", i, segmentos);

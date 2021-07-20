@@ -44,6 +44,7 @@ segmento_t* list_add_all_holes_seglib();
 segmento_t* list_get_seglib(uint32_t indice);
 void list_clean_seglib();
 void remove_zero_sized_gap_seglib();
+void unificar_huecos_seglib();
 void asesinar_seglib();
 /// END SEGLIB
 

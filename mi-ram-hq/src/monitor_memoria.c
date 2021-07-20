@@ -243,6 +243,23 @@ void remove_zero_sized_gap_seglib() {
     pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
 }
 
+void unificar_huecos_seglib() {
+    pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
+    int count = list_size(segmentos_libres);
+    for (int i=0; i<count; ++i) {
+        if (i==count-1) break;
+        segmento_t* hueco = list_get(segmentos_libres, i);
+        segmento_t* hueco_next = list_get(segmentos_libres, i+1);
+        if (hueco->inicio+hueco->tamanio == hueco_next->inicio) {
+            // merge
+            hueco->tamanio += hueco_next->tamanio;
+            list_remove_and_destroy_element(segmentos_libres, i+1, (void*) free);
+            i--;--count;
+        }
+    }
+    pthread_mutex_unlock(&MUTEX_SEGMENTOS_LIBRES);
+}
+
 void asesinar_seglib() {
     pthread_mutex_lock(&MUTEX_SEGMENTOS_LIBRES);
     list_destroy_and_destroy_elements(segmentos_libres, (void*) free);
