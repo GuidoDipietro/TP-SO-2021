@@ -37,11 +37,41 @@ void verificar_blocks_archivo(open_file_t* file_data, file_t* file) {
     uint32_t restante = file->size - superbloque->block_size * (file->block_count - 1);
     // Ojo que aca podemos tener overflow negativo!
 
+    // Aca todavia me va a quedar el ultimo bloque que esta en el archivo
+
+    // Vos decis que se repite codigo? Porque para mi no :)
+    // -1 profes de PdP
     if(restante > 0 && file->block_count > 0) {
-        uint32_t* num_bloque = list_get(file->blocks, file->block_count - 1);
-        char* content = malloc(restante);
-        memset(content, file->caracter_llenado, restante);
-        escribir_bloque(content, *num_bloque, restante);
+        if(restante > superbloque->block_size) {
+            uint32_t* block_ptr = list_get(file->blocks, file->block_count - 1);
+            void* new_content = malloc(superbloque->block_size);
+            memset(new_content, file->caracter_llenado, superbloque->block_size);
+            escribir_bloque(new_content, *block_ptr, superbloque->block_size);
+            restante -= superbloque->block_size;
+
+            uint32_t block_num;
+            while(restante > superbloque->block_size) {
+                uint32_t block_num = monitor_offset_bloque_libre();
+                char* new_content = malloc(superbloque->block_size);
+                memset(new_content, file->caracter_llenado, superbloque->block_size);
+                escribir_bloque(new_content, block_num, superbloque->block_size);
+                restante -= superbloque->block_size;
+            }
+
+            if(restante > 0) {
+                uint32_t block_num = monitor_offset_bloque_libre();
+                char* new_content = malloc(restante);
+                memset(new_content, file->caracter_llenado, restante);
+                escribir_bloque(new_content, block_num, restante);
+                restante -= superbloque->block_size;
+            }
+        } else {
+            uint32_t* block_num = list_get(file->blocks, file->block_count - 1);
+            void* new_content = malloc(superbloque->block_size);
+            memset(new_content, file->caracter_llenado, superbloque->block_size);
+            escribir_bloque(new_content, *block_num, superbloque->block_size);
+            restante -= superbloque->block_size;
+        }        
     }
 
     log_info(logger, "%s restaurado", file_data->nombre);
@@ -100,7 +130,7 @@ void fsck() {
 
     // BITMAP
     {
-        void iterar_blocks(uint32_t* n) { printf(" %d ", *n); }
+        //void iterar_blocks(uint32_t* n) { printf(" %d ", *n); }
         void cargar_en_bitarray(uint32_t* bloque) { monitor_bitarray_set_bit(*bloque); }
         void abrir_archivo_y_cargar_en_bitarray(char* nombre) {
             open_file_t* file_data = cargar_archivo(nombre);
@@ -108,7 +138,7 @@ void fsck() {
             if(file_data == NULL)
                 return;
 
-            list_iterate((file_data->file)->blocks, iterar_blocks);
+            //list_iterate((file_data->file)->blocks, iterar_blocks);
             list_iterate(
                 (file_data->file)->blocks,
                 (void*) cargar_en_bitarray
