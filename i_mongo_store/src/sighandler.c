@@ -8,10 +8,19 @@ void set_signal_handlers() {
 }
 
 t_posicion* pos_sabotaje() {
-    if(list_is_empty(cfg->POSICIONES_SABOTAJE))
+    /*if(list_is_empty(cfg->POSICIONES_SABOTAJE))
         return NULL;
 
-    return list_remove(cfg->POSICIONES_SABOTAJE, 0);
+    return list_remove(cfg->POSICIONES_SABOTAJE, 0);*/
+    static uint16_t i = 0;
+
+    if(i == list_size(cfg->POSICIONES_SABOTAJE))
+        i = 0;
+
+    t_posicion* ret = list_get(cfg->POSICIONES_SABOTAJE, i);
+    
+    i++;
+    return ret;
 }
 
 void sabotaje_signal_handler() {
@@ -26,7 +35,7 @@ void sabotaje_signal_handler() {
     pthread_create(&HILO_FSCK, NULL, (void*) fsck, NULL);
     pthread_detach(HILO_FSCK);
     send_sabotaje(fd_sabotajes, pos);
-    free_t_posicion(pos);
+    //free_t_posicion(pos);
 }
 
 void close_signal_handler() {
