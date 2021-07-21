@@ -157,7 +157,7 @@ open_file_t* cargar_archivo(char* nombre) {
     file_data->nombre = strdup(nombre);
     pthread_mutex_init(&(file_data->mutex_file), NULL);
     print_open_file_t(file_data);
-    agregar_archivo(file_data);
+    //agregar_archivo(file_data);
     fclose(f);
 
     return file_data;
@@ -333,12 +333,10 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
 
 void cerrar_archivo(open_file_t* file_data) {
     escribir_archivo(file_data->nombre, file_data->file);
-    (file_data->refs)--;
-
-    if(!file_data->refs) { // Nadie mas lo referencia, lo podemos sacar
+    free_open_file_t(file_data);
+    /*if(!file_data->refs) { // Nadie mas lo referencia, lo podemos sacar
         remover_lista_archivos(file_data->nombre);
-        //free_open_file_t(file_data);
-    }
+    }*/
 }
 
 void eliminar_archivo(open_file_t* file_data) {

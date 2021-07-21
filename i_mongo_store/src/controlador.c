@@ -9,10 +9,11 @@ void controlador_disco() {
     log_info(logger, "Controlador de disco iniciado.");
     COLA_OPERACIONES = queue_create();
     while(1) {
+        sem_wait(&OPERACIONES_PENDIENTES);
+
         if(saboteado)
             sem_wait(&sem_sabotaje);
 
-        sem_wait(&OPERACIONES_PENDIENTES);
         sem_t* sem = remover_controlador_disco();
         sem_post(sem);
         sem_wait(&DISCO_LIBRE);

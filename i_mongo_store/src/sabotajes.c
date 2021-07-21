@@ -14,9 +14,9 @@ void verificar_blocks_archivo(open_file_t* file_data, file_t* file) {
     char* content = recuperar_archivo(file_data);
     char* md5 = md5sum(content, file->size);
 
-    printf("\n\n");
-    printf("%s - %d - %d - %d - %s - %s", file_data->nombre, file->size, file->block_count, list_size(file->blocks), md5, file->md5);
-    printf("\n\n");
+    //printf("\n\n");
+    //printf("%s - %d - %d - %d - %s - %s", file_data->nombre, file->size, file->block_count, list_size(file->blocks), md5, file->md5);
+    //printf("\n\n");
 
     if(strcmp(md5, file->md5) == 0) {
         log_info(logger, "Hash MD5 de %s coincide.", file_data->nombre);
@@ -75,6 +75,13 @@ void verificar_blocks_archivo(open_file_t* file_data, file_t* file) {
     }
 
     log_info(logger, "%s restaurado", file_data->nombre);
+    char* recuperado = recuperar_archivo(file_data);
+
+    // Le ponemos el caracter de fin de string para asegurar que no haga cosas raras
+    recuperado = realloc(recuperado, file->size + 1);
+    recuperado[file->size] = '\0';
+    log_info(logger, "Contenido de %s: %s", file_data->nombre, recuperado);
+    free(recuperado);
 
     free(content);
     free(md5);
@@ -104,6 +111,7 @@ void verificar_integridad_archivo(char* nombre) {
     // block_count y blocks
 
     file->block_count = list_size(file->blocks);
+    log_info(logger, "Block count de %s verificado. BLOCK_COUNT=%d", file_data->nombre, file->block_count);
 
     // Blocks
     verificar_blocks_archivo(file_data, file);
@@ -124,6 +132,7 @@ void fsck() {
         free(path);
         fseek(bp, 0L, SEEK_END);
         superbloque->blocks = ftell(bp) / superbloque->block_size;
+        sincronizar_datos_superbloque();
         log_info(logger, "Verificada la integridad de los bloques");
     }
     
@@ -174,6 +183,7 @@ void fsck() {
             }
             closedir(d);
         }
+        sincronizar_bitarray();
         log_info(logger, "Verificada la integridad del bitmap");
     }
     
@@ -188,4 +198,5 @@ void fsck() {
 
     saboteado = false;
     sem_post(&sem_sabotaje);
+    sem_post(&sem_sabotaje_sincronizador);
 }
