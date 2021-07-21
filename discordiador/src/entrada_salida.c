@@ -81,6 +81,9 @@ void tarea_io(t_running_thread* thread, t_tripulante* t) {
     }
 
     while((t->tarea)->duracion) {
+        if(SABOTAJE_ACTIVO)
+            sem_wait(&pausar_io_en_sabotaje);
+
         __asm__ volatile ("call ciclo_dis");
         ((t->tarea)->duracion)--;
         log_info(main_log, "#%d I/O - %d remaining", t->tid, (t->tarea)->duracion);

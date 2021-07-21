@@ -2,6 +2,7 @@
 
 bool SABOTAJE_ACTIVO = false;
 sem_t wait_sabotaje_plan_bloqueada;
+sem_t pausar_io_en_sabotaje;
 
 t_running_thread* encargado;
 pthread_t HILO_PLANIFICADOR;
@@ -154,6 +155,7 @@ void finalizar_sabotaje() {
 
     SABOTAJE_ACTIVO = false;
     sem_post(&BLOQUEAR_PLANIFICADOR); // Dejamos que el planificador vuelva a funcionar
+    sem_post(&pausar_io_en_sabotaje);
 }
 
 void listener_sabotaje() {
@@ -169,6 +171,7 @@ void listener_sabotaje() {
     log_info(main_log, "Inicializado el listener de sabotajes.");
     send_handshake_sabotaje(fd);
     sem_init(&wait_sabotaje_plan_bloqueada, 0, 0);
+    sem_init(&pausar_io_en_sabotaje, 0, 0);
 
     while(1) {
         t_posicion* pos_sabotaje;
