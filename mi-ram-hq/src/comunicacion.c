@@ -180,6 +180,7 @@ static void procesar_conexion(void* void_args) {
                 }
                 break;
             }
+
             case SOLICITAR_TAREA:
             {
                 uint32_t tid;
@@ -200,6 +201,7 @@ static void procesar_conexion(void* void_args) {
                 }
                 break;
             }
+
             case CAMBIO_ESTADO:
             {
                 uint32_t id_tripulante;
