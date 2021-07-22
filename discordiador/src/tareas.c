@@ -63,7 +63,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
         //ciclo();
         __asm__ volatile ("call ciclo_dis"); // Por los memes
 
-        if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
+        /*if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             mover_tripulante(thread_data);
         } else {
             if((t->tarea)->tipo != OTRO_T) {
@@ -89,7 +89,34 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
                     sem_post(&ACTIVE_THREADS);
                 }
             }
+        }*/
+        if(!posiciones_iguales(t->pos, (t->tarea)->pos))
+            mover_tripulante(thread_data);
+        else {
+            if((t->tarea)->tipo != OTRO_T) {
+                tarea_io(thread_data, t);
+
+                send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
+                if(replanificar_tripulante(thread_data, t)) {
+                    log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                    goto final;
+                } else
+                    log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+            } else if((t->tarea)->duracion)
+                correr_tarea_generica(thread_data);
         }
+
+        if((t->tarea)->tipo == OTRO_T && !((t->tarea)->duracion)) {
+            send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
+            if(replanificar_tripulante(thread_data, t)) {
+                log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                sem_post(&ACTIVE_THREADS);
+                goto final;
+            } else
+                log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
+                sem_post(&ACTIVE_THREADS);
+        } 
     }
 
     final:
@@ -122,7 +149,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
 
 
 
-        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM) {
+        /*if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM) {
             if((t->tarea)->duracion)
                 desalojar_tripulante(thread_data);
             else { // El acto de replanificar incluye desalojarlo
@@ -163,6 +190,40 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                         sem_post(&ACTIVE_THREADS);
                     }
                 }
+            }
+        }*/
+        if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
+            mover_tripulante(thread_data);
+            (thread_data->quantum)++;
+        } else {
+            if((t->tarea)->tipo != OTRO_T) {
+                tarea_io(thread_data, t);
+
+                send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
+                if(replanificar_tripulante(thread_data, t)) {
+                    log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                    goto final;
+                } else
+                    log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+            } else if((t->tarea)->duracion) {
+                correr_tarea_generica(thread_data);
+                (thread_data->quantum)++;
+            }
+        }
+
+        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM) {
+            if((t->tarea)->duracion)
+                desalojar_tripulante(thread_data);
+            else { // El acto de replanificar incluye desalojarlo
+                send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
+                if(replanificar_tripulante(thread_data, t)) {
+                    log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
+                    sem_post(&ACTIVE_THREADS);
+                    goto final;
+                } else
+                    log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                    send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
+                    sem_post(&ACTIVE_THREADS);
             }
         }
     }
