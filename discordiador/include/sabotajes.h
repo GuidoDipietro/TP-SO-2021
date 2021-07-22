@@ -14,10 +14,9 @@
 #include "config.h"
 #include "listar_tripulantes.h"
 
-#define SIG_SABOTAJE SIGUSR1
-
 extern bool SABOTAJE_ACTIVO;
 extern sem_t wait_sabotaje_plan_bloqueada;
+extern sem_t pausar_io_en_sabotaje;
 
 void iniciar_sabotaje(t_tarea* tarea_sabotaje, int fd_sabotajes);
 void finalizar_sabotaje();

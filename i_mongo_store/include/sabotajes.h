@@ -8,7 +8,7 @@
 
 #include "files.h"
 #include "bitacora.h"
-#include "monitor_bitarray.h"
+#include "blocks.h"
 
 extern int fd_sabotajes;
 

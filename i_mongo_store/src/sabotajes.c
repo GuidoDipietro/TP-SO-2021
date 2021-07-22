@@ -14,9 +14,9 @@ void verificar_blocks_archivo(open_file_t* file_data, file_t* file) {
     char* content = recuperar_archivo(file_data);
     char* md5 = md5sum(content, file->size);
 
-    printf("\n\n");
-    printf("%s - %d - %d - %d - %s - %s", file_data->nombre, file->size, file->block_count, list_size(file->blocks), md5, file->md5);
-    printf("\n\n");
+    //printf("\n\n");
+    //printf("%s - %d - %d - %d - %s - %s", file_data->nombre, file->size, file->block_count, list_size(file->blocks), md5, file->md5);
+    //printf("\n\n");
 
     if(strcmp(md5, file->md5) == 0) {
         log_info(logger, "Hash MD5 de %s coincide.", file_data->nombre);
@@ -37,14 +37,51 @@ void verificar_blocks_archivo(open_file_t* file_data, file_t* file) {
     uint32_t restante = file->size - superbloque->block_size * (file->block_count - 1);
     // Ojo que aca podemos tener overflow negativo!
 
+    // Aca todavia me va a quedar el ultimo bloque que esta en el archivo
+
+    // Vos decis que se repite codigo? Porque para mi no :)
+    // -1 profes de PdP
     if(restante > 0 && file->block_count > 0) {
-        uint32_t* num_bloque = list_get(file->blocks, file->block_count - 1);
-        char* content = malloc(restante);
-        memset(content, file->caracter_llenado, restante);
-        escribir_bloque(content, *num_bloque, restante);
+        if(restante > superbloque->block_size) {
+            uint32_t* block_ptr = list_get(file->blocks, file->block_count - 1);
+            void* new_content = malloc(superbloque->block_size);
+            memset(new_content, file->caracter_llenado, superbloque->block_size);
+            escribir_bloque(new_content, *block_ptr, superbloque->block_size);
+            restante -= superbloque->block_size;
+
+            uint32_t block_num;
+            while(restante > superbloque->block_size) {
+                uint32_t block_num = monitor_offset_bloque_libre();
+                char* new_content = malloc(superbloque->block_size);
+                memset(new_content, file->caracter_llenado, superbloque->block_size);
+                escribir_bloque(new_content, block_num, superbloque->block_size);
+                restante -= superbloque->block_size;
+            }
+
+            if(restante > 0) {
+                uint32_t block_num = monitor_offset_bloque_libre();
+                char* new_content = malloc(restante);
+                memset(new_content, file->caracter_llenado, restante);
+                escribir_bloque(new_content, block_num, restante);
+                restante -= superbloque->block_size;
+            }
+        } else {
+            uint32_t* block_num = list_get(file->blocks, file->block_count - 1);
+            void* new_content = malloc(superbloque->block_size);
+            memset(new_content, file->caracter_llenado, superbloque->block_size);
+            escribir_bloque(new_content, *block_num, superbloque->block_size);
+            restante -= superbloque->block_size;
+        }        
     }
 
     log_info(logger, "%s restaurado", file_data->nombre);
+    char* recuperado = recuperar_archivo(file_data);
+
+    // Le ponemos el caracter de fin de string para asegurar que no haga cosas raras
+    recuperado = realloc(recuperado, file->size + 1);
+    recuperado[file->size] = '\0';
+    log_info(logger, "Contenido de %s: %s", file_data->nombre, recuperado);
+    free(recuperado);
 
     free(content);
     free(md5);
@@ -74,6 +111,7 @@ void verificar_integridad_archivo(char* nombre) {
     // block_count y blocks
 
     file->block_count = list_size(file->blocks);
+    log_info(logger, "Block count de %s verificado. BLOCK_COUNT=%d", file_data->nombre, file->block_count);
 
     // Blocks
     verificar_blocks_archivo(file_data, file);
@@ -94,13 +132,14 @@ void fsck() {
         free(path);
         fseek(bp, 0L, SEEK_END);
         superbloque->blocks = ftell(bp) / superbloque->block_size;
+        sincronizar_datos_superbloque();
         log_info(logger, "Verificada la integridad de los bloques");
     }
     
 
     // BITMAP
     {
-        void iterar_blocks(uint32_t* n) { printf(" %d ", *n); }
+        //void iterar_blocks(uint32_t* n) { printf(" %d ", *n); }
         void cargar_en_bitarray(uint32_t* bloque) { monitor_bitarray_set_bit(*bloque); }
         void abrir_archivo_y_cargar_en_bitarray(char* nombre) {
             open_file_t* file_data = cargar_archivo(nombre);
@@ -108,7 +147,7 @@ void fsck() {
             if(file_data == NULL)
                 return;
 
-            list_iterate((file_data->file)->blocks, iterar_blocks);
+            //list_iterate((file_data->file)->blocks, iterar_blocks);
             list_iterate(
                 (file_data->file)->blocks,
                 (void*) cargar_en_bitarray
@@ -144,6 +183,7 @@ void fsck() {
             }
             closedir(d);
         }
+        sincronizar_bitarray();
         log_info(logger, "Verificada la integridad del bitmap");
     }
     
@@ -158,4 +198,5 @@ void fsck() {
 
     saboteado = false;
     sem_post(&sem_sabotaje);
+    sem_post(&sem_sabotaje_sincronizador);
 }
