@@ -60,6 +60,7 @@ void push_cola_bloqueados(t_running_thread* thread);
 t_running_thread* pop_cola_bloqueados();
 void iterar_cola_bloqueados(void (*f)(void*));
 t_running_thread* buscar_cola_bloqueados(uint32_t tid);
+uint16_t largo_cola_bloqueados();
 
 // Cola tripulantes
 

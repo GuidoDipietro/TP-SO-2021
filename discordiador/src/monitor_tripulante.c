@@ -135,15 +135,29 @@ void iterar_cola_bloqueados(void (*f)(void*)) {
     pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
 }
 
+uint16_t largo_cola_bloqueados() {
+    pthread_mutex_lock(&MUTEX_COLA_BLOQUEADOS);
+    uint16_t ret = queue_size(COLA_BLOQUEADOS);
+    pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
+    return ret;
+}
+
 // Cola tripulantes
 
 void push_cola_tripulante(t_running_thread* t) {
     pthread_mutex_lock(&MUTEX_COLA);
+
+    obj_tid = (((t_running_thread*) t)->t)->tid;
+    if(list_any_satisfy(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid)) {
+        pthread_mutex_unlock(&MUTEX_COLA);
+        return;
+    }
+
     queue_push(COLA_TRIPULANTES, (void*) t);
-    sem_post(&TRIPULANTES_EN_COLA);
-    pthread_mutex_unlock(&MUTEX_COLA);
-    //(t->t)->status = READY;
     cambiar_estado(t->t, READY);
+    pthread_mutex_unlock(&MUTEX_COLA);
+    sem_post(&TRIPULANTES_EN_COLA);
+    //(t->t)->status = READY;
 }
 
 t_running_thread* pop_cola_tripulante() {
@@ -172,6 +186,9 @@ void* remover_cola_tripulante(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_COLA);
     obj_tid = tid;
     void* p = list_remove_by_condition(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid);
+
+    while(list_remove_by_condition(COLA_TRIPULANTES->elements, filter_t_running_thread_by_tid) != NULL);
+
     pthread_mutex_unlock(&MUTEX_COLA);
     return p;
 }
@@ -188,6 +205,13 @@ void iterar_cola_ready(void (*function)(void*)) {
 
 void monitor_add_lista_hilos(void* t) {
     pthread_mutex_lock(&MUTEX_LISTA_HILOS);
+
+    obj_tid = (((t_running_thread*) t)->t)->tid;
+    if(list_any_satisfy(LISTA_HILOS, filter_t_running_thread_by_tid)) {
+        pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
+        return;
+    }
+
     list_add(LISTA_HILOS, t);
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
 }
@@ -217,6 +241,9 @@ void* remover_lista_hilos(uint32_t tid) {
     pthread_mutex_lock(&MUTEX_LISTA_HILOS);
     obj_tid = tid;
     void* p = list_remove_by_condition(LISTA_HILOS, filter_t_running_thread_by_tid);
+
+    while(list_remove_by_condition(LISTA_HILOS, filter_t_running_thread_by_tid) != NULL);
+
     pthread_mutex_unlock(&MUTEX_LISTA_HILOS);
     return p;
 }
@@ -231,7 +258,7 @@ uint16_t largo_lista_hilos() {
 // Cola exit
 
 void agregar_lista_exit(void* p) {
-    ((t_tripulante*) p)->status = EXIT;
+    //((t_tripulante*) p)->status = EXIT;
     cambiar_estado(p, EXIT);
     pthread_mutex_lock(&MUTEX_COLA_EXIT);
     list_add(COLA_EXIT, p);

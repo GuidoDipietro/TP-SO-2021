@@ -8,4 +8,6 @@
 void controlador_es();
 void tarea_io(t_running_thread* thread, t_tripulante* t);
 
+//extern sem_t pausa_io;
+
 #endif
