@@ -16,14 +16,13 @@ void controlador_es() {
     while (1) {
         sem_wait(&SEM_IO_LIBRE);
         sem_wait(&TRIPULANTE_EN_BLOQUEADOS);
-        pop_cola_bloqueados();
         pthread_mutex_lock(&MUTEX);
         sem_t* sem = queue_pop(COLA);
         pthread_mutex_unlock(&MUTEX);
         sem_post(sem);
         //sem_post(&(thread->sem_pause));
         //printf("\n\nIO LIBERADO\n\n");
-    } 
+    }
     sem_destroy(&SEM_IO_LIBRE);
 }
 
@@ -90,6 +89,7 @@ void tarea_io(t_running_thread* thread, t_tripulante* t) {
     }
 
     log_info(main_log, "El tripulante %d finalizo su I/O", t->tid);
+    pop_cola_bloqueados();
     sem_post(&SEM_IO_LIBRE); // Libero el dispositivo de I/O
     sem_destroy(&block_sem);
     //thread->blocked = false;

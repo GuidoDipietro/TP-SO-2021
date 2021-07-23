@@ -203,18 +203,20 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                 if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     goto final;
-                } else
+                } else {
                     log_info(main_log, "El tripulante %d fue replanificado", t->tid);
+                    goto saltear;
+                }
             } else if((t->tarea)->duracion) {
                 correr_tarea_generica(thread_data);
                 (thread_data->quantum)++;
             }
         }
 
-        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM || !(t->tarea)->duracion) {
+        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM || (t->tarea)->duracion == 0) {
             if((t->tarea)->duracion)
                 desalojar_tripulante(thread_data);
-            else { // El acto de replanificar incluye desalojarlo
+            else if((t->tarea)->tipo == OTRO_T) { // El acto de replanificar incluye desalojarlo
                 send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                 if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
@@ -226,6 +228,8 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                     sem_post(&ACTIVE_THREADS);
             }
         }
+
+        saltear: {}
     }
 
     final:
