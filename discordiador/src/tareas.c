@@ -211,7 +211,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
             }
         }
 
-        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM) {
+        if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM || !(t->tarea)->duracion) {
             if((t->tarea)->duracion)
                 desalojar_tripulante(thread_data);
             else { // El acto de replanificar incluye desalojarlo
