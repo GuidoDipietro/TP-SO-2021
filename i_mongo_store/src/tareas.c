@@ -118,8 +118,12 @@ char* obtener_bitacora(char* nombre) {
 
     bitacora_t* bit = cargar_bitacora(nombre);
     
-    if(bit == NULL)
+    if(bit == NULL) {
+        log_info(logger, "No existe la bitacora %s", nombre);
+        sem_destroy(&sem);
+        sem_post(&DISCO_LIBRE);
         return strdup("");
+    }
     
     char* ret = recuperar_bitacora(bit);
 
