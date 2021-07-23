@@ -26,7 +26,7 @@ void correr_tripulante_RR(t_running_thread* thread_data);
 uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t);
 void mover_tripulante(t_running_thread* r_t);
 void correr_tarea_generica(t_running_thread* r_t);
-void desalojar_tripulante(t_running_thread* thread_data);
+void desalojar_tripulante(t_running_thread* thread_data, t_tripulante* t);
 bool posiciones_iguales(t_posicion* p1, t_posicion* p2);
 
 #endif

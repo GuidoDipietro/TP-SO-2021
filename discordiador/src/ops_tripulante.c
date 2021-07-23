@@ -222,5 +222,5 @@ uint8_t solicitar_tarea(t_tripulante* t) {
         //print_t_tarea(t->tarea);
     }
 
-    return!! 0;
+    return 0;
 }

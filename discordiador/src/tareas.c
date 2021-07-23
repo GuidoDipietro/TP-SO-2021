@@ -27,8 +27,6 @@ void planificador() {
         t_running_thread* new = pop_cola_tripulante();
         // Preparamos el hilo para correr
         //(new->t)->status = EXEC;
-        if(new == NULL)
-            continue;
 
         cambiar_estado(new->t, EXEC);
         new->blocked = false;
@@ -121,6 +119,7 @@ void correr_tripulante_FIFO(t_running_thread* thread_data) {
 
     final:
         // Avisamos al mi-ram-alta-calidad para que borre el TCB
+        remover_lista_hilos(t->tid);
         cambiar_estado(t, EXIT);
         send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
         cerrar_conexiones_tripulante(t);
@@ -145,9 +144,8 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         }
 
         //ciclo();
-        __asm__ volatile ("call ciclo_dis"); // Por los memes
-
-
+        //__asm__ volatile ("call ciclo_dis"); // Por los memes
+        ciclo_dis();
 
         /*if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM) {
             if((t->tarea)->duracion)
@@ -192,6 +190,7 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
                 }
             }
         }*/
+
         if(!posiciones_iguales(t->pos, (t->tarea)->pos)) {
             mover_tripulante(thread_data);
             (thread_data->quantum)++;
@@ -214,26 +213,28 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         }
 
         if(thread_data->quantum == DISCORDIADOR_CFG->QUANTUM || (t->tarea)->duracion == 0) {
-            if((t->tarea)->duracion)
-                desalojar_tripulante(thread_data);
-            else if((t->tarea)->tipo == OTRO_T) { // El acto de replanificar incluye desalojarlo
+            if((t->tarea)->duracion > 0) {
+                desalojar_tripulante(thread_data, t);
+            } else if((t->tarea)->tipo == OTRO_T) { // El acto de replanificar incluye desalojarlo
                 send_fin_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                 if(replanificar_tripulante(thread_data, t)) {
                     log_info(main_log, "El tripulante %d no tiene mas tareas pendientes.", t->tid);
                     sem_post(&ACTIVE_THREADS);
                     goto final;
-                } else
+                } else {
                     log_info(main_log, "El tripulante %d fue replanificado", t->tid);
                     send_inicio_tarea(t->fd_i_mongo_store, t->tid, (t->tarea)->nombre);
                     sem_post(&ACTIVE_THREADS);
+                }
             }
         }
 
-        saltear: {}
+        saltear:;
     }
 
     final:
         // Avisamos al mi-ram-alta-calidad para que borre el TCB
+        remover_lista_hilos(t->tid);
         cambiar_estado(t, EXIT);
         send_tripulante(t->fd_mi_ram_hq, t->tid, EXPULSAR_TRIPULANTE);
         cerrar_conexiones_tripulante(t);
@@ -242,14 +243,15 @@ void correr_tripulante_RR(t_running_thread* thread_data) {
         free(thread_data);
 }   
 
-void desalojar_tripulante(t_running_thread* thread_data) {
+void desalojar_tripulante(t_running_thread* thread_data, t_tripulante* t) {
     log_info(main_log, "El tripulante %d fue desalojado por fin de quantum", (thread_data->t)->tid);
-    remover_lista_hilos((thread_data->t)->tid);
     thread_data->blocked = true;
+    remover_lista_hilos(t->tid);
     thread_data->quantum = 0;
-    sem_post(&ACTIVE_THREADS);
-    (thread_data->t)->status = READY;
+    //(thread_data->t)->status = READY;
+    //cambiar_estado(t, READY);
     push_cola_tripulante(thread_data);
+    sem_post(&ACTIVE_THREADS);
 }
 
 uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) {
@@ -259,11 +261,12 @@ uint8_t replanificar_tripulante(t_running_thread* thread_data, t_tripulante* t) 
 
     if(solicitar_tarea(t))
         return 1;
-
-    thread_data->quantum = 0;
-    push_cola_tripulante(thread_data);
-    //t->status = READY;
-    return 0;
+    else {
+        thread_data->quantum = 0;
+        push_cola_tripulante(thread_data);
+        //t->status = READY;
+        return 0;
+    }
 }
 
 void mover_tripulante(t_running_thread* r_t) {
