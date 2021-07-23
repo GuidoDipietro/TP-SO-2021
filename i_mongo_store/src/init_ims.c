@@ -77,6 +77,8 @@ uint8_t cargar_configuracion() {
     log_info(logger, "Archivo de configuracion cargado correctamente");
 
     config_destroy(cfg_file);
+    free(p1);
+    free(p2);
 
     return 1;
 }
@@ -97,7 +99,9 @@ bool crear_servidor(int* fd, char* name) {
 void cerrar_programa() {
     log_info(logger, "Cerrando programa");
     munmap(mem_map, superbloque->tamanio_fs);
+    free(mem_cpy);
     log_destroy(logger);
+    free((superbloque->bitarray)->bitarray);
     bitarray_destroy(superbloque->bitarray);
     free(superbloque);
     free(cfg->PUNTO_MONTAJE);

@@ -64,6 +64,7 @@ void cargar_superbloque() {
     raw_bitmap_t raw_bitmap = malloc(superbloque->bytes_bitarray);
     fread(raw_bitmap, superbloque->bytes_bitarray, 1, f);
     superbloque->bitarray = bitarray_create(raw_bitmap, superbloque->bytes_bitarray);
+    //free(raw_bitmap);
 
     fclose(f);
 }
