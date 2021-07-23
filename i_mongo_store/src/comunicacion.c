@@ -111,6 +111,7 @@ static void procesar_conexion(void* void_args) {
                     );
                     completar_bitacora(file, content, strlen(content));
                     free(content);
+                    free(file);
                 } else {
                     log_error(logger, "Error recibiendo ATENCION_SABOTAJE");
                 }
@@ -127,6 +128,7 @@ static void procesar_conexion(void* void_args) {
                     );
                     completar_bitacora(file, content, strlen(content));
                     free(content);
+                    free(file);
                 } else {
                     log_error(logger, "Error recibiendo RESOLUCION_SABOTAJE");
                 }

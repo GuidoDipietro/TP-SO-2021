@@ -3,6 +3,7 @@
 void free_file_t(file_t* file) {
     if(file->blocks != NULL)
         list_destroy_and_destroy_elements(file->blocks, free);
+    free(file->md5);
     free(file);
 }
 
@@ -83,6 +84,7 @@ void* recuperar_archivo(open_file_t* file_data) {
                 block_content,
                 superbloque->block_size
             );
+            free(block_content);
         }
         block_num = list_get(file->blocks, file->block_count - 1);
         block_content = leer_bloque(*block_num);
@@ -93,6 +95,7 @@ void* recuperar_archivo(open_file_t* file_data) {
             block_content,
             content_size
         );
+        free(block_content);
     }
     //printf("\nE\n");
 
@@ -268,6 +271,7 @@ void consumir_recurso(open_file_t* file_data, uint32_t cantidad) {
     file->block_count = list_size(file->blocks);
 
     void* content = recuperar_archivo(file_data);
+    free(file->md5);
     file->md5 = md5sum(content, file->size);
     //file->md5 = strdup("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     free(content);
@@ -325,6 +329,7 @@ void write_to_file(open_file_t* file_data, void* content, uint32_t len) {
     file->size += len;
 
     void* end_content = recuperar_archivo(file_data);
+    free(file->md5);
     file->md5 = md5sum(end_content, file->size);
     free(end_content);
 
