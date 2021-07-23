@@ -135,6 +135,13 @@ void iterar_cola_bloqueados(void (*f)(void*)) {
     pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
 }
 
+uint16_t largo_cola_bloqueados() {
+    pthread_mutex_lock(&MUTEX_COLA_BLOQUEADOS);
+    uint16_t ret = queue_size(COLA_BLOQUEADOS);
+    pthread_mutex_unlock(&MUTEX_COLA_BLOQUEADOS);
+    return ret;
+}
+
 // Cola tripulantes
 
 void push_cola_tripulante(t_running_thread* t) {

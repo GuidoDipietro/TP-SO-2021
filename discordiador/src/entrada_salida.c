@@ -1,7 +1,7 @@
 #include "../include/entrada_salida.h"
 
 sem_t SEM_IO_LIBRE;
-
+//sem_t pausa_io;
 // Esto es basicamente un planificador, pero de e/s
 // Esta funcion, una vez iniciada, no deberia frenar nunca
 
@@ -11,6 +11,7 @@ pthread_mutex_t MUTEX;
 void controlador_es() {
     log_info(main_log, "Controlador de E/S iniciado correctamente");
     sem_init(&SEM_IO_LIBRE, 0, 1);
+    //sem_init(&pausa_io, 0, 0);
     pthread_mutex_init(&MUTEX, NULL);
     COLA = queue_create();
     while (1) {
@@ -24,6 +25,7 @@ void controlador_es() {
         //printf("\n\nIO LIBERADO\n\n");
     }
     sem_destroy(&SEM_IO_LIBRE);
+    //sem_destroy(&pausa_io);
 }
 
 /*
@@ -83,12 +85,19 @@ void tarea_io(t_running_thread* thread, t_tripulante* t) {
         if(SABOTAJE_ACTIVO)
             sem_wait(&pausar_io_en_sabotaje);
 
+        //if(PLANIFICACION_BLOQUEADA)
+        //    sem_wait(&pausa_io);
+
         __asm__ volatile ("call ciclo_dis");
         ((t->tarea)->duracion)--;
         log_info(main_log, "#%d I/O - %d remaining", t->tid, (t->tarea)->duracion);
     }
 
     log_info(main_log, "El tripulante %d finalizo su I/O", t->tid);
+
+    //if(PLANIFICACION_BLOQUEADA)
+    //    sem_wait(&pausa_io);
+
     pop_cola_bloqueados();
     sem_post(&SEM_IO_LIBRE); // Libero el dispositivo de I/O
     sem_destroy(&block_sem);

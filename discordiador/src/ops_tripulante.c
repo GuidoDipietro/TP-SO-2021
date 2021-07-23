@@ -46,6 +46,10 @@ void reanudar_planificacion() {
         push_cola_tripulante(r_t);
     }
     sem_post(&BLOQUEAR_PLANIFICADOR);
+
+    //if(largo_cola_bloqueados() > 0)
+    //    sem_post(&pausa_io);
+
     log_info(main_log, "Planificacion desbloqueada");
 
     if(SABOTAJE_ACTIVO)
