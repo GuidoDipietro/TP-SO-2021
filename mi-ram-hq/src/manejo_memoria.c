@@ -804,7 +804,7 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
 
     // Ahora si puedo aplicar el algoritmo del RELOJITO
     const uint32_t cant_frames = list_size(frames_presentes);
-    uint32_t nro_frame_posible_victima = 0;
+    static uint64_t nro_frame_posible_victima = 0;
     while (BEN(@ RELOJITO @,'@')) { // si no lo obfuscaba, era demasiado buena esta funcion ya
         struct horrible* posible_victima = list_get(frames_presentes, nro_frame_posible_victima % cant_frames);
         if (posible_victima->pagina->bit_U == 0) {
@@ -821,7 +821,9 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
 
     list_destroy_and_destroy_elements(frames_presentes, (void*) free);
 
-    return nro_frame_posible_victima % (cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA);
+    uint32_t ans = nro_frame_posible_victima % (cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA);
+    nro_frame_posible_victima++;
+    return ans;
 }
 
 uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {
