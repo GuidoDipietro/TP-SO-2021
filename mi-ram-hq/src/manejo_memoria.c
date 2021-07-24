@@ -175,19 +175,7 @@ bool eliminar_segmento_de_mp(uint32_t inicio) {
 
     // Nuevo hueco
     segmento_t* hueco_generado = new_segmento(0, 0, segmento->inicio, segmento->tamanio);
-    segmento_t* hueco_posterior = list_find_first_by_inicio_seglib(hueco_generado->inicio+hueco_generado->tamanio);
-    segmento_t* hueco_anterior = list_find_first_by_inicio_seglib(hueco_generado->inicio-1);
-    if (hueco_posterior) {
-        hueco_generado->tamanio += hueco_posterior->tamanio;
-        hueco_posterior->tamanio = 0;
-        remove_zero_sized_gap_seglib();
-    }
-    if (hueco_anterior) {
-        hueco_generado->inicio = hueco_anterior->inicio;
-        hueco_generado->tamanio += hueco_anterior->tamanio;
-        hueco_anterior->tamanio = 0;
-        remove_zero_sized_gap_seglib();
-    }
+    // ACA ESTABA EL MERGE CON HUECO ANTERIOR Y POSTERIOR, SE FUE
     list_add_seglib(hueco_generado);
 
     // Importante
@@ -296,6 +284,8 @@ static bool compactar_mp_iteracion(uint32_t i) {
 }
 bool compactar_mp() {
     if (cfg->SEG) {
+        unificar_huecos_seglib(); // merge de huecos contiguos                                            (pasar de esquema meme a esquema sensato)
+        
         if (list_is_empty_segus()) {
             return true;
         }
@@ -814,7 +804,7 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
 
     // Ahora si puedo aplicar el algoritmo del RELOJITO
     const uint32_t cant_frames = list_size(frames_presentes);
-    uint32_t nro_frame_posible_victima = 0;
+    static uint64_t nro_frame_posible_victima = 0;
     while (BEN(@ RELOJITO @,'@')) { // si no lo obfuscaba, era demasiado buena esta funcion ya
         struct horrible* posible_victima = list_get(frames_presentes, nro_frame_posible_victima % cant_frames);
         if (posible_victima->pagina->bit_U == 0) {
@@ -831,7 +821,9 @@ static uint32_t pagina_a_reemplazar_CLOCK(uint32_t frame_a_swap, uint32_t* pid, 
 
     list_destroy_and_destroy_elements(frames_presentes, (void*) free);
 
-    return nro_frame_posible_victima % (cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA);
+    uint32_t ans = nro_frame_posible_victima % (cfg->TAMANIO_MEMORIA/cfg->TAMANIO_PAGINA);
+    nro_frame_posible_victima++;
+    return ans;
 }
 
 uint32_t pagina_a_reemplazar(uint32_t frame_a_swap, uint32_t* pid, uint32_t* nro_pagina) {

@@ -286,6 +286,88 @@ void test_meter_segmento_en_mp_bf() {
     free(data2);
 }
 
+void test_unificar_huecos_seglib() {
+    // new_segmento(tipo, nro, inicio, tamanio);
+    list_clean_and_destroy_elements(segmentos_libres, (void*) free);
+    segmento_t* hueco1 = new_segmento(0, 0,  0, 10);
+    segmento_t* hueco2 = new_segmento(0, 0, 10, 20);
+    segmento_t* hueco3 = new_segmento(0, 0, 30,  3);
+    segmento_t* hueco4 = new_segmento(0, 0, 47, 20);
+    segmento_t* hueco5 = new_segmento(0, 0, 82, 11);
+    segmento_t* hueco6 = new_segmento(0, 0, 93,  2);
+
+    list_add_seglib(hueco1);
+    list_add_seglib(hueco2);
+    list_add_seglib(hueco3);
+    list_add_seglib(hueco4);
+    list_add_seglib(hueco5);
+    list_add_seglib(hueco6);
+
+    print_seglib(false);
+
+    /*
+    COSA      TAMANIO
+    -----------------
+    HUECO          10
+    HUECO          20
+    HUECO           3
+    SEGMENTO       14
+    HUECO          20
+    SEGMENTO       10
+    SEGMENTO        5
+    HUECO          11
+    HUECO           2
+    */
+
+    unificar_huecos_seglib();
+
+    print_seglib(false);
+
+    /*
+    COSA      TAMANIO
+    -----------------
+    HUECO          33
+    SEGMENTO       14
+    HUECO          20
+    SEGMENTO       10
+    SEGMENTO        5
+    HUECO          13
+    */
+
+    CU_ASSERT_TRUE(list_size_seglib() == 3);
+    segmento_t* n_hueco_1 = list_get(segmentos_libres, 0);
+    segmento_t* n_hueco_2 = list_get(segmentos_libres, 1);
+    segmento_t* n_hueco_3 = list_get(segmentos_libres, 2);
+    CU_ASSERT_TRUE(
+        n_hueco_1->inicio ==  0 &&
+        n_hueco_2->inicio == 47 &&
+        n_hueco_3->inicio == 82
+    );
+    CU_ASSERT_TRUE(
+        n_hueco_1->tamanio == 33 &&
+        n_hueco_2->tamanio == 20 &&
+        n_hueco_3->tamanio == 13
+    );
+
+    unificar_huecos_seglib();
+    // Lo mismo deberia ser
+
+    CU_ASSERT_TRUE(list_size_seglib() == 3);
+    n_hueco_1 = list_get(segmentos_libres, 0);
+    n_hueco_2 = list_get(segmentos_libres, 1);
+    n_hueco_3 = list_get(segmentos_libres, 2);
+    CU_ASSERT_TRUE(
+        n_hueco_1->inicio ==  0 &&
+        n_hueco_2->inicio == 47 &&
+        n_hueco_3->inicio == 82
+    );
+    CU_ASSERT_TRUE(
+        n_hueco_1->tamanio == 33 &&
+        n_hueco_2->tamanio == 20 &&
+        n_hueco_3->tamanio == 13
+    );
+}
+
 void test_compactacion() {
     proximo_hueco = &proximo_hueco_first_fit;
     void* data1 = malloc(10);
@@ -393,12 +475,13 @@ void test_primer_frame_libre() {
 // roto porque hay estructuras admin. de patotas que no las testee aca
 void test_ocupar_frames() {
     uint32_t patota1 = 7, patota2 = 3, patota3 = 2;
+    bool ignorable;
 
     size_t size_of_pan = cfg->TAMANIO_PAGINA + 27;
     void* pan = malloc(size_of_pan);
     memset(pan, 0xCA, size_of_pan);
 
-    CU_ASSERT_TRUE(append_data_to_patota_en_mp(pan, size_of_pan, patota1));
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(pan, size_of_pan, patota1, &ignorable));
     mem_hexdump(memoria_principal, 400);
     print_framo(false);
 
@@ -408,7 +491,7 @@ void test_ocupar_frames() {
     void* salmon = malloc(size_of_salmon);
     memset(salmon, 0xFA, size_of_salmon);
 
-    CU_ASSERT_TRUE(append_data_to_patota_en_mp(salmon, size_of_salmon, patota2));
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(salmon, size_of_salmon, patota2, &ignorable));
     mem_hexdump(memoria_principal, 400);
     print_framo(false);
 
@@ -418,7 +501,7 @@ void test_ocupar_frames() {
     void* salame = malloc(size_of_salame);
     memset(salame, 0xFE, size_of_salame);
 
-    CU_ASSERT_TRUE(append_data_to_patota_en_mp(salame, size_of_salame, patota1));
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(salame, size_of_salame, patota1, &ignorable));
     mem_hexdump(memoria_principal, 400);
     print_framo(false);
 
@@ -428,7 +511,7 @@ void test_ocupar_frames() {
     void* queso = malloc(size_of_queso);
     memset(queso, 0xFE, size_of_queso);
 
-    CU_ASSERT_TRUE(append_data_to_patota_en_mp(queso, size_of_queso, patota1));
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(queso, size_of_queso, patota1, &ignorable));
     mem_hexdump(memoria_principal, 400);
     print_framo(false);
 
@@ -438,7 +521,7 @@ void test_ocupar_frames() {
     void* chocolate = malloc(size_of_chocolate);
     memset(chocolate, 0xC0, size_of_chocolate);
 
-    CU_ASSERT_TRUE(append_data_to_patota_en_mp(chocolate, size_of_chocolate, patota3));
+    CU_ASSERT_TRUE(append_data_to_patota_en_mp(chocolate, size_of_chocolate, patota3, &ignorable));
     mem_hexdump(memoria_principal, 1050);
     print_framo(false);
 
@@ -460,9 +543,10 @@ CU_TestInfo tests_memoria[] = {
     // { "Test meter nuevo segmento (first fit)", test_meter_segmento_ff },
     // { "Test meter segmento en MP (first fit)", test_meter_segmento_en_mp_ff },
     // { "Test meter segmento en MP (best fit)", test_meter_segmento_en_mp_bf },
+    { "Test unificar seglib (SEGMEMENTACION)", test_unificar_huecos_seglib },
     // { "Test COMPACTACION", test_compactacion },
-    { "Test print framo", test_print_framo },
-    { "Test primer frame libre", test_primer_frame_libre },
+    // { "Test print framo", test_print_framo },
+    // { "Test primer frame libre", test_primer_frame_libre },
     // { "Test ocupar frames", test_ocupar_frames },
     CU_TEST_INFO_NULL,
 };
