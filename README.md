@@ -1,7 +1,7 @@
 # Trabajo Práctico de Sistemas Operativos - UTN FRBA
 ## Primer Cuatrimestre 2021 --- TP "A-MongOS"
 
-Por: Guido Dipietro - Cristóbal Szkutnik
+Por: [Guido Dipietro](https://github.com/GuidoDipietro) - [Cristóbal Szkutnik](https://github.com/crisszkutnik)
 
 
 [Enunciado del TP](https://docs.google.com/document/d/1u54jk7uKaa6BOAXgLuNVfeYN_mwPBje94iX_6KqvqJo/edit)
