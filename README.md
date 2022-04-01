@@ -4,7 +4,7 @@
 Por: [Guido Dipietro](https://github.com/GuidoDipietro) - [Cristóbal Szkutnik](https://github.com/crisszkutnik)
 
 
-[Enunciado del TP](https://docs.google.com/document/d/1u54jk7uKaa6BOAXgLuNVfeYN_mwPBje94iX_6KqvqJo/edit)
+[Enunciado del TP](https://github.com/GuidoDipietro/TP-SO-2021/blob/main/A-MongOs%20-%20v1.3.pdf)
 
 ---
 
